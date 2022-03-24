@@ -57,9 +57,6 @@ with Diagram("infra", show=False, direction="TB"):
 
     with Cluster("DigitalOcean"):
         with Cluster("Personal"):
-            macneil = Server("macneil")
-            macneil << Java("macneil.club")
-
             muncs_craft = Server("muncs-craft")
             muncs_craft << Java("muncs-craft")
 
