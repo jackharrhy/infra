@@ -57,64 +57,61 @@ with Diagram("infra", show=False, direction="TB"):
 
     with Cluster("DigitalOcean"):
         with Cluster("Personal"):
-            muncs_craft = Server("muncs-craft")
-            muncs_craft << Java("muncs-craft")
+            with Cluster("mug"):
+                mug = Server("mug")
+                tailscale << mug
 
-            with Cluster("cookie"):
-                cookie = Server("cookie")
-                tailscale << cookie
-
-                cookie_docker = Docker("docker")
-                cookie << cookie_docker
+                mug_docker = Docker("docker")
+                mug << mug_docker
 
                 with Cluster("jackharrhy.com"):
                     jackharrhy = Nginx("jackharrhy.com")
                     jackharrhy << WebSite("jackharrhy.com")
                     jackharrhy << WebSite("harrhy.xyz")
                     jackharrhy << WebSite("jackharrhy.dev")
-                    cookie_docker << jackharrhy
+                    mug_docker << jackharrhy
 
                 strickertrade = Remix("stickertrade")
                 strickertrade << WebSite("stickertrade.ca")
-                cookie_docker << strickertrade
+                mug_docker << strickertrade
 
                 livebook = Elixir("livebook")
                 livebook << WebSite("livebook.jackharrhy.dev")
-                cookie_docker << livebook
+                mug_docker << livebook
 
                 bar = Python("bar")
                 bar << WebSite("jackharrhy.dev/bar")
-                cookie_docker << bar
+                mug_docker << bar
 
                 barab = JavaScript("barab")
                 barab << WebSite("jackharrhy.dev/barab")
-                cookie_docker << barab
+                mug_docker << barab
 
                 duaas = Rust("duaas")
                 duaas << WebSite("jackharrhy.dev/random")
-                cookie_docker << duaas
+                mug_docker << duaas
 
                 stackcoin = Crystal("stackcoin")
                 stackcoin << WebSite("stackcoin.world")
-                cookie_docker << stackcoin
+                mug_docker << stackcoin
 
                 phapbot = Php("Phapbot")
-                cookie_docker << phapbot
+                mug_docker << phapbot
 
                 with Cluster("miniflux"):
                     miniflux = Go("miniflux")
                     miniflux << WebSite("miniflux.jackharrhy.dev")
-                    cookie_docker << miniflux
+                    mug_docker << miniflux
 
                     miniflux_db = PostgreSQL("miniflux_db")
                     miniflux << miniflux_db
-                    cookie_docker << miniflux_db
+                    mug_docker << miniflux_db
 
                 traefik = Go("Traefik")
-                cookie_docker << traefik
+                mug_docker << traefik
 
                 watchtower = Go("Watchtower")
-                cookie_docker << watchtower
+                mug_docker << watchtower
 
         with Cluster("MUNCS"):
             murray = Server("murray")
@@ -124,9 +121,6 @@ with Diagram("infra", show=False, direction="TB"):
     with Cluster("Home"):
         stash = Storage("stash")
         tailscale << stash
-
-        cardiff = Laptop("cardiff")
-        tailscale << cardiff
 
         windows = Desktop("windows")
         tailscale << windows
