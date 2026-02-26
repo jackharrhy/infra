@@ -65,8 +65,11 @@ with Diagram("infra", show=False, direction="TB"):
                 with Cluster("jackharrhy.com"):
                     jackharrhy = Nginx("jackharrhy.com")
                     jackharrhy << WebSite("jackharrhy.com")
-                    jackharrhy << WebSite("harrhy.xyz")
                     jackharrhy << WebSite("jackharrhy.dev")
+                    jackharrhy << WebSite("harrhy.xyz")
+                    jackharrhy << WebSite("jack.harrhy.xyz")
+                    jackharrhy << WebSite("jack.arthur.harrhy.xyz")
+                    jackharrhy << WebSite("jack.is.harrhy.xyz")
                     mug_docker << jackharrhy
 
                 siliconharbour = JavaScript("siliconharbour")
