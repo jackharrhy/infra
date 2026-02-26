@@ -2,7 +2,6 @@ from diagrams import Diagram, Cluster
 from diagrams.onprem.compute import Server
 from diagrams.programming.language import (
     Python,
-    Java,
     Php,
     Rust,
     JavaScript,
@@ -10,7 +9,6 @@ from diagrams.programming.language import (
     Elixir,
 )
 from diagrams.generic.storage import Storage
-from diagrams.generic.blank import Blank
 from diagrams.onprem.database import PostgreSQL
 from diagrams.onprem.container import Docker
 from diagrams.onprem.network import Nginx
@@ -71,31 +69,70 @@ with Diagram("infra", show=False, direction="TB"):
                     jackharrhy << WebSite("jackharrhy.dev")
                     mug_docker << jackharrhy
 
-                strickertrade = Remix("stickertrade")
-                strickertrade << WebSite("stickertrade.ca")
-                mug_docker << strickertrade
+                siliconharbour = JavaScript("siliconharbour")
+                siliconharbour << WebSite("siliconharbour.dev")
+                mug_docker << siliconharbour
 
-                livebook = Elixir("livebook")
-                livebook << WebSite("livebook.jackharrhy.dev")
-                mug_docker << livebook
+                plow = Python("where-the-plow")
+                plow << WebSite("plow.jackharrhy.dev")
+                mug_docker << plow
+
+                notscared = JavaScript("notscared-site")
+                notscared << WebSite("notsca.red")
+                mug_docker << notscared
+
+                burger = JavaScript("burger")
+                burger << WebSite("big.burger.beauty")
+                mug_docker << burger
+
+                rotund = Nginx("rotund.org")
+                rotund << WebSite("rotund.org")
+                mug_docker << rotund
+
+                andrew_astro = JavaScript("andrewsite-astro")
+                andrew_astro << WebSite("andrewgossecomposer.com")
+                mug_docker << andrew_astro
+
+                andrew_strapi = JavaScript("andrewsite-strapi")
+                andrew_strapi << WebSite("api.andrewgossecomposer.com")
+                mug_docker << andrew_strapi
+
+                sluggers = JavaScript("sluggers-super-draft")
+                sluggers << WebSite("lil-slug-crew.jackharrhy.dev")
+                mug_docker << sluggers
+
+                sluggers_db = PostgreSQL("sluggers_super_draft_db")
+                sluggers << sluggers_db
+                mug_docker << sluggers_db
+
+                almanac = Remix("almanac")
+                almanac << WebSite("almanac.jackharrhy.dev")
+                mug_docker << almanac
+
+                steve = Python("letters-to-steve")
+                steve << WebSite("steve-letter-writ.ing")
+                mug_docker << steve
+
+                stickertrade = Remix("stickertrade")
+                stickertrade << WebSite("stickertrade.ca")
+                mug_docker << stickertrade
 
                 bar = Python("bar")
                 bar << WebSite("jackharrhy.dev/bar")
                 mug_docker << bar
 
-                barab = JavaScript("barab")
-                barab << WebSite("jackharrhy.dev/barab")
-                mug_docker << barab
-
                 duaas = Rust("duaas")
-                duaas << WebSite("jackharrhy.dev/random")
+                duaas << WebSite("jackharrhy.dev/urandom")
                 mug_docker << duaas
 
                 stackcoin = Crystal("stackcoin")
                 stackcoin << WebSite("stackcoin.world")
                 mug_docker << stackcoin
 
-                phapbot = Php("Phapbot")
+                incydecy = JavaScript("incydecy")
+                mug_docker << incydecy
+
+                phapbot = Php("phapbot")
                 mug_docker << phapbot
 
                 with Cluster("miniflux"):
@@ -107,11 +144,23 @@ with Diagram("infra", show=False, direction="TB"):
                     miniflux << miniflux_db
                     mug_docker << miniflux_db
 
-                traefik = Go("Traefik")
+                beszel = Go("beszel")
+                beszel << WebSite("beszel.jackharrhy.dev")
+                mug_docker << beszel
+
+                beszel_agent = Go("beszel-agent")
+                beszel << beszel_agent
+                mug_docker << beszel_agent
+
+                traefik = Go("traefik")
                 mug_docker << traefik
 
-                watchtower = Go("Watchtower")
+                watchtower = Go("watchtower")
                 mug_docker << watchtower
+
+                livebook = Elixir("livebook")
+                livebook << WebSite("livebook.jackharrhy.dev")
+                mug_docker << livebook
 
         with Cluster("MUNCS"):
             murray = Server("murray")
