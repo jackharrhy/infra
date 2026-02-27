@@ -1,0 +1,45 @@
+services:
+  traefik:
+    image: traefik:v3
+    restart: always
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.file.directory=/etc/traefik/dynamic"
+      - "--providers.file.watch=true"
+      - "--entrypoints.web.address=:80"
+      - "--api.dashboard=true"
+      - "--api.insecure=true"
+    ports:
+      - "80:80"
+      - "127.0.0.1:18081:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/dynamic:/etc/traefik/dynamic:ro
+    networks:
+      - web
+
+  bar:
+    image: ghcr.io/jackharrhy/bar:main
+    restart: always
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.bar-origin.rule=PathPrefix(`/bar`)"
+      - "traefik.http.routers.bar-origin.entrypoints=web"
+      - "traefik.http.routers.bar-origin.middlewares=bar-strip"
+      - "traefik.http.middlewares.bar-strip.stripprefix.prefixes=/bar"
+      - "traefik.http.services.bar-origin.loadbalancer.server.port=8080"
+    networks:
+      - web
+
+  watchtower:
+    image: ghcr.io/containrrr/watchtower:latest
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    env_file:
+      - ./.runtime-secrets/watchtower.env
+    command: --interval 1200
+
+networks:
+  web:
