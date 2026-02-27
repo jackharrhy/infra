@@ -1,0 +1,13 @@
+http:
+  routers:
+    bar-via-newport:
+      rule: "Host(`jackharrhy.dev`) && PathPrefix(`/bar`)"
+      entryPoints: [websecure]
+      service: bar-newport
+      tls: {}
+
+  services:
+    bar-newport:
+      loadBalancer:
+        servers:
+          - url: "http://newport.hedgehog-python.ts.net:18080"
