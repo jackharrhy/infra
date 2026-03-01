@@ -1,5 +1,5 @@
 # infra
 
-https://jackharrhy.github.io/infra/infra.png
+https://jackharrhy.github.io/infra/infra.svg
 
-![Infrastructure diagram of all of my services](https://jackharrhy.github.io/infra/infra.png)
+![Infrastructure diagram of all of my services](https://jackharrhy.github.io/infra/infra.svg)

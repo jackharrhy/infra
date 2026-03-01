@@ -1,24 +1,15 @@
-name: Build diagram & Publish Website
+name: Deploy diagram
 on: [push]
 jobs:
-  build-and-deploy:
+  deploy:
     concurrency: ci-${{ github.ref }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout 🛎️
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install and Build 🔧
-        run: |
-          sudo apt-get install graphviz
-          pip install diagrams
-          cd docs
-          python diagram.py
-          mkdir build
-          mv infra.png build
-
-      - name: Deploy 🚀
+      - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4.8.0
         with:
           branch: gh-pages
-          folder: docs/build
+          folder: docs

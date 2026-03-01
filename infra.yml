@@ -1,0 +1,38 @@
+hosts:
+  mug:
+    cores: 2
+    ram: 4GB
+    storage: 50GB
+  newport:
+    cores: 12
+    ram: 64GB
+    storage: 100GB
+
+providers:
+  digitalocean:
+    label: DigitalOcean
+    hosts:
+      - mug
+
+network:
+  tailscale:
+    label: Tailscale
+    shape: cloud
+    connects:
+      - digitalocean.mug
+      - home
+
+extra_nodes:
+  home:
+    label: Home
+    hosts:
+      - newport
+    children:
+      stash:
+        label: stash
+        shape: cylinder
+
+connections:
+  - from: digitalocean.mug.infra.traefik
+    to: home.newport.infra.traefik
+    label: proxy

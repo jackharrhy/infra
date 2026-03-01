@@ -1,6 +1,7 @@
 .venv/
 *.swp
 infra.png
+.DS_Store
 
 # secrets
 hosts/*/.runtime-secrets/
