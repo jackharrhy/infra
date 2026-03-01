@@ -1,0 +1,52 @@
+http:
+  routers:
+    miniflux-via-newport:
+      rule: "Host(`miniflux.jackharrhy.dev`)"
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
+
+    stickertrade-via-newport:
+      rule: "Host(`stickertrade.ca`)"
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
+
+    sluggers-via-newport:
+      rule: "Host(`lil-slug-crew.jackharrhy.dev`)"
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
+
+    rotund-via-newport:
+      rule: "Host(`rotund.org`)"
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
+
+    bar-via-newport:
+      rule: "Host(`jackharrhy.dev`) && PathPrefix(`/bar`)"
+      priority: 100
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
+
+    duaas-via-newport:
+      rule: "Host(`jackharrhy.dev`) && PathPrefix(`/urandom`)"
+      priority: 100
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
+
+  services:
+    newport-origin:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: "http://newport.hedgehog-python.ts.net:80"
