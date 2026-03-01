@@ -33,7 +33,7 @@ services:
     restart: always
     networks: [web]
     labels:
-      - "traefik.docker.network=web"
+      - "traefik.docker.network=newport_web"
       - "traefik.enable=true"
       - "traefik.http.services.rotund.loadbalancer.server.port=80"
       - "traefik.http.routers.rotund.rule=Host(`rotund.org`)"
@@ -48,7 +48,7 @@ services:
     env_file:
       - ./.runtime-secrets/stickertrade.env
     labels:
-      - "traefik.docker.network=web"
+      - "traefik.docker.network=newport_web"
       - "traefik.enable=true"
       - "traefik.http.services.stickertrade.loadbalancer.server.port=3000"
       - "traefik.http.routers.stickertrade.rule=Host(`stickertrade.ca`)"
@@ -63,7 +63,7 @@ services:
     volumes:
       - ./volumes/sluggers_super_draft/images:/app/build/client/images
     labels:
-      - "traefik.docker.network=web"
+      - "traefik.docker.network=newport_web"
       - "traefik.enable=true"
       - "traefik.http.services.sluggers_super_draft.loadbalancer.server.port=3000"
       - "traefik.http.routers.sluggers_super_draft.rule=Host(`lil-slug-crew.jackharrhy.dev`)"
@@ -88,7 +88,7 @@ services:
     env_file:
       - ./.runtime-secrets/miniflux.env
     labels:
-      - "traefik.docker.network=web"
+      - "traefik.docker.network=newport_web"
       - "traefik.enable=true"
       - "traefik.http.services.miniflux.loadbalancer.server.port=8080"
       - "traefik.http.routers.miniflux.rule=Host(`miniflux.jackharrhy.dev`)"
@@ -110,7 +110,7 @@ services:
     restart: always
     networks: [web]
     labels:
-      - "traefik.docker.network=web"
+      - "traefik.docker.network=newport_web"
       - "traefik.enable=true"
       - "traefik.http.middlewares.bar-strip-prefix.stripprefix.prefixes=/bar"
       - "traefik.http.services.bar.loadbalancer.server.port=8080"
@@ -123,7 +123,7 @@ services:
     restart: always
     networks: [web]
     labels:
-      - "traefik.docker.network=web"
+      - "traefik.docker.network=newport_web"
       - "traefik.enable=true"
       - "traefik.http.middlewares.duaas-strip-prefix.stripprefix.prefixes=/urandom"
       - "traefik.http.services.duaas.loadbalancer.server.port=8000"

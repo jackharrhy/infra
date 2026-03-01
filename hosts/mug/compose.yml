@@ -47,7 +47,7 @@ services:
       - ./volumes/beszel_data:/beszel_data
       - ./volumes/beszel_socket:/beszel_socket
     labels:
-      - "traefik.docker.network=web"
+      - "traefik.docker.network=mug_web"
       - "traefik.enable=true"
       - "traefik.http.services.beszel.loadbalancer.server.port=8090"
       - "traefik.http.routers.beszel.rule=Host(`beszel.jackharrhy.dev`)"
@@ -71,7 +71,7 @@ services:
     env_file:
       - ./.runtime-secrets/jackharrhy.env
     labels:
-      - "traefik.docker.network=web"
+      - "traefik.docker.network=mug_web"
       - "traefik.enable=true"
       - "traefik.http.services.jackharrhy.loadbalancer.server.port=80"
       - "traefik.http.routers.jackharrhy.rule=(Host(`jackharrhy.dev`) || Host(`jackharrhy.com`) || Host(`harrhy.xyz`) || Host(`jack.harrhy.xyz`) || Host(`jack.arthur.harrhy.xyz`) || Host(`jack.is.harrhy.xyz`))"
@@ -88,7 +88,7 @@ services:
     volumes:
       - ./volumes/siliconharbour:/app/data
     labels:
-      - "traefik.docker.network=web"
+      - "traefik.docker.network=mug_web"
       - "traefik.enable=true"
       - "traefik.http.services.siliconharbour.loadbalancer.server.port=3000"
       - "traefik.http.routers.siliconharbour.rule=Host(`siliconharbour.dev`)"
@@ -103,7 +103,7 @@ services:
     volumes:
       - ./volumes/plow:/data
     labels:
-      - "traefik.docker.network=web"
+      - "traefik.docker.network=mug_web"
       - "traefik.enable=true"
       - "traefik.http.services.plow.loadbalancer.server.port=8000"
       - "traefik.http.routers.plow.rule=Host(`plow.jackharrhy.dev`)"
@@ -115,7 +115,7 @@ services:
     restart: always
     networks: [web]
     labels:
-      - "traefik.docker.network=web"
+      - "traefik.docker.network=mug_web"
       - "traefik.enable=true"
       - "traefik.http.services.notscared_site.loadbalancer.server.port=4321"
       - "traefik.http.routers.notscared_site.rule=Host(`notsca.red`)"
@@ -129,7 +129,7 @@ services:
     volumes:
       - ./volumes/burger_radio_assets:/app/packages/burger-radio/assets
     labels:
-      - "traefik.docker.network=web"
+      - "traefik.docker.network=mug_web"
       - "traefik.enable=true"
       - "traefik.http.services.burger.loadbalancer.server.port=5000"
       - "traefik.http.routers.burger.rule=Host(`big.burger.beauty`) && PathPrefix(`/`)"
@@ -150,7 +150,7 @@ services:
       - STRAPI_URL=http://andrewsite_strapi:1337
       - EXTERNAL_STRAPI_URL=https://api.andrewgossecomposer.com
     labels:
-      - "traefik.docker.network=web"
+      - "traefik.docker.network=mug_web"
       - "traefik.enable=true"
       - "traefik.http.services.andrewsiteastro.loadbalancer.server.port=4321"
       - "traefik.http.routers.andrewsiteastro.rule=Host(`andrewgossecomposer.com`)"
@@ -169,7 +169,7 @@ services:
       - ./volumes/andrewsite_strapi_data:/opt/app/data
       - ./volumes/andrewsite_strapi_uploads:/opt/app/public/uploads
     labels:
-      - "traefik.docker.network=web"
+      - "traefik.docker.network=mug_web"
       - "traefik.enable=true"
       - "traefik.http.services.andrewsitestrapi.loadbalancer.server.port=1337"
       - "traefik.http.routers.andrewsitestrapi.rule=Host(`api.andrewgossecomposer.com`)"
@@ -185,7 +185,7 @@ services:
       - ./volumes/almanac_config:/config
       - ./volumes/almanac_content:/content
     labels:
-      - "traefik.docker.network=web"
+      - "traefik.docker.network=mug_web"
       - "traefik.enable=true"
       - "traefik.http.services.almanac.loadbalancer.server.port=8080"
       - "traefik.http.routers.almanac.rule=Host(`almanac.jackharrhy.dev`)"
@@ -199,7 +199,7 @@ services:
     volumes:
       - ./volumes/steve:/code/data
     labels:
-      - "traefik.docker.network=web"
+      - "traefik.docker.network=mug_web"
       - "traefik.enable=true"
       - "traefik.http.services.steve.loadbalancer.server.port=5000"
       - "traefik.http.routers.steve.rule=Host(`steve-letter-writ.ing`)"
@@ -215,7 +215,7 @@ services:
       - ./volumes/stackcoin:/data
     networks: [web]
     labels:
-      - "traefik.docker.network=web"
+      - "traefik.docker.network=mug_web"
       - "traefik.enable=true"
       - "traefik.http.services.stackcoin.loadbalancer.server.port=80"
       - "traefik.http.routers.stackcoin.rule=Host(`stackcoin.world`)"
