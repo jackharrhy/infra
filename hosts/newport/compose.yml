@@ -19,19 +19,6 @@ services:
     networks:
       - web
 
-  bar:
-    image: ghcr.io/jackharrhy/bar:main
-    restart: always
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.bar-origin.rule=PathPrefix(`/bar`)"
-      - "traefik.http.routers.bar-origin.entrypoints=web"
-      - "traefik.http.routers.bar-origin.middlewares=bar-strip"
-      - "traefik.http.middlewares.bar-strip.stripprefix.prefixes=/bar"
-      - "traefik.http.services.bar-origin.loadbalancer.server.port=8080"
-    networks:
-      - web
-
   watchtower:
     image: ghcr.io/containrrr/watchtower:latest
     restart: always
@@ -41,5 +28,174 @@ services:
       - ./.runtime-secrets/watchtower.env
     command: --interval 1200
 
+  rotund_org:
+    image: ghcr.io/jackharrhy/rotund.org:main
+    restart: always
+    networks: [web]
+    labels:
+      - "traefik.docker.network=web"
+      - "traefik.enable=true"
+      - "traefik.http.services.rotund.loadbalancer.server.port=80"
+      - "traefik.http.routers.rotund.rule=Host(`rotund.org`)"
+      - "traefik.http.routers.rotund.entrypoints=web"
+
+  stickertrade:
+    image: ghcr.io/fogo-sh/stickertrade:latest
+    restart: always
+    networks: [web, stickertrade]
+    volumes:
+      - ./volumes/stickertrade:/app/data
+    env_file:
+      - ./.runtime-secrets/stickertrade.env
+    labels:
+      - "traefik.docker.network=web"
+      - "traefik.enable=true"
+      - "traefik.http.services.stickertrade.loadbalancer.server.port=3000"
+      - "traefik.http.routers.stickertrade.rule=Host(`stickertrade.ca`)"
+      - "traefik.http.routers.stickertrade.entrypoints=web"
+
+  sluggers_super_draft:
+    image: ghcr.io/jackharrhy/sluggers-super-draft:main
+    restart: always
+    networks: [web, sluggers_super_draft]
+    env_file:
+      - ./.runtime-secrets/sluggers_super_draft.env
+    volumes:
+      - ./volumes/sluggers_super_draft/images:/app/build/client/images
+    labels:
+      - "traefik.docker.network=web"
+      - "traefik.enable=true"
+      - "traefik.http.services.sluggers_super_draft.loadbalancer.server.port=3000"
+      - "traefik.http.routers.sluggers_super_draft.rule=Host(`lil-slug-crew.jackharrhy.dev`)"
+      - "traefik.http.routers.sluggers_super_draft.entrypoints=web"
+
+  sluggers_super_draft_db:
+    image: postgres:17
+    restart: always
+    networks: [sluggers_super_draft]
+    volumes:
+      - ./volumes/sluggers_super_draft_db:/var/lib/postgresql/data
+    env_file:
+      - ./.runtime-secrets/sluggers_super_draft_db.env
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+
+  miniflux:
+    image: ghcr.io/miniflux/miniflux:latest
+    restart: always
+    depends_on: [miniflux_db]
+    networks: [web, miniflux]
+    env_file:
+      - ./.runtime-secrets/miniflux.env
+    labels:
+      - "traefik.docker.network=web"
+      - "traefik.enable=true"
+      - "traefik.http.services.miniflux.loadbalancer.server.port=8080"
+      - "traefik.http.routers.miniflux.rule=Host(`miniflux.jackharrhy.dev`)"
+      - "traefik.http.routers.miniflux.entrypoints=web"
+
+  miniflux_db:
+    image: postgres:15
+    restart: always
+    networks: [miniflux]
+    volumes:
+      - ./volumes/miniflux_db:/var/lib/postgresql/data
+    env_file:
+      - ./.runtime-secrets/miniflux_db.env
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+
+  bar:
+    image: ghcr.io/jackharrhy/bar:main
+    restart: always
+    networks: [web]
+    labels:
+      - "traefik.docker.network=web"
+      - "traefik.enable=true"
+      - "traefik.http.middlewares.bar-strip-prefix.stripprefix.prefixes=/bar"
+      - "traefik.http.services.bar.loadbalancer.server.port=8080"
+      - "traefik.http.routers.bar.rule=(Host(`jackharrhy.dev`) && PathPrefix(`/bar`))"
+      - "traefik.http.routers.bar.middlewares=bar-strip-prefix@docker"
+      - "traefik.http.routers.bar.entrypoints=web"
+
+  duaas:
+    image: ghcr.io/jackharrhy/duaas:main
+    restart: always
+    networks: [web]
+    labels:
+      - "traefik.docker.network=web"
+      - "traefik.enable=true"
+      - "traefik.http.middlewares.duaas-strip-prefix.stripprefix.prefixes=/urandom"
+      - "traefik.http.services.duaas.loadbalancer.server.port=8000"
+      - "traefik.http.routers.duaas.rule=(Host(`jackharrhy.dev`) && PathPrefix(`/urandom`))"
+      - "traefik.http.routers.duaas.middlewares=duaas-strip-prefix@docker"
+      - "traefik.http.routers.duaas.entrypoints=web"
+
+  phapbot:
+    image: ghcr.io/jackharrhy/phapbot:latest
+    restart: always
+    env_file:
+      - ./.runtime-secrets/phapbot.env
+
+  incydecy:
+    image: ghcr.io/jackharrhy/incydecy:main
+    restart: always
+    env_file:
+      - ./.runtime-secrets/incydecy.env
+    volumes:
+      - ./volumes/incydecy:/app/data
+
+  house:
+    image: ghcr.io/jackharrhy/get-house-pls:main
+    restart: always
+    env_file:
+      - ./.runtime-secrets/house.env
+    volumes:
+      - ./volumes/house_data:/data
+
+  ileah:
+    image: ghcr.io/jackharrhy/ileah:main
+    restart: always
+    env_file:
+      - ./.runtime-secrets/ileah.env
+
+  livebook:
+    image: ghcr.io/livebook-dev/livebook:0.17.3
+    restart: always
+    networks: [web]
+    volumes:
+      - ./volumes/livebook:/data
+    env_file:
+      - ./.runtime-secrets/livebook.env
+    # TODO: expose behind auth
+
+  pad:
+    image: ghcr.io/jackharrhy/pad:main
+    restart: always
+    networks: [web]
+    volumes:
+      - ./volumes/pad:/app/data
+    # TODO: expose behind auth
+
+  #terranova:
+  #  image: itzg/minecraft-server
+  #  environment:
+  #    - EULA=True
+  #    - VERSION=1.20.1
+  #    - TYPE=FORGE
+  #    - MOTD="§l§cTerranova§r\nRunning %MODPACK_NAME% version %env:MODPACK_VERSION%"
+  #    - PACKWIZ_URL=https://www.cs.mun.ca/~jaharrhy/terranova/pack.toml
+  #    - OPS=cheesemany
+  #    - WHITELIST=cheesemany
+  #    - WHITELIST_FILE=/config/whitelist.json
+  #  volumes:
+  #    - ./volumes/terranova:/data
+  #    - ./volumes/terranova_config:/config
+  #  ports:
+  #    - "25565:25565"
+
 networks:
   web:
+  miniflux:
+  stickertrade:
+  sluggers_super_draft:
