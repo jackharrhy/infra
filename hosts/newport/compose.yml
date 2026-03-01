@@ -158,6 +158,8 @@ services:
   house:
     image: ghcr.io/jackharrhy/get-house-pls:main
     restart: always
+    # Chrome needs more than Docker's default 64MB /dev/shm
+    shm_size: "2gb"
     env_file:
       - ./.runtime-secrets/house.env
     volumes:
