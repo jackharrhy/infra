@@ -2,14 +2,18 @@ services:
   traefik:
     image: traefik:v3
     restart: always
+    networks: [web]
     command:
+      - "--api.insecure=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--providers.file.directory=/etc/traefik/dynamic"
       - "--providers.file.watch=true"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
-      - "--api.insecure=true"
+      - "--certificatesresolvers.mugresolver.acme.email=me@jackharrhy.com"
+      - "--certificatesresolvers.mugresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.mugresolver.acme.storage=/letsencrypt/acme.json"
     ports:
       - "80:80"
       - "443:443"
@@ -17,4 +21,207 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./traefik/dynamic:/etc/traefik/dynamic:ro
-      - ./traefik/letsencrypt:/letsencrypt
+      - ./volumes/traefik_letsencrypt_data:/letsencrypt
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+      - "traefik.enable=true"
+      - "traefik.http.routers.http-catchall.rule=hostregexp(`{host:.+}`)"
+      - "traefik.http.routers.http-catchall.entrypoints=web"
+      - "traefik.http.routers.http-catchall.middlewares=redirect-to-https@docker"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+
+  watchtower:
+    image: ghcr.io/containrrr/watchtower:latest
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    env_file:
+      - ./.runtime-secrets/watchtower.env
+    command: --interval 1200
+
+  beszel:
+    image: ghcr.io/henrygd/beszel/beszel:latest
+    restart: always
+    networks: [web]
+    volumes:
+      - ./volumes/beszel_data:/beszel_data
+      - ./volumes/beszel_socket:/beszel_socket
+    labels:
+      - "traefik.docker.network=web"
+      - "traefik.enable=true"
+      - "traefik.http.services.beszel.loadbalancer.server.port=8090"
+      - "traefik.http.routers.beszel.rule=Host(`beszel.jackharrhy.dev`)"
+      - "traefik.http.routers.beszel.entrypoints=websecure"
+      - "traefik.http.routers.beszel.tls.certresolver=mugresolver"
+
+  beszel-agent:
+    image: ghcr.io/henrygd/beszel/beszel-agent:latest
+    restart: always
+    network_mode: host
+    volumes:
+      - ./volumes/beszel_socket:/beszel_socket
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    env_file:
+      - ./.runtime-secrets/beszel-agent.env
+
+  jackharrhy:
+    image: ghcr.io/jackharrhy/jackharrhy.com:main
+    restart: always
+    networks: [web]
+    env_file:
+      - ./.runtime-secrets/jackharrhy.env
+    labels:
+      - "traefik.docker.network=web"
+      - "traefik.enable=true"
+      - "traefik.http.services.jackharrhy.loadbalancer.server.port=80"
+      - "traefik.http.routers.jackharrhy.rule=(Host(`jackharrhy.dev`) || Host(`jackharrhy.com`) || Host(`harrhy.xyz`) || Host(`jack.harrhy.xyz`) || Host(`jack.arthur.harrhy.xyz`) || Host(`jack.is.harrhy.xyz`))"
+      - "traefik.http.routers.jackharrhy.priority=1"
+      - "traefik.http.routers.jackharrhy.entrypoints=websecure"
+      - "traefik.http.routers.jackharrhy.tls.certresolver=mugresolver"
+
+  siliconharbour:
+    image: ghcr.io/siliconharbour/siliconharbour.dev:main
+    restart: always
+    networks: [web]
+    env_file:
+      - ./.runtime-secrets/siliconharbour.env
+    volumes:
+      - ./volumes/siliconharbour:/app/data
+    labels:
+      - "traefik.docker.network=web"
+      - "traefik.enable=true"
+      - "traefik.http.services.siliconharbour.loadbalancer.server.port=3000"
+      - "traefik.http.routers.siliconharbour.rule=Host(`siliconharbour.dev`)"
+      - "traefik.http.routers.siliconharbour.entrypoints=websecure"
+      - "traefik.http.routers.siliconharbour.tls.certresolver=mugresolver"
+      - "com.centurylinklabs.watchtower.enable=false"
+
+  plow:
+    image: ghcr.io/jackharrhy/where-the-plow:main
+    restart: always
+    networks: [web]
+    volumes:
+      - ./volumes/plow:/data
+    labels:
+      - "traefik.docker.network=web"
+      - "traefik.enable=true"
+      - "traefik.http.services.plow.loadbalancer.server.port=8000"
+      - "traefik.http.routers.plow.rule=Host(`plow.jackharrhy.dev`)"
+      - "traefik.http.routers.plow.entrypoints=websecure"
+      - "traefik.http.routers.plow.tls.certresolver=mugresolver"
+
+  notscared_site:
+    image: ghcr.io/jackharrhy/notscared-site:main
+    restart: always
+    networks: [web]
+    labels:
+      - "traefik.docker.network=web"
+      - "traefik.enable=true"
+      - "traefik.http.services.notscared_site.loadbalancer.server.port=4321"
+      - "traefik.http.routers.notscared_site.rule=Host(`notsca.red`)"
+      - "traefik.http.routers.notscared_site.entrypoints=websecure"
+      - "traefik.http.routers.notscared_site.tls.certresolver=mugresolver"
+
+  burger:
+    image: ghcr.io/jackharrhy/burger:main
+    restart: always
+    networks: [web]
+    volumes:
+      - ./volumes/burger_radio_assets:/app/packages/burger-radio/assets
+    labels:
+      - "traefik.docker.network=web"
+      - "traefik.enable=true"
+      - "traefik.http.services.burger.loadbalancer.server.port=5000"
+      - "traefik.http.routers.burger.rule=Host(`big.burger.beauty`) && PathPrefix(`/`)"
+      - "traefik.http.routers.burger.entrypoints=websecure"
+      - "traefik.http.routers.burger.tls.certresolver=mugresolver"
+      - "traefik.http.routers.burger.service=burger"
+      - "traefik.http.services.burger-peerjs.loadbalancer.server.port=9000"
+      - "traefik.http.routers.burger-peerjs.rule=Host(`big.burger.beauty`) && PathPrefix(`/peerjs`)"
+      - "traefik.http.routers.burger-peerjs.entrypoints=websecure"
+      - "traefik.http.routers.burger-peerjs.tls.certresolver=mugresolver"
+      - "traefik.http.routers.burger-peerjs.service=burger-peerjs"
+
+  andrewsite_astro:
+    image: ghcr.io/jackharrhy/andrew-gosse-site-astro:main
+    restart: always
+    networks: [web, andrewsite]
+    environment:
+      - STRAPI_URL=http://andrewsite_strapi:1337
+      - EXTERNAL_STRAPI_URL=https://api.andrewgossecomposer.com
+    labels:
+      - "traefik.docker.network=web"
+      - "traefik.enable=true"
+      - "traefik.http.services.andrewsiteastro.loadbalancer.server.port=4321"
+      - "traefik.http.routers.andrewsiteastro.rule=Host(`andrewgossecomposer.com`)"
+      - "traefik.http.routers.andrewsiteastro.entrypoints=websecure"
+      - "traefik.http.routers.andrewsiteastro.tls.certresolver=mugresolver"
+
+  andrewsite_strapi:
+    image: ghcr.io/jackharrhy/andrew-gosse-site-strapi:main
+    restart: always
+    networks: [web, andrewsite]
+    env_file:
+      - ./.runtime-secrets/andrewsite_strapi.env
+    environment:
+      - DATABASE_FILENAME=./data/data.db
+    volumes:
+      - ./volumes/andrewsite_strapi_data:/opt/app/data
+      - ./volumes/andrewsite_strapi_uploads:/opt/app/public/uploads
+    labels:
+      - "traefik.docker.network=web"
+      - "traefik.enable=true"
+      - "traefik.http.services.andrewsitestrapi.loadbalancer.server.port=1337"
+      - "traefik.http.routers.andrewsitestrapi.rule=Host(`api.andrewgossecomposer.com`)"
+      - "traefik.http.routers.andrewsitestrapi.entrypoints=websecure"
+      - "traefik.http.routers.andrewsitestrapi.tls.certresolver=mugresolver"
+
+  almanac:
+    image: ghcr.io/fogo-sh/almanac:latest
+    restart: always
+    networks: [web]
+    command: --content-dir /content --use-discord-oauth --use-bundled-assets
+    volumes:
+      - ./volumes/almanac_config:/config
+      - ./volumes/almanac_content:/content
+    labels:
+      - "traefik.docker.network=web"
+      - "traefik.enable=true"
+      - "traefik.http.services.almanac.loadbalancer.server.port=8080"
+      - "traefik.http.routers.almanac.rule=Host(`almanac.jackharrhy.dev`)"
+      - "traefik.http.routers.almanac.entrypoints=websecure"
+      - "traefik.http.routers.almanac.tls.certresolver=mugresolver"
+
+  steve:
+    image: ghcr.io/jackharrhy/letters-to-steve:latest
+    restart: always
+    networks: [web]
+    volumes:
+      - ./volumes/steve:/code/data
+    labels:
+      - "traefik.docker.network=web"
+      - "traefik.enable=true"
+      - "traefik.http.services.steve.loadbalancer.server.port=5000"
+      - "traefik.http.routers.steve.rule=Host(`steve-letter-writ.ing`)"
+      - "traefik.http.routers.steve.entrypoints=websecure"
+      - "traefik.http.routers.steve.tls.certresolver=mugresolver"
+
+  stackcoin:
+    image: ghcr.io/stackcoin/stackcoin:main
+    restart: always
+    env_file:
+      - ./.runtime-secrets/stackcoin.env
+    volumes:
+      - ./volumes/stackcoin:/data
+    networks: [web]
+    labels:
+      - "traefik.docker.network=web"
+      - "traefik.enable=true"
+      - "traefik.http.services.stackcoin.loadbalancer.server.port=80"
+      - "traefik.http.routers.stackcoin.rule=Host(`stackcoin.world`)"
+      - "traefik.http.routers.stackcoin.entrypoints=websecure"
+      - "traefik.http.routers.stackcoin.tls.certresolver=mugresolver"
+
+networks:
+  andrewsite:
+  web:
