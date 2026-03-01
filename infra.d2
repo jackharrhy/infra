@@ -1,0 +1,88 @@
+direction: down
+
+tailscale: Tailscale {
+  shape: cloud
+}
+
+digitalocean: DigitalOcean {
+  mug: "mug (2 cores / 4GB / 50GB disk)" {
+    infra: Infrastructure {
+      grid-columns: 1
+      traefik: traefik
+      watchtower: watchtower
+      beszel: beszel
+      beszel-agent: beszel-agent
+    }
+
+    websites: Websites {
+      grid-columns: 2
+      jackharrhy: jackharrhy.dev
+      jackharrhy.tooltip: jackharrhy.dev, jackharrhy.com, harrhy.xyz, jack.harrhy.xyz, jack.arthur.harrhy.xyz, jack.is.harrhy.xyz
+      siliconharbour: siliconharbour.dev
+      plow: plow.jackharrhy.dev
+      notscared_site: notsca.red
+      burger: big.burger.beauty
+      andrewsite_astro: andrewgossecomposer.com
+      andrewsite_strapi: api.andrewgossecomposer.com
+      almanac: almanac.jackharrhy.dev
+      steve: steve-letter-writ.ing
+      stackcoin: stackcoin.world
+    }
+
+  }
+
+}
+
+home: Home {
+  newport: "newport (12 cores / 64GB / 100GB disk)" {
+    infra: Infrastructure {
+      grid-columns: 1
+      traefik: traefik
+      watchtower: watchtower
+      beszel-agent: beszel-agent
+    }
+
+    websites: Websites {
+      grid-columns: 2
+      rotund_org: rotund.org
+      stickertrade: stickertrade.ca
+      sluggers_super_draft: lil-slug-crew.jackharrhy.dev
+      miniflux: miniflux.jackharrhy.dev
+      bar: jackharrhy.dev/bar
+      duaas: jackharrhy.dev/urandom
+      livebook: livebook
+      pad: pad
+    }
+
+    databases: Databases {
+      grid-columns: 1
+      sluggers_super_draft_db: sluggers_super_draft_db (postgres:17) {
+        shape: cylinder
+      }
+      miniflux_db: miniflux_db (postgres:15) {
+        shape: cylinder
+      }
+    }
+
+    bots: Bots & Workers {
+      grid-columns: 2
+      phapbot: phapbot
+      incydecy: incydecy
+      house: house
+      ileah: ileah
+    }
+
+  }
+
+  stash: stash {
+    shape: cylinder
+  }
+}
+
+tailscale -- digitalocean.mug
+tailscale -- home
+
+digitalocean.mug.infra.traefik -> home.newport.infra.traefik: proxy
+
+home.newport.websites.sluggers_super_draft -> home.newport.databases.sluggers_super_draft_db
+home.newport.websites.miniflux -> home.newport.databases.miniflux_db
