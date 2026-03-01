@@ -28,6 +28,16 @@ services:
       - ./.runtime-secrets/watchtower.env
     command: --interval 1200
 
+  beszel-agent:
+    image: ghcr.io/henrygd/beszel/beszel-agent:latest
+    restart: always
+    network_mode: host
+    volumes:
+      - ./volumes/beszel_socket:/beszel_socket
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    env_file:
+      - ./.runtime-secrets/beszel-agent.env
+
   rotund_org:
     image: ghcr.io/jackharrhy/rotund.org:main
     restart: always
