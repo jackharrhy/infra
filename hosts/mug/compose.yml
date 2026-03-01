@@ -183,7 +183,7 @@ services:
     command: --content-dir /content --use-discord-oauth --use-bundled-assets
     volumes:
       - ./volumes/almanac_config:/config
-      - ./volumes/almanac_content:/content
+      - ./volumes/almanac_content/content:/content
     labels:
       - "traefik.docker.network=mug_web"
       - "traefik.enable=true"
