@@ -31,13 +31,12 @@ services:
       - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
 
   watchtower:
-    image: ghcr.io/containrrr/watchtower:latest
+    image: ghcr.io/nicholas-fedor/watchtower:latest
     restart: always
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     env_file:
       - ./.runtime-secrets/watchtower.env
-    command: --interval 1200
 
   beszel:
     image: ghcr.io/henrygd/beszel/beszel:latest
