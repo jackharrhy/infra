@@ -1,7 +1,7 @@
 hosts:
   mug:
-    cores: 2
-    ram: 4GB
+    cores: 1
+    ram: 2GB
     storage: 50GB
   newport:
     cores: 12
