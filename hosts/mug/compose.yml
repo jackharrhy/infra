@@ -224,6 +224,7 @@ services:
   listmonk:
     image: listmonk/listmonk:latest
     restart: always
+    hostname: lists.jackharrhy.dev
     networks: [web, listmonk]
     depends_on:
       - listmonk_db
