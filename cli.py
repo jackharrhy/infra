@@ -10,6 +10,7 @@
 
 from __future__ import annotations
 
+import os
 import re
 import shutil
 import subprocess
@@ -434,6 +435,60 @@ def _render_db_connections(lines: list[str], host: Host, host_path: str) -> None
                 )
 
 
+# --- Remote host helpers ---
+
+
+def get_deploy_hosts(config: dict[str, Any]) -> dict[str, dict[str, str]]:
+    """Get hosts that have SSH deploy info from infra.yml.
+
+    Returns a dict of host_name -> {ssh, repo_path, compose_path}.
+    """
+    hosts_conf = config.get("hosts", {})
+    deploy_hosts: dict[str, dict[str, str]] = {}
+    for name, conf in hosts_conf.items():
+        if not isinstance(conf, dict):
+            continue
+        ssh = conf.get("ssh")
+        if ssh:
+            deploy_hosts[name] = {
+                "ssh": ssh,
+                "repo_path": conf.get("repo_path", "~/infra"),
+                "compose_path": conf.get("compose_path", f"~/infra/hosts/{name}"),
+            }
+    return deploy_hosts
+
+
+def ssh_run(ssh_target: str, command: str, *, stream: bool = False) -> subprocess.CompletedProcess[str] | int:
+    """Run a command on a remote host via SSH.
+
+    If stream=True, streams output live and returns the exit code.
+    Otherwise returns a CompletedProcess.
+    """
+    ssh_cmd = ["ssh", "-o", "ConnectTimeout=5", "-o", "BatchMode=yes", ssh_target, command]
+    if stream:
+        result = subprocess.run(ssh_cmd)
+        return result.returncode
+    return subprocess.run(ssh_cmd, capture_output=True, text=True, timeout=30)
+
+
+def get_local_head() -> str:
+    """Get the local HEAD commit hash."""
+    result = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        capture_output=True, text=True, cwd=REPO_ROOT,
+    )
+    return result.stdout.strip()
+
+
+def get_local_commits() -> set[str]:
+    """Get all local commit hashes (for ahead/behind detection)."""
+    result = subprocess.run(
+        ["git", "log", "--format=%H"],
+        capture_output=True, text=True, cwd=REPO_ROOT,
+    )
+    return set(result.stdout.strip().splitlines())
+
+
 # --- CLI ---
 
 
@@ -507,6 +562,139 @@ def diagram(output: str, render: bool, fmt: str):
             click.echo(f"d2 rendering failed:\n{result.stderr}", err=True)
             sys.exit(1)
         click.echo(f"Rendered: {render_path}")
+
+
+@cli.command()
+@click.argument("host", required=False)
+def status(host: str | None):
+    """Show sync status between local and remote hosts."""
+    config = load_infra_config()
+    deploy_hosts = get_deploy_hosts(config)
+
+    if not deploy_hosts:
+        click.echo("No deploy hosts configured in infra.yml", err=True)
+        sys.exit(1)
+
+    targets = deploy_hosts
+    if host:
+        if host not in deploy_hosts:
+            click.echo(f"Unknown host: {host}. Available: {', '.join(deploy_hosts)}", err=True)
+            sys.exit(1)
+        targets = {host: deploy_hosts[host]}
+
+    local_head = get_local_head()
+    local_commits = get_local_commits()
+
+    # Column widths
+    name_w = max(len(n) for n in targets) + 2
+    hash_w = 9  # 7-char short hash + padding
+
+    click.echo(f"{'Host':<{name_w}} {'Local':<{hash_w}} {'Remote':<{hash_w}} Status")
+    click.echo(f"{'─' * name_w} {'─' * hash_w} {'─' * hash_w} {'─' * 12}")
+
+    for name, info in targets.items():
+        remote_head = ""
+        status_str = ""
+        try:
+            result = ssh_run(info["ssh"], f"git -C {info['repo_path']} rev-parse HEAD")
+            if isinstance(result, int):
+                status_str = click.style("error", fg="red")
+            elif result.returncode != 0:
+                status_str = click.style("error", fg="red")
+            else:
+                remote_head = result.stdout.strip()
+                if remote_head == local_head:
+                    status_str = click.style("synced", fg="green")
+                elif remote_head in local_commits:
+                    status_str = click.style("behind", fg="yellow")
+                else:
+                    status_str = click.style("ahead/diverged", fg="red")
+        except (subprocess.TimeoutExpired, OSError):
+            status_str = click.style("unreachable", fg="red")
+
+        local_short = local_head[:7]
+        remote_short = remote_head[:7] if remote_head else "???"
+        click.echo(f"{name:<{name_w}} {local_short:<{hash_w}} {remote_short:<{hash_w}} {status_str}")
+
+
+@cli.command()
+@click.argument("host", required=False)
+def update(host: str | None):
+    """Pull latest commits on remote host(s)."""
+    config = load_infra_config()
+    deploy_hosts = get_deploy_hosts(config)
+
+    if not deploy_hosts:
+        click.echo("No deploy hosts configured in infra.yml", err=True)
+        sys.exit(1)
+
+    targets = deploy_hosts
+    if host:
+        if host not in deploy_hosts:
+            click.echo(f"Unknown host: {host}. Available: {', '.join(deploy_hosts)}", err=True)
+            sys.exit(1)
+        targets = {host: deploy_hosts[host]}
+
+    for name, info in targets.items():
+        click.echo(f"── {name} ({info['ssh']}) ──")
+        cmd = f"cd {info['repo_path']} && git pull"
+        exit_code = ssh_run(info["ssh"], cmd, stream=True)
+        if exit_code != 0:
+            click.echo(click.style(f"  Failed (exit {exit_code})", fg="red"))
+        click.echo()
+
+
+@cli.command()
+@click.argument("host", required=False)
+def refresh(host: str | None):
+    """Pull images, recreate containers, and prune on remote host(s)."""
+    config = load_infra_config()
+    deploy_hosts = get_deploy_hosts(config)
+
+    if not deploy_hosts:
+        click.echo("No deploy hosts configured in infra.yml", err=True)
+        sys.exit(1)
+
+    targets = deploy_hosts
+    if host:
+        if host not in deploy_hosts:
+            click.echo(f"Unknown host: {host}. Available: {', '.join(deploy_hosts)}", err=True)
+            sys.exit(1)
+        targets = {host: deploy_hosts[host]}
+
+    for name, info in targets.items():
+        click.echo(f"── {name} ({info['ssh']}) ──")
+        cmd = (
+            f"cd {info['compose_path']}"
+            f" && docker compose pull"
+            f" && docker compose up -d"
+            f" && docker image prune -a -f"
+        )
+        exit_code = ssh_run(info["ssh"], cmd, stream=True)
+        if exit_code != 0:
+            click.echo(click.style(f"  Failed (exit {exit_code})", fg="red"))
+        click.echo()
+
+
+@cli.command()
+def install():
+    """Install an `infra` shortcut to ~/.local/bin."""
+    bin_dir = Path.home() / ".local" / "bin"
+    bin_dir.mkdir(parents=True, exist_ok=True)
+    target = bin_dir / "infra"
+
+    script = f"""#!/usr/bin/env bash
+exec uv run --script {REPO_ROOT / "cli.py"} "$@"
+"""
+    target.write_text(script)
+    target.chmod(0o755)
+    click.echo(f"Installed: {target}")
+
+    # Check if ~/.local/bin is on PATH
+    path_dirs = os.environ.get("PATH", "").split(os.pathsep)
+    if str(bin_dir) not in path_dirs:
+        click.echo(f"Note: {bin_dir} is not on your PATH. Add it with:")
+        click.echo(f'  export PATH="{bin_dir}:$PATH"')
 
 
 if __name__ == "__main__":
