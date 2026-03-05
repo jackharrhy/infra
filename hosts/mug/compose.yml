@@ -221,6 +221,54 @@ services:
       - "traefik.http.routers.stackcoin.entrypoints=websecure"
       - "traefik.http.routers.stackcoin.tls.certresolver=mugresolver"
 
+  listmonk:
+    image: listmonk/listmonk:latest
+    restart: always
+    networks: [web, listmonk]
+    depends_on:
+      - listmonk_db
+    command:
+      [
+        sh,
+        -c,
+        "./listmonk --install --idempotent --yes --config '' && ./listmonk --upgrade --yes --config '' && ./listmonk --config ''",
+      ]
+    env_file:
+      - ./.runtime-secrets/listmonk.env
+    environment:
+      - LISTMONK_app__address=0.0.0.0:9000
+      - LISTMONK_db__host=listmonk_db
+      - LISTMONK_db__port=5432
+      - LISTMONK_db__ssl_mode=disable
+      - LISTMONK_db__max_open=25
+      - LISTMONK_db__max_idle=25
+      - LISTMONK_db__max_lifetime=300s
+      - TZ=America/St_Johns
+    volumes:
+      - ./volumes/listmonk_uploads:/listmonk/uploads:rw
+    labels:
+      - "traefik.docker.network=mug_web"
+      - "traefik.enable=true"
+      - "traefik.http.services.listmonk.loadbalancer.server.port=9000"
+      - "traefik.http.routers.listmonk.rule=Host(`lists.jackharrhy.dev`)"
+      - "traefik.http.routers.listmonk.entrypoints=websecure"
+      - "traefik.http.routers.listmonk.tls.certresolver=mugresolver"
+
+  listmonk_db:
+    image: postgres:17-alpine
+    restart: always
+    networks: [listmonk]
+    env_file:
+      - ./.runtime-secrets/listmonk.env
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U listmonk"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+    volumes:
+      - ./volumes/listmonk_db_data:/var/lib/postgresql/data
+
 networks:
   andrewsite:
+  listmonk:
   web:
