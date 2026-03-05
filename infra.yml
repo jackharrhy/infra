@@ -3,10 +3,16 @@ hosts:
     cores: 1
     ram: 2GB
     storage: 50GB
+    ssh: jack@jackharrhy.dev
+    repo_path: ~/infra
+    compose_path: ~/infra/hosts/mug
   newport:
     cores: 12
     ram: 64GB
     storage: 100GB
+    ssh: jack@newport
+    repo_path: ~/infra
+    compose_path: ~/infra/hosts/newport
 
 providers:
   digitalocean:
