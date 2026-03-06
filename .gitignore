@@ -6,3 +6,4 @@ infra.png
 # secrets
 hosts/*/.runtime-secrets/
 *.env
+tmp
