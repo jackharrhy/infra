@@ -1,0 +1,16 @@
+---
+? ''
+: - type: A
+    value: 142.93.144.29
+  - ttl: 1800
+    type: NS
+    values:
+    - ns1.digitalocean.com.
+    - ns2.digitalocean.com.
+    - ns3.digitalocean.com.
+'*':
+  type: A
+  value: 142.93.144.29
+'*.arthur':
+  type: A
+  value: 142.93.144.29

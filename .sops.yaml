@@ -1,3 +1,5 @@
 creation_rules:
   - path_regex: hosts/.*/secrets/.*\.enc\.ya?ml$
     age: ["age1pxvmxa7pqmaxsxhhe7d9rfs2glaqtzxkpkmhz5lzkcalrgtpzp2s4ap0uu"]
+  - path_regex: dns/secrets/.*\.enc\.ya?ml$
+    age: ["age1pxvmxa7pqmaxsxhhe7d9rfs2glaqtzxkpkmhz5lzkcalrgtpzp2s4ap0uu"]

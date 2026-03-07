@@ -1,0 +1,12 @@
+---
+? ''
+: - type: A
+    value: 66.241.125.23
+  - type: AAAA
+    value: 2a09:8280:1::69:a5b9
+  - ttl: 1800
+    type: NS
+    values:
+    - ns1.digitalocean.com.
+    - ns2.digitalocean.com.
+    - ns3.digitalocean.com.

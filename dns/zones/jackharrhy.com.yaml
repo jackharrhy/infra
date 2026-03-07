@@ -1,0 +1,31 @@
+---
+? ''
+: - type: A
+    value: 142.93.144.29
+  - type: AAAA
+    value: 2604:a880:cad:d0::dff:a001
+  - ttl: 1800
+    type: MX
+    values:
+    - exchange: mx.zohomail.com.
+      preference: 10
+    - exchange: mx2.zoho.com.
+      preference: 20
+  - ttl: 1800
+    type: NS
+    values:
+    - ns1.digitalocean.com.
+    - ns2.digitalocean.com.
+    - ns3.digitalocean.com.
+  - ttl: 43200
+    type: TXT
+    value: v=spf1 include:zoho.com ~all
+'*':
+- type: A
+  value: 142.93.144.29
+- type: AAAA
+  value: 2604:a880:cad:d0::dff:a001
+www:
+  ttl: 43200
+  type: CNAME
+  value: jackharrhy.com.
