@@ -12,12 +12,15 @@ services:
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
       - "--certificatesresolvers.mugresolver.acme.email=me@jackharrhy.com"
-      - "--certificatesresolvers.mugresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.mugresolver.acme.dnschallenge=true"
+      - "--certificatesresolvers.mugresolver.acme.dnschallenge.provider=digitalocean"
       - "--certificatesresolvers.mugresolver.acme.storage=/letsencrypt/acme.json"
     ports:
       - "80:80"
       - "443:443"
       - "127.0.0.1:8080:8080"
+    env_file:
+      - ./.runtime-secrets/traefik.env
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./traefik/dynamic:/etc/traefik/dynamic:ro
@@ -25,6 +28,7 @@ services:
     labels:
       - "com.centurylinklabs.watchtower.enable=false"
       - "traefik.enable=true"
+      # HTTP -> HTTPS redirect
       - "traefik.http.routers.http-catchall.rule=hostregexp(`{host:.+}`)"
       - "traefik.http.routers.http-catchall.entrypoints=web"
       - "traefik.http.routers.http-catchall.middlewares=redirect-to-https@docker"
@@ -77,6 +81,12 @@ services:
       - "traefik.http.routers.jackharrhy.priority=1"
       - "traefik.http.routers.jackharrhy.entrypoints=websecure"
       - "traefik.http.routers.jackharrhy.tls.certresolver=mugresolver"
+      - "traefik.http.routers.jackharrhy.tls.domains[0].main=jackharrhy.dev"
+      - "traefik.http.routers.jackharrhy.tls.domains[0].sans=*.jackharrhy.dev"
+      - "traefik.http.routers.jackharrhy.tls.domains[1].main=harrhy.xyz"
+      - "traefik.http.routers.jackharrhy.tls.domains[1].sans=*.harrhy.xyz"
+      - "traefik.http.routers.jackharrhy.tls.domains[2].main=jackharrhy.com"
+      - "traefik.http.routers.jackharrhy.tls.domains[2].sans=*.jackharrhy.com"
 
   siliconharbour:
     image: ghcr.io/siliconharbour/siliconharbour.dev:main
@@ -134,6 +144,8 @@ services:
       - "traefik.http.routers.burger.rule=Host(`big.burger.beauty`) && PathPrefix(`/`)"
       - "traefik.http.routers.burger.entrypoints=websecure"
       - "traefik.http.routers.burger.tls.certresolver=mugresolver"
+      - "traefik.http.routers.burger.tls.domains[0].main=burger.beauty"
+      - "traefik.http.routers.burger.tls.domains[0].sans=*.burger.beauty"
       - "traefik.http.routers.burger.service=burger"
       - "traefik.http.services.burger-peerjs.loadbalancer.server.port=9000"
       - "traefik.http.routers.burger-peerjs.rule=Host(`big.burger.beauty`) && PathPrefix(`/peerjs`)"
@@ -155,6 +167,8 @@ services:
       - "traefik.http.routers.andrewsiteastro.rule=Host(`andrewgossecomposer.com`)"
       - "traefik.http.routers.andrewsiteastro.entrypoints=websecure"
       - "traefik.http.routers.andrewsiteastro.tls.certresolver=mugresolver"
+      - "traefik.http.routers.andrewsiteastro.tls.domains[0].main=andrewgossecomposer.com"
+      - "traefik.http.routers.andrewsiteastro.tls.domains[0].sans=*.andrewgossecomposer.com"
 
   andrewsite_strapi:
     image: ghcr.io/jackharrhy/andrew-gosse-site-strapi:main
