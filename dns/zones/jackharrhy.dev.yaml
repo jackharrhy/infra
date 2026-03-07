@@ -2,6 +2,8 @@
 ? ''
 : - type: A
     value: 142.93.144.29
+  - type: AAAA
+    value: 2604:a880:cad:d0::dff:a001
   - ttl: 1800
     type: NS
     values:
@@ -13,8 +15,10 @@
   type: CNAME
   value: 5yv7boeq7bxw5th2gvj7fshpb64tjscp.dkim.amazonses.com.
 '*':
-  type: A
+- type: A
   value: 142.93.144.29
+- type: AAAA
+  value: 2604:a880:cad:d0::dff:a001
 _atproto:
   type: TXT
   value: did=did:plc:fag4zgsjdw6cf4eepa4dx4eo
