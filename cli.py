@@ -4,12 +4,15 @@
 # dependencies = [
 #     "click",
 #     "pyyaml",
+#     "octodns>=1.0",
+#     "octodns-digitalocean",
 # ]
 # ///
 """Infra CLI - tools for managing and visualizing infrastructure."""
 
 from __future__ import annotations
 
+import json
 import os
 import re
 import shutil
@@ -26,6 +29,10 @@ REPO_ROOT = Path(__file__).parent
 HOSTS_DIR = REPO_ROOT / "hosts"
 INFRA_YML = REPO_ROOT / "infra.yml"
 DOCS_DIR = REPO_ROOT / "docs"
+DNS_DIR = REPO_ROOT / "dns"
+DNS_CONFIG = DNS_DIR / "config.yaml"
+DNS_ZONES_DIR = DNS_DIR / "zones"
+DNS_SECRET = DNS_DIR / "secrets" / "digitalocean.enc.yaml"
 
 INFRA_SERVICES = {"traefik", "watchtower", "beszel", "beszel-agent"}
 DB_IMAGE_PREFIXES = ("postgres:", "mysql:", "mariadb:", "mongo:", "redis:")
@@ -695,6 +702,150 @@ exec uv run --script {REPO_ROOT / "cli.py"} "$@"
     if str(bin_dir) not in path_dirs:
         click.echo(f"Note: {bin_dir} is not on your PATH. Add it with:")
         click.echo(f'  export PATH="{bin_dir}:$PATH"')
+
+
+# --- DNS (octodns) helpers ---
+
+
+def _decrypt_do_token() -> str:
+    """Decrypt the DigitalOcean API token from SOPS."""
+    if not DNS_SECRET.exists():
+        click.echo(f"Error: {DNS_SECRET} not found", err=True)
+        click.echo("Create it with: sops dns/secrets/digitalocean.enc.yaml", err=True)
+        sys.exit(1)
+
+    sops_bin = shutil.which("sops")
+    if not sops_bin:
+        click.echo("Error: sops CLI not found. Install from https://github.com/getsops/sops", err=True)
+        sys.exit(1)
+
+    result = subprocess.run(
+        [sops_bin, "-d", "--output-type", "json", str(DNS_SECRET)],
+        capture_output=True, text=True,
+    )
+    if result.returncode != 0:
+        click.echo(f"Error decrypting {DNS_SECRET}:\n{result.stderr}", err=True)
+        sys.exit(1)
+
+    data = json.loads(result.stdout)
+    token = data.get("DIGITALOCEAN_TOKEN", "")
+    if not token:
+        click.echo(f"Error: DIGITALOCEAN_TOKEN not found in {DNS_SECRET}", err=True)
+        sys.exit(1)
+
+    return token
+
+
+def _octodns_env() -> dict[str, str]:
+    """Build environment with the decrypted DO token for octodns commands."""
+    env = os.environ.copy()
+    env["DIGITALOCEAN_TOKEN"] = _decrypt_do_token()
+    return env
+
+
+@cli.group()
+def dns():
+    """Manage DNS records with octodns."""
+    pass
+
+
+@dns.command()
+@click.option("--zone", "-z", default="*", help="Zone to dump ('*' for all)", show_default=True)
+@click.option("--lenient", is_flag=True, help="Ignore record validation errors")
+def dump(zone: str, lenient: bool):
+    """Pull DNS records from DigitalOcean into local zone files."""
+    DNS_ZONES_DIR.mkdir(parents=True, exist_ok=True)
+    env = _octodns_env()
+
+    cmd = [
+        sys.executable, "-m", "octodns.cmds.dump",
+        "--config-file", str(DNS_CONFIG),
+        "--output-dir", str(DNS_ZONES_DIR),
+        zone, "digitalocean",
+    ]
+    if lenient:
+        cmd.append("--lenient")
+
+    click.echo(f"Dumping zone(s): {zone}")
+    click.echo(f"  config: {DNS_CONFIG}")
+    click.echo(f"  output: {DNS_ZONES_DIR}")
+    click.echo()
+
+    result = subprocess.run(cmd, env=env, cwd=REPO_ROOT)
+    if result.returncode != 0:
+        sys.exit(result.returncode)
+
+    # List what was written
+    zone_files = sorted(DNS_ZONES_DIR.glob("*.yaml"))
+    zone_files = [f for f in zone_files if f.name != ".gitkeep"]
+    if zone_files:
+        click.echo()
+        click.echo(f"Dumped {len(zone_files)} zone(s):")
+        for zf in zone_files:
+            click.echo(f"  {zf.name}")
+    else:
+        click.echo("No zone files written.", err=True)
+
+
+@dns.command()
+@click.argument("zones", nargs=-1)
+@click.option("--debug", is_flag=True, help="Enable debug output")
+def diff(zones: tuple[str, ...], debug: bool):
+    """Show what DNS changes would be made (dry run)."""
+    env = _octodns_env()
+
+    cmd = [
+        sys.executable, "-m", "octodns.cmds.sync",
+        "--config-file", str(DNS_CONFIG),
+    ]
+    for z in zones:
+        cmd.append(z)
+    if debug:
+        cmd.append("--debug")
+
+    click.echo("Running octodns-sync (dry run)...")
+    click.echo()
+    result = subprocess.run(cmd, env=env, cwd=REPO_ROOT)
+    sys.exit(result.returncode)
+
+
+@dns.command()
+@click.argument("zones", nargs=-1)
+@click.option("--force", is_flag=True, help="Force through significant changes")
+@click.option("--debug", is_flag=True, help="Enable debug output")
+def sync(zones: tuple[str, ...], force: bool, debug: bool):
+    """Push local DNS changes to DigitalOcean."""
+    env = _octodns_env()
+
+    # Always show the plan first
+    cmd_plan = [
+        sys.executable, "-m", "octodns.cmds.sync",
+        "--config-file", str(DNS_CONFIG),
+    ]
+    for z in zones:
+        cmd_plan.append(z)
+    if debug:
+        cmd_plan.append("--debug")
+
+    click.echo("Planning changes (dry run)...")
+    click.echo()
+    result = subprocess.run(cmd_plan, env=env, cwd=REPO_ROOT)
+    if result.returncode != 0:
+        sys.exit(result.returncode)
+
+    click.echo()
+    if not click.confirm("Apply these changes?"):
+        click.echo("Aborted.")
+        sys.exit(0)
+
+    cmd_apply = cmd_plan + ["--doit"]
+    if force:
+        cmd_apply.append("--force")
+
+    click.echo()
+    click.echo("Applying changes...")
+    result = subprocess.run(cmd_apply, env=env, cwd=REPO_ROOT)
+    sys.exit(result.returncode)
 
 
 if __name__ == "__main__":

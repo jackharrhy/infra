@@ -1,0 +1,18 @@
+---
+providers:
+  config:
+    class: octodns.provider.yaml.YamlProvider
+    directory: ./dns/zones
+    default_ttl: 3600
+    enforce_order: True
+
+  digitalocean:
+    class: octodns_digitalocean.DigitalOceanProvider
+    token: env/DIGITALOCEAN_TOKEN
+
+zones:
+  "*":
+    sources:
+      - config
+    targets:
+      - digitalocean

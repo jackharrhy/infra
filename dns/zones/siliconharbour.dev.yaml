@@ -1,0 +1,19 @@
+---
+? ''
+: - type: A
+    value: 142.93.144.29
+  - ttl: 14400
+    type: MX
+    values:
+    - exchange: fwd1.porkbun.com.
+      preference: 10
+    - exchange: fwd2.porkbun.com.
+      preference: 20
+  - ttl: 1800
+    type: NS
+    values:
+    - ns1.digitalocean.com.
+    - ns2.digitalocean.com.
+    - ns3.digitalocean.com.
+  - type: TXT
+    value: v=spf1 include:_spf.porkbun.com ~all
