@@ -235,6 +235,17 @@ services:
       - "traefik.http.routers.stackcoin.entrypoints=websecure"
       - "traefik.http.routers.stackcoin.tls.certresolver=mugresolver"
 
+  luckypot:
+    image: ghcr.io/stackcoin/luckypot:main
+    restart: always
+    networks: [web]
+    env_file:
+      - ./.runtime-secrets/luckypot.env
+    environment:
+      - LUCKYPOT_DB_PATH=/app/data/luckypot.db
+    volumes:
+      - ./volumes/luckypot:/app/data
+
   listmonk:
     image: listmonk/listmonk:latest
     restart: always
