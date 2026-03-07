@@ -10,6 +10,3 @@
     - ns1.digitalocean.com.
     - ns2.digitalocean.com.
     - ns3.digitalocean.com.
-tale:
-  type: A
-  value: 156.57.120.193
