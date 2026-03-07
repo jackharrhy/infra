@@ -44,6 +44,27 @@ http:
       tls:
         certResolver: mugresolver
 
+    almanac-via-newport:
+      rule: "Host(`almanac.jackharrhy.dev`)"
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
+
+    steve-via-newport:
+      rule: "Host(`steve-letter-writ.ing`)"
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
+
+    notscared-via-newport:
+      rule: "Host(`notsca.red`)"
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
+
   services:
     newport-origin:
       loadBalancer:
