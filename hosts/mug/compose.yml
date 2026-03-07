@@ -119,18 +119,6 @@ services:
       - "traefik.http.routers.plow.entrypoints=websecure"
       - "traefik.http.routers.plow.tls.certresolver=mugresolver"
 
-  notscared_site:
-    image: ghcr.io/jackharrhy/notscared-site:main
-    restart: always
-    networks: [web]
-    labels:
-      - "traefik.docker.network=mug_web"
-      - "traefik.enable=true"
-      - "traefik.http.services.notscared_site.loadbalancer.server.port=4321"
-      - "traefik.http.routers.notscared_site.rule=Host(`notsca.red`)"
-      - "traefik.http.routers.notscared_site.entrypoints=websecure"
-      - "traefik.http.routers.notscared_site.tls.certresolver=mugresolver"
-
   burger:
     image: ghcr.io/jackharrhy/burger:main
     restart: always
@@ -188,36 +176,6 @@ services:
       - "traefik.http.routers.andrewsitestrapi.rule=Host(`api.andrewgossecomposer.com`)"
       - "traefik.http.routers.andrewsitestrapi.entrypoints=websecure"
       - "traefik.http.routers.andrewsitestrapi.tls.certresolver=mugresolver"
-
-  almanac:
-    image: ghcr.io/fogo-sh/almanac:latest
-    restart: always
-    networks: [web]
-    command: --content-dir /content --use-discord-oauth --use-bundled-assets
-    volumes:
-      - ./volumes/almanac_config:/config
-      - ./volumes/almanac_content/content:/content
-    labels:
-      - "traefik.docker.network=mug_web"
-      - "traefik.enable=true"
-      - "traefik.http.services.almanac.loadbalancer.server.port=8080"
-      - "traefik.http.routers.almanac.rule=Host(`almanac.jackharrhy.dev`)"
-      - "traefik.http.routers.almanac.entrypoints=websecure"
-      - "traefik.http.routers.almanac.tls.certresolver=mugresolver"
-
-  steve:
-    image: ghcr.io/jackharrhy/letters-to-steve:latest
-    restart: always
-    networks: [web]
-    volumes:
-      - ./volumes/steve:/code/data
-    labels:
-      - "traefik.docker.network=mug_web"
-      - "traefik.enable=true"
-      - "traefik.http.services.steve.loadbalancer.server.port=5000"
-      - "traefik.http.routers.steve.rule=Host(`steve-letter-writ.ing`)"
-      - "traefik.http.routers.steve.entrypoints=websecure"
-      - "traefik.http.routers.steve.tls.certresolver=mugresolver"
 
   stackcoin:
     image: ghcr.io/stackcoin/stackcoin:main
