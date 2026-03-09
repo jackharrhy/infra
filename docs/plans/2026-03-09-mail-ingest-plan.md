@@ -10,6 +10,8 @@
 
 **Design doc:** `docs/plans/2026-03-09-mail-ingest-design.md`
 
+**Part 2 (threaded replies):** `docs/plans/2026-03-09-mail-ingest-replies-plan.md`
+
 **Env vars the service expects:**
 
 | Var | Purpose |
