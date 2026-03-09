@@ -1,5 +1,7 @@
 # `lists` -- Personal Newsletter Service Design
 
+**Implementation plan:** `docs/plans/2026-03-09-lists-plan.md`
+
 ## Goal
 
 A personal newsletter service that replaces listmonk. Handles subscriber management (with independent topic lists), campaign sending via SES API (no SMTP), inbound reply tracking via SQS, and email compliance. Built with TypeScript, react-email templates, and SQLite.
