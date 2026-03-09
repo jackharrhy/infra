@@ -1,0 +1,19 @@
+{
+  "name": "jack-infra",
+  "main": "index.ts",
+  "scripts": {
+    "fmt": "oxfmt",
+    "lint": "oxlint --fix"
+  },
+  "dependencies": {
+    "@pulumi/aws": "^7.0.0",
+    "@pulumi/awsx": "^3.0.0",
+    "@pulumi/pulumi": "^3.113.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18",
+    "oxfmt": "^0.36.0",
+    "oxlint": "^1.51.0",
+    "typescript": "^5.0.0"
+  }
+}
