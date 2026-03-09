@@ -1,0 +1,4 @@
+encryptionsalt: v1:CGDvT3gpHLg=:v1:0De7PASs2yS/yArG:nBZfNaukbUy2jwgJvQmeyGCHJwpyQQ==
+config:
+  aws:region: us-east-1
+  aws:profile: jack
