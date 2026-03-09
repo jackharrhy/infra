@@ -1,5 +1,7 @@
 # mail-ingest Implementation Plan
 
+> **SUPERSEDED** by `docs/plans/2026-03-09-lists-design.md`. The mail-ingest service has been absorbed into the `lists` newsletter service.
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Build a Go service that polls SQS for inbound email metadata, stores it in SQLite, and serves a password-protected web UI for browsing listmonk replies.

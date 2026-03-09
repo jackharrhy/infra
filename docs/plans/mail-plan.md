@@ -11,8 +11,9 @@
 **Design doc:** `docs/plans/2026-03-09-ses-inbound-design.md`
 
 **Related plans:**
-- Go service (part 1): `docs/plans/2026-03-09-mail-ingest-plan.md`
-- Go service (part 2, threaded replies): `docs/plans/2026-03-09-mail-ingest-replies-plan.md`
+- ~~Go service (part 1): `docs/plans/2026-03-09-mail-ingest-plan.md`~~ (superseded)
+- ~~Go service (part 2, threaded replies): `docs/plans/2026-03-09-mail-ingest-replies-plan.md`~~ (superseded)
+- **`lists` newsletter service: `docs/plans/2026-03-09-lists-design.md`** (replaces both above)
 
 ---
 
@@ -423,37 +424,37 @@ git commit -m "feat: add IAM user for mail-ingest service"
 
 ---
 
-### Task 7: Add mail-ingest service to mug compose
+### Task 7: Add `lists` service to mug compose (replaces listmonk)
 
 **Files:**
 - Modify: `hosts/mug/compose.yml`
-- Create: `hosts/mug/secrets/mail-ingest.env` (SOPS-encrypted)
+- Create: `hosts/mug/secrets/lists.env` (SOPS-encrypted)
 
 **Step 1: Add service to compose.yml**
 
-Add before the `networks:` block in `hosts/mug/compose.yml`:
+Add before the `networks:` block in `hosts/mug/compose.yml`. This replaces the `listmonk` and `listmonk_db` services:
 
 ```yaml
-  mail-ingest:
-    image: ghcr.io/jackharrhy/mail-ingest:main
+  lists:
+    image: ghcr.io/jackharrhy/lists:main
     restart: always
     networks: [web]
     env_file:
-      - ./.runtime-secrets/mail-ingest.env
+      - ./.runtime-secrets/lists.env
     volumes:
-      - ./volumes/mail_ingest_data:/data
+      - ./volumes/lists_data:/data
     labels:
       - "traefik.docker.network=mug_web"
       - "traefik.enable=true"
-      - "traefik.http.services.mail-ingest.loadbalancer.server.port=8080"
-      - "traefik.http.routers.mail-ingest.rule=Host(`replies.jackharrhy.dev`)"
-      - "traefik.http.routers.mail-ingest.entrypoints=websecure"
-      - "traefik.http.routers.mail-ingest.tls.certresolver=mugresolver"
+      - "traefik.http.services.lists.loadbalancer.server.port=8080"
+      - "traefik.http.routers.lists.rule=Host(`lists.jackharrhy.dev`)"
+      - "traefik.http.routers.lists.entrypoints=websecure"
+      - "traefik.http.routers.lists.tls.certresolver=mugresolver"
 ```
 
 **Step 2: Create SOPS-encrypted secrets file**
 
-Create `hosts/mug/secrets/mail-ingest.env` with:
+Create `hosts/mug/secrets/lists.env` with:
 
 ```
 AWS_ACCESS_KEY_ID=<from task 6 step 2>
@@ -462,20 +463,23 @@ AWS_REGION=us-east-1
 SQS_QUEUE_URL=<from pulumi stack output>
 S3_BUCKET=ses-inbound-email
 AUTH_PASSWORD=<generate a strong password>
-DB_PATH=/data/mail-ingest.db
+API_TOKEN=<generate a strong token>
+DB_PATH=/data/lists.db
+FROM_DOMAIN=jackharrhy.dev
+BASE_URL=https://lists.jackharrhy.dev
 ```
 
-Encrypt: `sops --encrypt --in-place hosts/mug/secrets/mail-ingest.env`
+Encrypt: `sops --encrypt --in-place hosts/mug/secrets/lists.env`
 
 **Step 3: Add volume directory to ensure-volumes.sh**
 
-Add `mail_ingest_data` to `scripts/ensure-volumes.sh` if it manages volume directories.
+Add `lists_data` to `scripts/ensure-volumes.sh` if it manages volume directories.
 
 **Step 4: Commit**
 
 ```bash
-git add hosts/mug/compose.yml hosts/mug/secrets/mail-ingest.env
-git commit -m "feat: add mail-ingest service to mug compose"
+git add hosts/mug/compose.yml hosts/mug/secrets/lists.env
+git commit -m "feat: add lists service to mug compose, replacing listmonk"
 ```
 
 ---
