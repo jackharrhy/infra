@@ -1,5 +1,7 @@
 # mail-ingest Go Service Design
 
+> **SUPERSEDED** by `docs/plans/2026-03-09-lists-design.md`. The mail-ingest service has been absorbed into the `lists` newsletter service.
+
 ## Goal
 
 A small Go service that consumes SES inbound email metadata from SQS, stores it in SQLite, and serves a password-protected web UI for browsing listmonk reply tracking.

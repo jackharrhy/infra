@@ -1,5 +1,7 @@
 # mail-ingest Part 2: Threaded Replies Implementation Plan
 
+> **SUPERSEDED** by `docs/plans/2026-03-09-lists-design.md`. The mail-ingest service has been absorbed into the `lists` newsletter service.
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Add the ability to reply to inbound emails from the mail-ingest web UI, with correct threading so replies appear in the subscriber's existing email thread.
