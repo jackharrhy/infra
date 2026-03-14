@@ -57,7 +57,7 @@ const sesEventsTopic = new aws.sns.Topic("ses-events", {
 new aws.sns.TopicSubscription("ses-events-subscription", {
   topic: sesEventsTopic.arn,
   protocol: "https",
-  endpoint: "https://lists.jackharrhy.dev/webhooks/service/ses",
+  endpoint: "https://lists.jackharrhy.dev/api/webhooks/ses",
   confirmationTimeoutInMinutes: 1,
   endpointAutoConfirms: false,
 });
@@ -74,33 +74,6 @@ new aws.sesv2.ConfigurationSetEventDestination("ses-events-destination", {
   },
 });
 
-const sesSmtpUser = new aws.iam.User("listmonk-ses-smtp", {
-  name: "listmonk-ses-smtp",
-});
-
-const sesSendingGroup = new aws.iam.Group("AWSSESSendingGroupDoNotRename", {
-  name: "AWSSESSendingGroupDoNotRename",
-});
-
-new aws.iam.GroupPolicy("AmazonSesSendingAccess", {
-  group: sesSendingGroup.name,
-  name: "AmazonSesSendingAccess",
-  policy: JSON.stringify({
-    Version: "2012-10-17",
-    Statement: [
-      {
-        Effect: "Allow",
-        Action: "ses:SendRawEmail",
-        Resource: "*",
-      },
-    ],
-  }),
-});
-
-new aws.iam.UserGroupMembership("listmonk-ses-smtp-membership", {
-  user: sesSmtpUser.name,
-  groups: [sesSendingGroup.name],
-});
 
 const inboundEmailBucket = new aws.s3.Bucket("ses-inbound-email", {
   bucket: "jackharrhy-ses-inbound-email",
@@ -139,12 +112,14 @@ new aws.s3.BucketPolicy("ses-inbound-email-policy", {
 const inboundEmailDLQ = new aws.sqs.Queue("ses-inbound-email-dlq", {
   name: "ses-inbound-email-dlq",
   messageRetentionSeconds: 1209600, // 14 days
+  sqsManagedSseEnabled: true,
 });
 
 const inboundEmailQueue = new aws.sqs.Queue("ses-inbound-email-queue", {
   name: "ses-inbound-email-queue",
   visibilityTimeoutSeconds: 60,
   messageRetentionSeconds: 345600, // 4 days
+  sqsManagedSseEnabled: true,
   redrivePolicy: inboundEmailDLQ.arn.apply((dlqArn) =>
     JSON.stringify({
       deadLetterTargetArn: dlqArn,
@@ -182,6 +157,7 @@ new aws.iam.RolePolicy("ses-inbound-email-lambda-sqs-write", {
 
 const inboundEmailLambda = new aws.lambda.CallbackFunction("ses-inbound-email-lambda", {
   role: inboundEmailLambdaRole,
+  runtime: aws.lambda.Runtime.NodeJS24dX,
   timeout: 30,
   memorySize: 128,
   environment: {
