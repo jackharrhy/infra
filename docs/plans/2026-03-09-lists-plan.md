@@ -10,6 +10,18 @@
 
 **Design doc:** `docs/plans/2026-03-09-lists-design.md`
 
+**Listmonk reference codebase:** `tmp/listmonk/` — key compliance patterns are annotated inline per-task below. Cross-cutting reference:
+| Pattern | listmonk file | Lines |
+|---------|--------------|-------|
+| Campaign headers (tracking + unsubscribe) | `internal/manager/manager.go` | 500-520 |
+| Error circuit breaker | `internal/manager/pipe.go` | 138-151 |
+| LastID checkpoint / campaign resumption | `internal/manager/pipe.go` | 187-239 |
+| SES bounce classification | `internal/bounce/webhooks/ses.go` | 134-146 |
+| Atomic bounce recording + enforcement | `queries/bounces.sql` | 1-30 |
+| Double opt-in flow | `cmd/public.go` | 348-409 |
+| List-Unsubscribe on opt-in emails | `cmd/subscribers.go` | 738-746 |
+| MIME construction + Return-Path | `internal/messenger/email/email.go` | 140-190 |
+
 **Repo:** `jackharrhy/lists` (empty, already created)
 
 **Env vars:**
@@ -218,6 +230,12 @@ git commit -m "feat: scaffold lists project"
 
 ### Task 2: Database schema and migrations
 
+> **listmonk reference:** Schema design should account for bounce handling from the start:
+> - **Bounce table** — `queries/bounces.sql:1-30`: Listmonk stores bounces with `subscriber_id`, `campaign_id`, `type` (hard/soft/complaint), `source`, and `meta` (raw JSON). Consider adding a `bounces` table now (even if bounce processing comes later) to avoid a migration.
+> - **Subscriber status enum** — Listmonk uses `enabled`, `disabled`, `blocklisted`. Our `active/unsubscribed/blocklisted` maps directly. The `blocklisted` status is set atomically when bounce threshold is reached (`queries/bounces.sql:14-17`).
+> - **Campaign status enum** — Listmonk uses `draft`, `running`, `paused`, `cancelled`, `finished`. The `paused` state is critical for the circuit breaker pattern — a campaign is paused (not cancelled) on send errors so it can be resumed. Consider adding `paused` to our enum.
+> - **`lastID` column** — `manager/pipe.go:195`: Listmonk tracks the highest subscriber ID processed in each campaign run. Our `campaignSends` table serves the equivalent purpose (query for subscribers not in sends), but adding a `lastSubscriberId` column to `campaigns` would be more efficient for resumption.
+
 **Files:**
 - Create: `src/db/schema.ts`
 - Create: `src/db/index.ts`
@@ -397,6 +415,11 @@ git commit -m "feat: add database schema and migrations"
 
 ### Task 3: Compliance utilities
 
+> **listmonk reference:** Listmonk's compliance patterns are spread across several files:
+> - **Unsubscribe URL format** — `manager/message.go:21` builds per-subscriber URLs containing both campaign UUID and subscriber UUID: `fmt.Sprintf(m.cfg.UnsubURL, c.UUID, s.UUID)`. Our simplified version uses a single `unsubscribeToken` per subscriber since we don't need campaign-level unsubscription granularity.
+> - **List-Unsubscribe headers (RFC 8058)** — `manager/manager.go:505-508` sets `List-Unsubscribe-Post: List-Unsubscribe=One-Click` and `List-Unsubscribe: <URL>`. These are required on ALL emails (including opt-in confirmations, see `cmd/subscribers.go:742-745`) for Gmail/Yahoo deliverability since Feb 2024.
+> - **Custom tracking headers** — `manager/manager.go:500-502` sets `X-Listmonk-Campaign` and `X-Listmonk-Subscriber` on every outgoing email. These are used by `bounce/webhooks/ses.go:149-163` to correlate bounces back to specific campaigns and subscribers. Our equivalent: `X-Campaign-ID` and `X-Subscriber-ID`.
+
 **Files:**
 - Create: `src/compliance.ts`
 
@@ -437,6 +460,11 @@ git commit -m "feat: add compliance utilities (tokens, unsubscribe headers)"
 ---
 
 ### Task 4: Subscriber service
+
+> **listmonk reference:** Subscriber management touches several compliance areas:
+> - **Blocklisted subscriber suppression** — `queries/bounces.sql:14-17` (`block1` CTE): When a subscriber is blocklisted via bounce threshold, they're excluded from all future sends. Our `getConfirmedSubscribers()` already filters by `status = 'active'`, which covers this — a blocklisted subscriber won't be returned. But we need to ensure `unsubscribeAll()` also handles the blocklist case (not just unsubscribed).
+> - **Bounce-triggered disposition** — `queries/bounces.sql:1-30`: A single atomic CTE counts bounces, inserts the record, AND takes action (blocklist/unsubscribe/delete) depending on configuration. All in one SQL statement to prevent race conditions. Our SQLite equivalent should use a transaction with the same atomicity guarantee.
+> - **Private list filtering** — `cmd/public.go:239`: Listmonk filters out private lists from the subscription preference page so subscribers can't self-unsubscribe from admin-managed lists. Consider adding a `private` boolean to our `lists` table in a future iteration.
 
 **Files:**
 - Create: `src/services/subscriber.ts`
@@ -685,6 +713,11 @@ git commit -m "feat: add subscriber management service"
 
 ### Task 5: React-email templates
 
+> **listmonk reference:** Template rendering in listmonk:
+> - **Alt body (plain text)** — `manager/message.go:52-62`: Listmonk renders a separate plain text body using only the content template, not the full layout. This ensures the plain text version isn't polluted with layout chrome. Our `renderNewsletter()` should return both `html` and `text` variants — the text variant can use `render()` with `{ plainText: true }` from `@react-email/render`.
+> - **Template variables** — `manager/message.go:33-65`: Listmonk passes per-subscriber variables (name, email, unsubscribe URL) into Go templates. react-email handles this natively via JSX props — cleaner than string interpolation.
+> - **Confirmation email compliance** — `cmd/subscribers.go:738-746`: The opt-in confirmation email gets `List-Unsubscribe` headers even though it's not a campaign. Our `renderConfirmation()` should include an unsubscribe URL in the footer, and the sending code should add the RFC 8058 headers.
+
 **Files:**
 - Create: `emails/templates/newsletter.tsx`
 - Create: `emails/templates/confirm.tsx`
@@ -873,6 +906,20 @@ git commit -m "feat: add react-email templates (newsletter, confirmation)"
 
 ### Task 6: Campaign sender service
 
+> **listmonk reference:** The campaign sender is the most compliance-critical component. Key patterns from listmonk:
+>
+> **Error circuit breaker** — `manager/pipe.go:138-151`: `OnError()` atomically increments an error counter; when `count >= MaxSendErrors`, calls `Stop(true)` which pauses (not cancels) the campaign. This prevents mass bounces that could blacklist the domain. Our implementation should add a `maxSendErrors` config (default: 5) and pause the campaign when breached.
+>
+> **LastID checkpoint** — `manager/pipe.go:187-239` (`cleanup()`): On pause or completion, persists the highest subscriber ID sent to (`lastID`) via `UpdateCampaignCounts` (line 195). This enables campaign resumption without double-sending. Our schema's `campaignSends` table serves a similar purpose — on resume, we query for subscribers not yet in `campaignSends` for this campaign.
+>
+> **Per-message headers** — `manager/manager.go:488-520`: Each message gets `X-Listmonk-Campaign`, `X-Listmonk-Subscriber`, `List-Unsubscribe`, `List-Unsubscribe-Post`, plus campaign-level custom headers. The worker constructs these per-subscriber.
+>
+> **Rate limiting** — Two layers: per-second `MessageRate` (`manager/manager.go:480-485`) and sliding window (`pipe.go:90-131`). For our small-scale use (~100 subscribers), a simple per-second sleep suffices. SES has a default rate of 1/sec for new accounts, 14/sec after production access.
+>
+> **Alt body (plain text)** — `manager/message.go:52-62`: Renders a separate plain text version using only the content template (not the full HTML layout wrapper). Our `buildRawEmail` should include a `text/plain` MIME part.
+>
+> **Return-Path for bounce routing** — `messenger/email/email.go:159-164`: If a `Return-Path` header is set, it becomes the SMTP envelope sender. With SES API (not SMTP), this is handled via `FeedbackForwardingEmailAddress` or SNS notifications instead.
+
 **Files:**
 - Create: `src/services/sender.ts`
 
@@ -1045,6 +1092,12 @@ git commit -m "feat: add campaign sender service (SES raw email)"
 
 ### Task 7: SQS poller for inbound email
 
+> **listmonk reference:** While our SQS poller handles inbound email (replies), the same SQS/SNS pattern can be extended for **bounce handling**. Key patterns:
+> - **SES bounce classification** — `bounce/webhooks/ses.go:134-146`: `Permanent` = hard bounce, `Transient` with status `5.4.4` (invalid domain) = reclassified as hard bounce, `Complaint` = complaint type. We'll need a separate SNS topic + SQS queue (or Lambda) for bounces, processed similarly.
+> - **SNS signature verification** — `bounce/webhooks/ses.go:199-258`: Listmonk verifies SNS notification signatures using X.509 certificate validation. Since we're using SQS (not HTTPS webhooks), AWS handles authentication via IAM — no signature verification needed on our end.
+> - **Bounce recording** — `bounce/bounce.go:109-123`: All bounce sources feed into a single `chan models.Bounce` queue for uniform processing. The `RecordBounceCB` callback atomically records bounces and takes enforcement action. Our equivalent will be a `processBounce()` function called from the poller.
+> - **Bounce suppression** — `queries/bounces.sql:26`: Prevents inserting bounces for already-blocklisted subscribers (guards against infinite bounce table growth from re-sent notifications).
+
 **Files:**
 - Create: `src/services/poller.ts`
 
@@ -1211,6 +1264,14 @@ git commit -m "feat: add auth middleware (session + bearer token)"
 ---
 
 ### Task 9: Public routes (subscribe, confirm, unsubscribe)
+
+> **listmonk reference:** Public-facing subscription routes are where compliance requirements are most visible to users:
+> - **Double opt-in flow** — `cmd/public.go:348-409` (`OptinPage()`): Validates list UUIDs, checks for unconfirmed subscriptions, and on `confirm=true` calls `ConfirmOptionSubscription()`. Optionally records the opt-in IP address in subscriber metadata (`Privacy.RecordOptinIP`, lines 383-389) for GDPR audit trail.
+> - **List-Unsubscribe on opt-in emails** — `cmd/subscribers.go:738-746`: Even the double opt-in confirmation email includes `List-Unsubscribe` + `List-Unsubscribe-Post` headers. Gmail/Yahoo require these on ALL commercial email since Feb 2024. Our confirmation email sender (in the `POST /subscribe` handler) should include these headers too.
+> - **RFC 8058 one-click unsubscribe** — `cmd/public.go:272-280`: The `POST /unsubscribe/:token` endpoint handles the one-click unsubscribe POST from email clients (Gmail's "Unsubscribe" button). Must return 200 on success. Our implementation handles this.
+> - **Preference management** — `cmd/public.go:253-343` (`SubscriptionPrefs()`): Compares submitted list UUIDs against DB subscriptions, unsubscribes from unchecked lists. Filters out private lists (line 239). Supports optional blocklisting via form parameter.
+> - **Honeypot + CAPTCHA** — `cmd/public.go:459-492`: Bot detection via honeypot field and configurable CAPTCHA (hCaptcha/reCAPTCHA). For our personal newsletter, we can start without these and add if spam becomes an issue.
+> - **GDPR self-service** — `cmd/public.go:598-670`: Listmonk supports self-export (`SelfExportSubscriberData()`) and self-wipe (`WipeSubscriberData()`). Nice-to-have for a future iteration.
 
 **Files:**
 - Create: `src/routes/public.tsx`
