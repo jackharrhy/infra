@@ -42,3 +42,8 @@ ptabhbr7csgaaicxwz2dqnhtpnpdkkd5._domainkey:
   ttl: 43200
   type: CNAME
   value: ptabhbr7csgaaicxwz2dqnhtpnpdkkd5.dkim.amazonses.com.
+reply:
+  type: MX
+  value:
+    exchange: inbound-smtp.us-east-1.amazonaws.com.
+    preference: 10

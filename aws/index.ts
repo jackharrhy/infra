@@ -102,11 +102,8 @@ new aws.iam.UserGroupMembership("listmonk-ses-smtp-membership", {
   groups: [sesSendingGroup.name],
 });
 
-// --- Inbound email pipeline ---
-
-// Task 2: S3 bucket for inbound email storage
 const inboundEmailBucket = new aws.s3.Bucket("ses-inbound-email", {
-  bucket: "ses-inbound-email",
+  bucket: "jackharrhy-ses-inbound-email",
   forceDestroy: false,
 });
 
@@ -139,7 +136,6 @@ new aws.s3.BucketPolicy("ses-inbound-email-policy", {
   ),
 });
 
-// Task 3: SQS queues for inbound email processing
 const inboundEmailDLQ = new aws.sqs.Queue("ses-inbound-email-dlq", {
   name: "ses-inbound-email-dlq",
   messageRetentionSeconds: 1209600, // 14 days
@@ -157,7 +153,6 @@ const inboundEmailQueue = new aws.sqs.Queue("ses-inbound-email-queue", {
   ),
 });
 
-// Task 4: Lambda bridge (SES -> SQS)
 const inboundEmailLambdaRole = new aws.iam.Role("ses-inbound-email-lambda-role", {
   assumeRolePolicy: aws.iam.assumeRolePolicyForPrincipal({
     Service: "lambda.amazonaws.com",
@@ -247,7 +242,6 @@ new aws.lambda.Permission("ses-invoke-inbound-email-lambda", {
   sourceAccount: accountId,
 });
 
-// Task 5: SES receipt rule set and rule
 const inboundRuleSet = new aws.ses.ReceiptRuleSet("ses-inbound-rule-set", {
   ruleSetName: "ses-inbound-rules",
 });
@@ -259,7 +253,7 @@ new aws.ses.ActiveReceiptRuleSet("ses-inbound-active-rule-set", {
 new aws.ses.ReceiptRule("ses-inbound-receipt-rule", {
   name: "store-and-forward",
   ruleSetName: inboundRuleSet.ruleSetName,
-  recipients: ["reply.jackharrhy.dev"],
+  recipients: ["reply.jackharrhy.dev", "reply.siliconharbour.dev"],
   enabled: true,
   scanEnabled: true,
   s3Actions: [
@@ -278,7 +272,6 @@ new aws.ses.ReceiptRule("ses-inbound-receipt-rule", {
   ],
 });
 
-// Task 6: IAM user for the lists service (replaces mail-ingest)
 const listsUser = new aws.iam.User("lists", {
   name: "lists",
 });
