@@ -1,3 +1,4 @@
+import * as pulumi from "@pulumi/pulumi";
 import * as aws from "@pulumi/aws";
 
 const { accountId } = aws.getCallerIdentityOutput();
@@ -99,4 +100,221 @@ new aws.iam.GroupPolicy("AmazonSesSendingAccess", {
 new aws.iam.UserGroupMembership("listmonk-ses-smtp-membership", {
   user: sesSmtpUser.name,
   groups: [sesSendingGroup.name],
+});
+
+// --- Inbound email pipeline ---
+
+// Task 2: S3 bucket for inbound email storage
+const inboundEmailBucket = new aws.s3.Bucket("ses-inbound-email", {
+  bucket: "ses-inbound-email",
+  forceDestroy: false,
+});
+
+new aws.s3.BucketPublicAccessBlock("ses-inbound-email-public-access-block", {
+  bucket: inboundEmailBucket.id,
+  blockPublicAcls: true,
+  blockPublicPolicy: true,
+  ignorePublicAcls: true,
+  restrictPublicBuckets: true,
+});
+
+new aws.s3.BucketPolicy("ses-inbound-email-policy", {
+  bucket: inboundEmailBucket.id,
+  policy: pulumi.all([inboundEmailBucket.arn, accountId]).apply(([bucketArn, id]) =>
+    JSON.stringify({
+      Version: "2012-10-17",
+      Statement: [
+        {
+          Sid: "AllowSESPut",
+          Effect: "Allow",
+          Principal: { Service: "ses.amazonaws.com" },
+          Action: "s3:PutObject",
+          Resource: `${bucketArn}/*`,
+          Condition: {
+            StringEquals: { "AWS:SourceAccount": id },
+          },
+        },
+      ],
+    }),
+  ),
+});
+
+// Task 3: SQS queues for inbound email processing
+const inboundEmailDLQ = new aws.sqs.Queue("ses-inbound-email-dlq", {
+  name: "ses-inbound-email-dlq",
+  messageRetentionSeconds: 1209600, // 14 days
+});
+
+const inboundEmailQueue = new aws.sqs.Queue("ses-inbound-email-queue", {
+  name: "ses-inbound-email-queue",
+  visibilityTimeoutSeconds: 60,
+  messageRetentionSeconds: 345600, // 4 days
+  redrivePolicy: inboundEmailDLQ.arn.apply((dlqArn) =>
+    JSON.stringify({
+      deadLetterTargetArn: dlqArn,
+      maxReceiveCount: 3,
+    }),
+  ),
+});
+
+// Task 4: Lambda bridge (SES -> SQS)
+const inboundEmailLambdaRole = new aws.iam.Role("ses-inbound-email-lambda-role", {
+  assumeRolePolicy: aws.iam.assumeRolePolicyForPrincipal({
+    Service: "lambda.amazonaws.com",
+  }),
+});
+
+new aws.iam.RolePolicyAttachment("ses-inbound-email-lambda-basic-execution", {
+  role: inboundEmailLambdaRole.name,
+  policyArn: aws.iam.ManagedPolicy.AWSLambdaBasicExecutionRole,
+});
+
+new aws.iam.RolePolicy("ses-inbound-email-lambda-sqs-write", {
+  role: inboundEmailLambdaRole.name,
+  policy: inboundEmailQueue.arn.apply((queueArn) =>
+    JSON.stringify({
+      Version: "2012-10-17",
+      Statement: [
+        {
+          Effect: "Allow",
+          Action: "sqs:SendMessage",
+          Resource: queueArn,
+        },
+      ],
+    }),
+  ),
+});
+
+const inboundEmailLambda = new aws.lambda.CallbackFunction("ses-inbound-email-lambda", {
+  role: inboundEmailLambdaRole,
+  timeout: 30,
+  memorySize: 128,
+  environment: {
+    variables: {
+      SQS_QUEUE_URL: inboundEmailQueue.url,
+    },
+  },
+  callback: async (event: any) => {
+    const record = event.Records?.[0];
+    if (!record?.ses) {
+      console.error("No SES record found");
+      return { disposition: "STOP_RULE" };
+    }
+
+    const mail = record.ses.mail;
+    const receipt = record.ses.receipt;
+
+    const payload = {
+      messageId: mail.messageId,
+      timestamp: mail.timestamp,
+      source: mail.source,
+      from: mail.commonHeaders?.from,
+      to: mail.commonHeaders?.to,
+      subject: mail.commonHeaders?.subject,
+      spamVerdict: receipt.spamVerdict?.status,
+      virusVerdict: receipt.virusVerdict?.status,
+      spfVerdict: receipt.spfVerdict?.status,
+      dkimVerdict: receipt.dkimVerdict?.status,
+      dmarcVerdict: receipt.dmarcVerdict?.status,
+      action: receipt.action,
+    };
+
+    const { SQSClient, SendMessageCommand } = require("@aws-sdk/client-sqs");
+    const sqs = new SQSClient({});
+
+    await sqs.send(
+      new SendMessageCommand({
+        QueueUrl: process.env.SQS_QUEUE_URL,
+        MessageBody: JSON.stringify(payload),
+        MessageAttributes: {
+          messageId: {
+            DataType: "String",
+            StringValue: mail.messageId,
+          },
+        },
+      }),
+    );
+
+    console.log(`Queued message ${mail.messageId}`);
+    return { disposition: "CONTINUE" };
+  },
+});
+
+new aws.lambda.Permission("ses-invoke-inbound-email-lambda", {
+  action: "lambda:InvokeFunction",
+  function: inboundEmailLambda.name,
+  principal: "ses.amazonaws.com",
+  sourceAccount: accountId,
+});
+
+// Task 5: SES receipt rule set and rule
+const inboundRuleSet = new aws.ses.ReceiptRuleSet("ses-inbound-rule-set", {
+  ruleSetName: "ses-inbound-rules",
+});
+
+new aws.ses.ActiveReceiptRuleSet("ses-inbound-active-rule-set", {
+  ruleSetName: inboundRuleSet.ruleSetName,
+});
+
+new aws.ses.ReceiptRule("ses-inbound-receipt-rule", {
+  name: "store-and-forward",
+  ruleSetName: inboundRuleSet.ruleSetName,
+  recipients: ["reply.jackharrhy.dev"],
+  enabled: true,
+  scanEnabled: true,
+  s3Actions: [
+    {
+      bucketName: inboundEmailBucket.bucket,
+      objectKeyPrefix: "inbound/",
+      position: 1,
+    },
+  ],
+  lambdaActions: [
+    {
+      functionArn: inboundEmailLambda.arn,
+      invocationType: "Event",
+      position: 2,
+    },
+  ],
+});
+
+// Task 6: IAM user for the lists service (replaces mail-ingest)
+const listsUser = new aws.iam.User("lists", {
+  name: "lists",
+});
+
+new aws.iam.UserPolicy("lists-policy", {
+  user: listsUser.name,
+  policy: pulumi
+    .all([inboundEmailQueue.arn, inboundEmailDLQ.arn, inboundEmailBucket.arn])
+    .apply(([queueArn, dlqArn, bucketArn]) =>
+      JSON.stringify({
+        Version: "2012-10-17",
+        Statement: [
+          {
+            Sid: "SQSRead",
+            Effect: "Allow",
+            Action: [
+              "sqs:ReceiveMessage",
+              "sqs:DeleteMessage",
+              "sqs:GetQueueAttributes",
+              "sqs:ChangeMessageVisibility",
+            ],
+            Resource: [queueArn, dlqArn],
+          },
+          {
+            Sid: "S3Read",
+            Effect: "Allow",
+            Action: ["s3:GetObject"],
+            Resource: `${bucketArn}/*`,
+          },
+          {
+            Sid: "SESSend",
+            Effect: "Allow",
+            Action: ["ses:SendRawEmail", "ses:SendEmail"],
+            Resource: "*",
+          },
+        ],
+      }),
+    ),
 });
