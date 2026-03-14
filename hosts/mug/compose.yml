@@ -204,55 +204,22 @@ services:
     volumes:
       - ./volumes/luckypot:/app/data
 
-  listmonk:
-    image: listmonk/listmonk:latest
+  lists:
+    image: ghcr.io/jackharrhy/lists:main
     restart: always
-    hostname: lists.jackharrhy.dev
-    networks: [web, listmonk]
-    depends_on:
-      - listmonk_db
-    command:
-      [
-        sh,
-        -c,
-        "./listmonk --install --idempotent --yes --config '' && ./listmonk --upgrade --yes --config '' && ./listmonk --config ''",
-      ]
+    networks: [web]
     env_file:
-      - ./.runtime-secrets/listmonk.env
-    environment:
-      - LISTMONK_app__address=0.0.0.0:9000
-      - LISTMONK_db__host=listmonk_db
-      - LISTMONK_db__port=5432
-      - LISTMONK_db__ssl_mode=disable
-      - LISTMONK_db__max_open=25
-      - LISTMONK_db__max_idle=25
-      - LISTMONK_db__max_lifetime=300s
-      - TZ=America/St_Johns
+      - ./.runtime-secrets/lists.env
     volumes:
-      - ./volumes/listmonk_uploads:/listmonk/uploads:rw
+      - ./volumes/lists_data:/data
     labels:
       - "traefik.docker.network=mug_web"
       - "traefik.enable=true"
-      - "traefik.http.services.listmonk.loadbalancer.server.port=9000"
-      - "traefik.http.routers.listmonk.rule=Host(`lists.jackharrhy.dev`)"
-      - "traefik.http.routers.listmonk.entrypoints=websecure"
-      - "traefik.http.routers.listmonk.tls.certresolver=mugresolver"
-
-  listmonk_db:
-    image: postgres:17-alpine
-    restart: always
-    networks: [listmonk]
-    env_file:
-      - ./.runtime-secrets/listmonk.env
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U listmonk"]
-      interval: 10s
-      timeout: 5s
-      retries: 6
-    volumes:
-      - ./volumes/listmonk_db_data:/var/lib/postgresql/data
+      - "traefik.http.services.lists.loadbalancer.server.port=8080"
+      - "traefik.http.routers.lists.rule=Host(`lists.jackharrhy.dev`)"
+      - "traefik.http.routers.lists.entrypoints=websecure"
+      - "traefik.http.routers.lists.tls.certresolver=mugresolver"
 
 networks:
   andrewsite:
-  listmonk:
   web:
