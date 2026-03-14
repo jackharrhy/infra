@@ -23,6 +23,14 @@ new aws.sesv2.EmailIdentity("jackharrhy-dev", {
   },
 });
 
+new aws.sesv2.EmailIdentity("siliconharbour-dev", {
+  emailIdentity: "siliconharbour.dev",
+  configurationSetName: configSet.configurationSetName,
+  dkimSigningAttributes: {
+    nextSigningKeyLength: "RSA_2048_BIT",
+  },
+});
+
 const sesEventsTopic = new aws.sns.Topic("ses-events", {
   name: "ses-events",
   policy: accountId.apply((id) =>
