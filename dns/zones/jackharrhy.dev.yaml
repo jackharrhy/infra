@@ -37,6 +37,11 @@ mail:
     preference: 10
 - type: TXT
   value: v=spf1 include:amazonses.com ~all
+reply:
+  type: MX
+  value:
+    exchange: inbound-smtp.us-east-1.amazonaws.com.
+    preference: 10
 zoder23zaknzien6cajkkz4lfqdnlprw._domainkey:
   ttl: 43200
   type: CNAME
