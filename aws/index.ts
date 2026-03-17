@@ -216,6 +216,7 @@ const inboundEmailLambda = new aws.lambda.CallbackFunction("ses-inbound-email-la
 
     const payload = {
       messageId: mail.messageId,
+      rfc822MessageId: mail.commonHeaders?.messageId,
       timestamp: mail.timestamp,
       source: mail.source,
       from: mail.commonHeaders?.from,
