@@ -57,7 +57,7 @@ const sesEventsTopic = new aws.sns.Topic("ses-events", {
 new aws.sns.TopicSubscription("ses-events-subscription", {
   topic: sesEventsTopic.arn,
   protocol: "https",
-  endpoint: "https://lists.jackharrhy.dev/api/webhooks/ses",
+  endpoint: "https://lists.jackharrhy.dev/webhooks/ses",
   confirmationTimeoutInMinutes: 1,
   endpointAutoConfirms: false,
 });
