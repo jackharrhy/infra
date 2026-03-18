@@ -291,6 +291,48 @@ new aws.ses.ReceiptRule("ses-inbound-receipt-rule", {
   ],
 });
 
+// Public S3 bucket for campaign media (images hosted for email)
+const mediaBucket = new aws.s3.Bucket("lists-media", {
+  bucket: "jackharrhy-lists-media",
+  forceDestroy: false,
+});
+
+const mediaPublicAccessBlock = new aws.s3.BucketPublicAccessBlock("lists-media-public-access-block", {
+  bucket: mediaBucket.id,
+  blockPublicAcls: false,
+  blockPublicPolicy: false,
+  ignorePublicAcls: false,
+  restrictPublicBuckets: false,
+});
+
+new aws.s3.BucketPolicy("lists-media-policy", {
+  bucket: mediaBucket.id,
+  policy: mediaBucket.arn.apply((arn) =>
+    JSON.stringify({
+      Version: "2012-10-17",
+      Statement: [
+        {
+          Sid: "PublicRead",
+          Effect: "Allow",
+          Principal: "*",
+          Action: "s3:GetObject",
+          Resource: `${arn}/*`,
+        },
+      ],
+    }),
+  ),
+}, { dependsOn: [mediaPublicAccessBlock] });
+
+new aws.s3.BucketCorsConfiguration("lists-media-cors", {
+  bucket: mediaBucket.id,
+  corsRules: [{
+    allowedHeaders: ["*"],
+    allowedMethods: ["GET"],
+    allowedOrigins: ["*"],
+    maxAgeSeconds: 3600,
+  }],
+});
+
 const listsUser = new aws.iam.User("lists", {
   name: "lists",
 });
@@ -298,8 +340,8 @@ const listsUser = new aws.iam.User("lists", {
 new aws.iam.UserPolicy("lists-policy", {
   user: listsUser.name,
   policy: pulumi
-    .all([inboundEmailQueue.arn, inboundEmailDLQ.arn, inboundEmailBucket.arn])
-    .apply(([queueArn, dlqArn, bucketArn]) =>
+    .all([inboundEmailQueue.arn, inboundEmailDLQ.arn, inboundEmailBucket.arn, mediaBucket.arn])
+    .apply(([queueArn, dlqArn, inboundBucketArn, mediaBucketArn]) =>
       JSON.stringify({
         Version: "2012-10-17",
         Statement: [
@@ -315,10 +357,16 @@ new aws.iam.UserPolicy("lists-policy", {
             Resource: [queueArn, dlqArn],
           },
           {
-            Sid: "S3Read",
+            Sid: "S3InboundRead",
             Effect: "Allow",
             Action: ["s3:GetObject"],
-            Resource: `${bucketArn}/*`,
+            Resource: `${inboundBucketArn}/*`,
+          },
+          {
+            Sid: "S3MediaWrite",
+            Effect: "Allow",
+            Action: ["s3:PutObject", "s3:DeleteObject"],
+            Resource: `${mediaBucketArn}/*`,
           },
           {
             Sid: "SESSend",
