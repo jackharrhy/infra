@@ -18,7 +18,9 @@
     - ns2.digitalocean.com.
     - ns3.digitalocean.com.
   - type: TXT
-    value: v=spf1 include:_spf.porkbun.com include:amazonses.com -all
+    values:
+    - v=spf1 include:_spf.porkbun.com include:amazonses.com -all
+    - google-site-verification=5q311nXABXQ_UGCXIuBA5rOm0fi5TBqESGXS_HOqbW0
 _dmarc:
   type: TXT
   value: v=DMARC1\; p=quarantine\;
