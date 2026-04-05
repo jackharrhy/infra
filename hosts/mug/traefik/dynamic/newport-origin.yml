@@ -65,6 +65,13 @@ http:
       tls:
         certResolver: mugresolver
 
+    qbrain-via-newport:
+      rule: "Host(`qbrain.jackharrhy.dev`)"
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
+
   services:
     newport-origin:
       loadBalancer:

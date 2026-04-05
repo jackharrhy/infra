@@ -37,6 +37,21 @@ services:
     env_file:
       - ./.runtime-secrets/beszel-agent.env
 
+  qbrain:
+    image: ghcr.io/jackharrhy/qbrain:main
+    restart: unless-stopped
+    networks: [web]
+    env_file:
+      - ./.runtime-secrets/qbrain.env
+    volumes:
+      - ./volumes/qbrain_data:/app/data
+    labels:
+      - "traefik.docker.network=newport_web"
+      - "traefik.enable=true"
+      - "traefik.http.services.qbrain.loadbalancer.server.port=8099"
+      - "traefik.http.routers.qbrain.rule=Host(`qbrain.jackharrhy.dev`)"
+      - "traefik.http.routers.qbrain.entrypoints=web"
+
   rotund_org:
     image: ghcr.io/jackharrhy/rotund.org:main
     restart: always
