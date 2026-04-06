@@ -72,6 +72,13 @@ http:
       tls:
         certResolver: mugresolver
 
+    4orm-via-newport:
+      rule: "Host(`4orm.harrhy.xyz`)"
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
+
   services:
     newport-origin:
       loadBalancer:

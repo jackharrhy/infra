@@ -52,6 +52,20 @@ services:
       - "traefik.http.routers.qbrain.rule=Host(`qbrain.jackharrhy.dev`)"
       - "traefik.http.routers.qbrain.entrypoints=web"
 
+  4orm:
+    image: ghcr.io/jackharrhy/4orm:main
+    restart: unless-stopped
+    networks: [web]
+    volumes:
+      - ./volumes/4orm_data:/app/data
+      - ./volumes/4orm_uploads:/app/uploads
+    labels:
+      - "traefik.docker.network=newport_web"
+      - "traefik.enable=true"
+      - "traefik.http.services.4orm.loadbalancer.server.port=8000"
+      - "traefik.http.routers.4orm.rule=Host(`4orm.harrhy.xyz`)"
+      - "traefik.http.routers.4orm.entrypoints=web"
+
   rotund_org:
     image: ghcr.io/jackharrhy/rotund.org:main
     restart: always
