@@ -61,6 +61,7 @@ services:
     volumes:
       - ./volumes/4orm_data:/app/data
       - ./volumes/4orm_uploads:/app/uploads
+      - ./volumes/4orm_backups:/app/backups
     labels:
       - "traefik.docker.network=newport_web"
       - "traefik.enable=true"
