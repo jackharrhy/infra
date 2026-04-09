@@ -56,6 +56,8 @@ services:
     image: ghcr.io/jackharrhy/4orm:main
     restart: unless-stopped
     networks: [web]
+    env_file:
+      - ./.runtime-secrets/4orm.env
     volumes:
       - ./volumes/4orm_data:/app/data
       - ./volumes/4orm_uploads:/app/uploads
