@@ -69,6 +69,12 @@ services:
       - "traefik.http.routers.4orm.rule=Host(`4orm.harrhy.xyz`)"
       - "traefik.http.routers.4orm.entrypoints=web"
 
+  hikeping:
+    image: ghcr.io/jackharrhy/hikeping:main
+    restart: unless-stopped
+    env_file:
+      - ./.runtime-secrets/hikeping.env
+
   rotund_org:
     image: ghcr.io/jackharrhy/rotund.org:main
     restart: always
