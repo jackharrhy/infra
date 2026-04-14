@@ -58,6 +58,8 @@ services:
     networks: [web]
     env_file:
       - ./.runtime-secrets/4orm.env
+    environment:
+      - SITE_URL=https://4orm.harrhy.xyz
     volumes:
       - ./volumes/4orm_data:/app/data
       - ./volumes/4orm_uploads:/app/uploads
