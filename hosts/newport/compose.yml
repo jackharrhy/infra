@@ -77,6 +77,17 @@ services:
     env_file:
       - ./.runtime-secrets/hikeping.env
 
+  adam_cooks:
+    image: ghcr.io/jackharrhy/adam-cooks:main
+    restart: unless-stopped
+    networks: [web]
+    labels:
+      - "traefik.docker.network=newport_web"
+      - "traefik.enable=true"
+      - "traefik.http.services.adam_cooks.loadbalancer.server.port=80"
+      - "traefik.http.routers.adam_cooks.rule=Host(`adam-cooks.jackharrhy.dev`)"
+      - "traefik.http.routers.adam_cooks.entrypoints=web"
+
   rotund_org:
     image: ghcr.io/jackharrhy/rotund.org:main
     restart: always
