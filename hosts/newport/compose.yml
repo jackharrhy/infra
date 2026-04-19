@@ -279,7 +279,7 @@ services:
     # TODO: expose behind auth
 
   compscibois:
-    image: ghcr.io/ncashin/clawscibois:main
+    image: ghcr.io/fogo-sh/clawscibois:main
     restart: unless-stopped
     networks: [web]
     env_file:
