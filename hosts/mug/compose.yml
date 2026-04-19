@@ -34,6 +34,23 @@ services:
       - "traefik.http.routers.http-catchall.middlewares=redirect-to-https@docker"
       - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
 
+  easter_egg:
+    image: nginx:alpine
+    restart: always
+    networks: [web]
+    volumes:
+      - ./easter-egg:/usr/share/nginx/html:ro
+    labels:
+      - "traefik.docker.network=mug_web"
+      - "traefik.enable=true"
+      - "traefik.http.services.easter-egg.loadbalancer.server.port=80"
+      # Match requests hitting the droplet's raw IP (v4 or v6). Higher
+      # priority than the http-catchall redirect so these don't bounce to
+      # https (there is no LE cert for a bare IP).
+      - "traefik.http.routers.easter-egg.rule=Host(`142.93.144.29`) || Host(`2604:a880:cad:d0::dff:a001`)"
+      - "traefik.http.routers.easter-egg.entrypoints=web"
+      - "traefik.http.routers.easter-egg.priority=1000"
+
   watchtower:
     image: ghcr.io/nicholas-fedor/watchtower:latest
     restart: always

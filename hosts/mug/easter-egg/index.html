@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>you found it</title>
+    <style>
+      html, body {
+        margin: 0;
+        height: 100%;
+        background: #111;
+        color: #eee;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+      body {
+        display: grid;
+        place-items: center;
+        text-align: center;
+        padding: 2rem;
+      }
+      h1 { font-size: clamp(1.5rem, 6vw, 3rem); margin: 0 0 0.5rem; }
+      p  { opacity: 0.7; margin: 0.25rem 0; }
+      a  { color: #9fd; }
+      .blink { animation: blink 1s steps(2, start) infinite; }
+      @keyframes blink { to { visibility: hidden; } }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>hi<span class="blink">_</span></h1>
+      <p>you're poking at a raw ip address</p>
+      <p>there's nothing here, try <a href="https://jackharrhy.dev">jackharrhy.dev</a></p>
+    </main>
+  </body>
+</html>
