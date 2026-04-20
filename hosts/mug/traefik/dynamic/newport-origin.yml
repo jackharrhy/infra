@@ -86,27 +86,6 @@ http:
       tls:
         certResolver: mugresolver
 
-    compscibois-via-newport:
-      rule: "Host(`compscibois.com`)"
-      entryPoints: [websecure]
-      service: newport-origin
-      tls:
-        certResolver: mugresolver
-
-    csb-discordbot-via-newport:
-      rule: "Host(`discordbot.compscibois.com`)"
-      entryPoints: [websecure]
-      service: newport-origin
-      tls:
-        certResolver: mugresolver
-
-    csb-opencode-via-newport:
-      rule: "Host(`opencode.compscibois.com`)"
-      entryPoints: [websecure]
-      service: newport-origin
-      tls:
-        certResolver: mugresolver
-
   services:
     newport-origin:
       loadBalancer:
