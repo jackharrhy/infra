@@ -8,3 +8,4 @@ hosts/*/.runtime-secrets/
 *.env
 .envrc
 tmp
+.vscode
