@@ -86,6 +86,13 @@ http:
       tls:
         certResolver: mugresolver
 
+    artbin-via-newport:
+      rule: "Host(`artbin.jackharrhy.dev`)"
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
+
   services:
     newport-origin:
       loadBalancer:
