@@ -88,6 +88,19 @@ services:
       - "traefik.http.routers.adam_cooks.rule=Host(`adam-cooks.jackharrhy.dev`)"
       - "traefik.http.routers.adam_cooks.entrypoints=web"
 
+  artbin:
+    image: ghcr.io/jackharrhy/artbin:main
+    restart: unless-stopped
+    networks: [web]
+    volumes:
+      - ./volumes/artbin_data:/app
+    labels:
+      - "traefik.docker.network=newport_web"
+      - "traefik.enable=true"
+      - "traefik.http.services.artbin.loadbalancer.server.port=3000"
+      - "traefik.http.routers.artbin.rule=Host(`artbin.jackharrhy.dev`)"
+      - "traefik.http.routers.artbin.entrypoints=web"
+
   rotund_org:
     image: ghcr.io/jackharrhy/rotund.org:main
     restart: always
