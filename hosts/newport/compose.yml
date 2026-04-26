@@ -93,7 +93,9 @@ services:
     restart: unless-stopped
     networks: [web]
     volumes:
-      - ./volumes/artbin_data:/app
+      - ./volumes/artbin_data/artbin.db:/app/artbin.db
+      - ./volumes/artbin_data/uploads:/app/public/uploads
+      - ./volumes/artbin_data/tmp:/app/tmp/uploads
     labels:
       - "traefik.docker.network=newport_web"
       - "traefik.enable=true"
