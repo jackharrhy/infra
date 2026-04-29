@@ -92,10 +92,14 @@ services:
     image: ghcr.io/jackharrhy/artbin:main
     restart: unless-stopped
     networks: [web]
+    environment:
+      - FOURM_URL=https://4orm.harrhy.xyz
+      - FOURM_CLIENT_ID=artbin
+      - ARTBIN_URL=https://artbin.jackharrhy.dev
     volumes:
-      - ./volumes/artbin_data/artbin.db:/app/artbin.db
-      - ./volumes/artbin_data/uploads:/app/public/uploads
-      - ./volumes/artbin_data/tmp:/app/tmp/uploads
+      - ./volumes/artbin_data/data:/app/apps/web/data
+      - ./volumes/artbin_data/uploads:/app/apps/web/public/uploads
+      - ./volumes/artbin_data/tmp:/app/apps/web/tmp/uploads
     labels:
       - "traefik.docker.network=newport_web"
       - "traefik.enable=true"
