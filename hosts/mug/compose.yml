@@ -140,23 +140,23 @@ services:
     image: ghcr.io/jackharrhy/burger:main
     restart: always
     networks: [web]
+    environment:
+      - NODE_ENV=production
+      - DB_PATH=/app/data/burger.db
+      - FOURM_URL=https://4orm.harrhy.xyz
+      - FOURM_CLIENT_ID=burger
+      - BURGER_URL=https://big.burger.beauty
     volumes:
-      - ./volumes/burger_radio_assets:/app/packages/burger-radio/assets
+      - ./volumes/burger_data:/app/data
     labels:
       - "traefik.docker.network=mug_web"
       - "traefik.enable=true"
       - "traefik.http.services.burger.loadbalancer.server.port=5000"
-      - "traefik.http.routers.burger.rule=Host(`big.burger.beauty`) && PathPrefix(`/`)"
+      - "traefik.http.routers.burger.rule=Host(`big.burger.beauty`)"
       - "traefik.http.routers.burger.entrypoints=websecure"
       - "traefik.http.routers.burger.tls.certresolver=mugresolver"
       - "traefik.http.routers.burger.tls.domains[0].main=burger.beauty"
       - "traefik.http.routers.burger.tls.domains[0].sans=*.burger.beauty"
-      - "traefik.http.routers.burger.service=burger"
-      - "traefik.http.services.burger-peerjs.loadbalancer.server.port=9000"
-      - "traefik.http.routers.burger-peerjs.rule=Host(`big.burger.beauty`) && PathPrefix(`/peerjs`)"
-      - "traefik.http.routers.burger-peerjs.entrypoints=websecure"
-      - "traefik.http.routers.burger-peerjs.tls.certresolver=mugresolver"
-      - "traefik.http.routers.burger-peerjs.service=burger-peerjs"
 
   andrewsite_astro:
     image: ghcr.io/jackharrhy/andrew-gosse-site-astro:main
