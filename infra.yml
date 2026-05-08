@@ -3,7 +3,7 @@ hosts:
     cores: 1
     ram: 2GB
     storage: 50GB
-    ssh: jack@jackharrhy.dev
+    ssh: jack@mug
     repo_path: ~/infra
     compose_path: ~/infra/hosts/mug
   newport:
