@@ -237,6 +237,26 @@ services:
       - "traefik.http.routers.lists.entrypoints=websecure"
       - "traefik.http.routers.lists.tls.certresolver=mugresolver"
 
+  zonia:
+    image: ghcr.io/jackharrhy/zonia:main
+    restart: always
+    networks: [web]
+    env_file:
+      - ./.runtime-secrets/zonia.env
+    environment:
+      - PHX_HOST=zonia.harrhy.xyz
+      - ZONIA_DATABASE=/data/zonia.db
+      - PORT=4000
+    volumes:
+      - ./volumes/zonia:/data
+    labels:
+      - "traefik.docker.network=mug_web"
+      - "traefik.enable=true"
+      - "traefik.http.services.zonia.loadbalancer.server.port=4000"
+      - "traefik.http.routers.zonia.rule=Host(`zonia.harrhy.xyz`)"
+      - "traefik.http.routers.zonia.entrypoints=websecure"
+      - "traefik.http.routers.zonia.tls.certresolver=mugresolver"
+
 networks:
   andrewsite:
   web:
