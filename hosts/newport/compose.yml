@@ -37,21 +37,6 @@ services:
     env_file:
       - ./.runtime-secrets/beszel-agent.env
 
-  qbrain:
-    image: ghcr.io/jackharrhy/qbrain:main
-    restart: unless-stopped
-    networks: [web]
-    env_file:
-      - ./.runtime-secrets/qbrain.env
-    volumes:
-      - ./volumes/qbrain_data:/app/data
-    labels:
-      - "traefik.docker.network=newport_web"
-      - "traefik.enable=true"
-      - "traefik.http.services.qbrain.loadbalancer.server.port=8099"
-      - "traefik.http.routers.qbrain.rule=Host(`qbrain.jackharrhy.dev`)"
-      - "traefik.http.routers.qbrain.entrypoints=web"
-
   4orm:
     image: ghcr.io/jackharrhy/4orm:main
     restart: unless-stopped
@@ -234,12 +219,6 @@ services:
     volumes:
       - ./volumes/house_data:/data
 
-  ileah:
-    image: ghcr.io/jackharrhy/ileah:main
-    restart: always
-    env_file:
-      - ./.runtime-secrets/ileah.env
-
   almanac:
     image: ghcr.io/fogo-sh/almanac:latest
     restart: always
@@ -295,6 +274,21 @@ services:
   #    - ./volumes/terranova_config:/config
   #  ports:
   #    - "25565:25565"
+
+  #quidi:
+  #  image: itzg/minecraft-server:java21
+  #  ports:
+  #    - "25565:25565"
+  #  environment:
+  #    EULA: "TRUE"
+  #    TYPE: MODRINTH
+  #    MODRINTH_MODPACK: create_plus
+  #    MEMORY: 12G
+  #    MOTD: quidi
+  #  env_file:
+  #    - ./.runtime-secrets/quidi.env
+  #  volumes:
+  #    - ./volumes/quidi_data:/data
 
 networks:
   web:
