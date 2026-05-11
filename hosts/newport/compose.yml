@@ -234,6 +234,25 @@ services:
       - "traefik.http.routers.almanac.rule=Host(`almanac.jackharrhy.dev`)"
       - "traefik.http.routers.almanac.entrypoints=web"
 
+  marky:
+    image: ghcr.io/jackharrhy/marky:main
+    restart: always
+    networks: [web]
+    env_file:
+      - ./.runtime-secrets/marky.env
+    environment:
+      - MARKY_AUTH=discord
+      - MARKY_BASE_URL=https://marky.jackharrhy.dev
+      - MARKY_CONTENT_DIR=/content
+    volumes:
+      - ./volumes/almanac_content/content:/content
+    labels:
+      - "traefik.docker.network=newport_web"
+      - "traefik.enable=true"
+      - "traefik.http.services.marky.loadbalancer.server.port=44100"
+      - "traefik.http.routers.marky.rule=Host(`marky.jackharrhy.dev`)"
+      - "traefik.http.routers.marky.entrypoints=web"
+
   steve:
     image: ghcr.io/jackharrhy/letters-to-steve:latest
     restart: always

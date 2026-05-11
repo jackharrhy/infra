@@ -93,6 +93,13 @@ http:
       tls:
         certResolver: mugresolver
 
+    marky-via-newport:
+      rule: "Host(`marky.jackharrhy.dev`)"
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
+
   services:
     newport-origin:
       loadBalancer:
