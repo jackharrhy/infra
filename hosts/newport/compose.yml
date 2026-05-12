@@ -243,9 +243,11 @@ services:
     environment:
       - MARKY_AUTH=discord
       - MARKY_BASE_URL=https://marky.jackharrhy.dev
-      - MARKY_CONTENT_DIR=/content
+      - MARKY_CONTENT_DIR=/repo/content
+      - MARKY_GIT_REPO=/repo
+      - MARKY_GIT_PUSH=true
     volumes:
-      - ./volumes/almanac_content/content:/content
+      - ./volumes/almanac_content:/repo
     labels:
       - "traefik.docker.network=newport_web"
       - "traefik.enable=true"
