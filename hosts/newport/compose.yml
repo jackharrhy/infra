@@ -3,6 +3,7 @@ services:
     image: traefik:v3
     restart: always
     command:
+      - "--log.level=INFO"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--providers.file.directory=/etc/traefik/dynamic"

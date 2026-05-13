@@ -4,12 +4,25 @@ services:
     restart: always
     networks: [web]
     command:
+      - "--log.level=INFO"
       - "--api.insecure=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--providers.file.directory=/etc/traefik/dynamic"
       - "--providers.file.watch=true"
       - "--entrypoints.web.address=:80"
+      # Entrypoint-level HTTP -> HTTPS redirect. This replaces the previous
+      # http-catchall router + redirectscheme middleware pair: more idiomatic
+      # in v3, one less middleware and router to reason about. The internal
+      # router this creates has a high default priority (MaxInt32-1), which
+      # would steal traffic from any user router on the `web` entrypoint —
+      # set it low (10) so easter-egg (priority=1000) still wins for bare-IP
+      # hits, and so the ACME-bypass router (path-prefix rule) keeps winning
+      # for /.well-known/acme-challenge/* during HTTP-01 issuance.
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
+      - "--entrypoints.web.http.redirections.entrypoint.priority=10"
       - "--entrypoints.websecure.address=:443"
       # DNS-01 resolver — used for all domains hosted on DigitalOcean DNS,
       # which is also where wildcards live (e.g. *.jackharrhy.dev).
@@ -21,7 +34,7 @@ services:
       # talk to (e.g. fogo.sh is on Cloudflare). Let's Encrypt fetches
       # http://<host>/.well-known/acme-challenge/<token> directly; Traefik's
       # ACME-bypass router serves the token regardless of the http→https
-      # redirect because its path rule outranks the host catchall.
+      # redirect because its path rule outranks the redirection router.
       - "--certificatesresolvers.mughttp.acme.email=me@jackharrhy.com"
       - "--certificatesresolvers.mughttp.acme.httpchallenge=true"
       - "--certificatesresolvers.mughttp.acme.httpchallenge.entrypoint=web"
@@ -38,17 +51,6 @@ services:
       - ./volumes/traefik_letsencrypt_data:/letsencrypt
     labels:
       - "com.centurylinklabs.watchtower.enable=false"
-      - "traefik.enable=true"
-      # HTTP -> HTTPS redirect. The rule has to use v3 matcher syntax —
-      # the old `hostregexp({host:.+})` worked in v2 but is a no-op under
-      # the v3 router engine, which is why this catchall was silently
-      # 404-ing every plain-http request. The ACME-bypass router for
-      # HTTP-01 challenges has a longer path-prefix rule and so outranks
-      # this one on rule-length priority, so renewals still work.
-      - "traefik.http.routers.http-catchall.rule=HostRegexp(`.+`)"
-      - "traefik.http.routers.http-catchall.entrypoints=web"
-      - "traefik.http.routers.http-catchall.middlewares=redirect-to-https@docker"
-      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
 
   easter_egg:
     image: nginx:alpine
