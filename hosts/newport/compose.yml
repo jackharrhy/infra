@@ -280,7 +280,7 @@ services:
       - "traefik.http.routers.notscared_site.entrypoints=web"
 
   rolie_polie_olie:
-    image: ghcr.io/fogo-sh/rolie-polie-olie:latest
+    image: ghcr.io/fogo-sh/rolie-polie-olie:main
     restart: always
     networks: [web]
     env_file:
