@@ -39,8 +39,13 @@ services:
     labels:
       - "com.centurylinklabs.watchtower.enable=false"
       - "traefik.enable=true"
-      # HTTP -> HTTPS redirect
-      - "traefik.http.routers.http-catchall.rule=hostregexp(`{host:.+}`)"
+      # HTTP -> HTTPS redirect. The rule has to use v3 matcher syntax —
+      # the old `hostregexp({host:.+})` worked in v2 but is a no-op under
+      # the v3 router engine, which is why this catchall was silently
+      # 404-ing every plain-http request. The ACME-bypass router for
+      # HTTP-01 challenges has a longer path-prefix rule and so outranks
+      # this one on rule-length priority, so renewals still work.
+      - "traefik.http.routers.http-catchall.rule=HostRegexp(`.+`)"
       - "traefik.http.routers.http-catchall.entrypoints=web"
       - "traefik.http.routers.http-catchall.middlewares=redirect-to-https@docker"
       - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
