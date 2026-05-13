@@ -279,6 +279,24 @@ services:
       - "traefik.http.routers.notscared_site.rule=Host(`notsca.red`)"
       - "traefik.http.routers.notscared_site.entrypoints=web"
 
+  rolie_polie_olie:
+    image: ghcr.io/fogo-sh/rolie-polie-olie:latest
+    restart: always
+    networks: [web]
+    env_file:
+      - ./.runtime-secrets/rolie-polie-olie.env
+    environment:
+      - RPO_PUBLIC_URL=https://rolie-polie-olie.fogo.sh
+      - RPO_DATABASE_PATH=/data/rolebot.sqlite
+    volumes:
+      - ./volumes/rolie_polie_olie:/data
+    labels:
+      - "traefik.docker.network=newport_web"
+      - "traefik.enable=true"
+      - "traefik.http.services.rolie_polie_olie.loadbalancer.server.port=3000"
+      - "traefik.http.routers.rolie_polie_olie.rule=Host(`rolie-polie-olie.fogo.sh`)"
+      - "traefik.http.routers.rolie_polie_olie.entrypoints=web"
+
   #terranova:
   #  image: itzg/minecraft-server
   #  environment:
