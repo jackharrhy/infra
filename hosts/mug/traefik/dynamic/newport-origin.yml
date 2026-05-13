@@ -105,7 +105,9 @@ http:
       entryPoints: [websecure]
       service: newport-origin
       tls:
-        certResolver: mugresolver
+        # fogo.sh is on Cloudflare, not DigitalOcean — the DNS-01 resolver
+        # can't write the _acme-challenge TXT record, so use HTTP-01 instead.
+        certResolver: mughttp
 
   services:
     newport-origin:

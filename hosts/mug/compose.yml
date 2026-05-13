@@ -11,10 +11,21 @@ services:
       - "--providers.file.watch=true"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
+      # DNS-01 resolver — used for all domains hosted on DigitalOcean DNS,
+      # which is also where wildcards live (e.g. *.jackharrhy.dev).
       - "--certificatesresolvers.mugresolver.acme.email=me@jackharrhy.com"
       - "--certificatesresolvers.mugresolver.acme.dnschallenge=true"
       - "--certificatesresolvers.mugresolver.acme.dnschallenge.provider=digitalocean"
       - "--certificatesresolvers.mugresolver.acme.storage=/letsencrypt/acme.json"
+      # HTTP-01 resolver — for domains hosted on a DNS provider Traefik can't
+      # talk to (e.g. fogo.sh is on Cloudflare). Let's Encrypt fetches
+      # http://<host>/.well-known/acme-challenge/<token> directly; Traefik's
+      # ACME-bypass router serves the token regardless of the http→https
+      # redirect because its path rule outranks the host catchall.
+      - "--certificatesresolvers.mughttp.acme.email=me@jackharrhy.com"
+      - "--certificatesresolvers.mughttp.acme.httpchallenge=true"
+      - "--certificatesresolvers.mughttp.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.mughttp.acme.storage=/letsencrypt/acme-http.json"
     ports:
       - "80:80"
       - "443:443"
