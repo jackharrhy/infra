@@ -5,10 +5,11 @@ services:
     stdin_open: true
     ports:
       - "25565:25565"
+    env_file:
+      - ./.runtime-secrets/beancraft.env
     environment:
       EULA: "true"
       TYPE: "AUTO_CURSEFORGE"
-      CF_API_KEY: "REDACTED"
       CF_PAGE_URL: "https://www.curseforge.com/minecraft/modpacks/all-of-create-aeronautics"
       MEMORY: "12G"
       USE_AIKAR_FLAGS: "true"

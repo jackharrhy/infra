@@ -11,21 +11,23 @@ if [[ -z "$HOST" ]]; then
 fi
 
 BASE="hosts/${HOST}"
-SECRETS_DIR="${BASE}/secrets"
-OUT_DIR="${BASE}/.runtime-secrets"
 
-mkdir -p "$OUT_DIR"
+shopt -s globstar nullglob
+for f in "$BASE"/**/secrets/*.enc.yaml "$BASE"/**/secrets/*.enc.yml; do
+  secrets_dir=$(dirname "$f")
+  base_dir=$(dirname "$secrets_dir")
+  out_dir="${base_dir}/.runtime-secrets"
 
-shopt -s nullglob
-for f in "$SECRETS_DIR"/*.enc.yaml "$SECRETS_DIR"/*.enc.yml; do
+  mkdir -p "$out_dir"
+
   name=$(basename "$f")
   base="${name%.enc.yaml}"
   base="${base%.enc.yml}"
 
   if [[ "$base" == *.env ]]; then
-    out="$OUT_DIR/$base"
+    out="$out_dir/$base"
   else
-    out="$OUT_DIR/$base.env"
+    out="$out_dir/$base.env"
   fi
 
   # Decrypt YAML secrets and render them as dotenv KEY=VALUE output.
@@ -34,4 +36,4 @@ for f in "$SECRETS_DIR"/*.enc.yaml "$SECRETS_DIR"/*.enc.yml; do
   echo "rendered $out"
 done
 
-echo "done. compose can load env_file(s) from $OUT_DIR"
+echo "done. compose can load env_file(s) from sibling .runtime-secrets directories"
