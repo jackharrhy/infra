@@ -298,37 +298,22 @@ services:
       - "traefik.http.routers.rolie_polie_olie.rule=Host(`rolie-polie-olie.fogo.sh`)"
       - "traefik.http.routers.rolie_polie_olie.entrypoints=web"
 
-  #terranova:
-  #  image: itzg/minecraft-server
-  #  environment:
-  #    - EULA=True
-  #    - VERSION=1.20.1
-  #    - TYPE=FORGE
-  #    - MOTD="§l§cTerranova§r\nRunning %MODPACK_NAME% version %env:MODPACK_VERSION%"
-  #    - PACKWIZ_URL=https://www.cs.mun.ca/~jaharrhy/terranova/pack.toml
-  #    - OPS=cheesemany
-  #    - WHITELIST=cheesemany
-  #    - WHITELIST_FILE=/config/whitelist.json
-  #  volumes:
-  #    - ./volumes/terranova:/data
-  #    - ./volumes/terranova_config:/config
-  #  ports:
-  #    - "25565:25565"
-
-  #quidi:
-  #  image: itzg/minecraft-server:java21
-  #  ports:
-  #    - "25565:25565"
-  #  environment:
-  #    EULA: "TRUE"
-  #    TYPE: MODRINTH
-  #    MODRINTH_MODPACK: create_plus
-  #    MEMORY: 12G
-  #    MOTD: quidi
-  #  env_file:
-  #    - ./.runtime-secrets/quidi.env
-  #  volumes:
-  #    - ./volumes/quidi_data:/data
+  beancraft:
+    image: itzg/minecraft-server:java21
+    tty: true
+    stdin_open: true
+    ports:
+      - "25565:25565"
+    environment:
+      EULA: "true"
+      TYPE: "AUTO_CURSEFORGE"
+      CF_API_KEY: "$2a$10$.QJuBWxQVWsXzU8lJ6T1der0W.9tCHURZr7TN.R.4boWYk8YHgq3u"
+      CF_PAGE_URL: "https://www.curseforge.com/minecraft/modpacks/all-of-create-aeronautics"
+      MEMORY: "12G"
+      USE_AIKAR_FLAGS: "true"
+      MOTD: "beancraft"
+    volumes:
+      - ./data:/data
 
 networks:
   web:
