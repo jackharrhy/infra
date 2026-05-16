@@ -14,5 +14,21 @@ services:
       MEMORY: "12G"
       USE_AIKAR_FLAGS: "true"
       MOTD: "beancraft"
+      OP: cheesemany
+      WHITELIST: cheesemany
+      CF_FORCE_INCLUDE_MODS: "bluemap"
     volumes:
       - ./data:/data
+    networks:
+      - web
+    labels:
+      - "traefik.docker.network=newport_web"
+      - "traefik.enable=true"
+      - "traefik.http.services.beancraft.loadbalancer.server.port=8100"
+      - "traefik.http.routers.beancraft.rule=Host(`craft.jackharrhy.dev`)"
+      - "traefik.http.routers.beancraft.entrypoints=web"
+
+networks:
+  web:
+    external: true
+    name: newport_web
