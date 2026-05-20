@@ -14,7 +14,7 @@ services:
       MEMORY: "12G"
       USE_AIKAR_FLAGS: "true"
       MOTD: "beancraft"
-      OP: cheesemany
+      OPS: cheesemany
       WHITELIST: cheesemany
       CF_FORCE_INCLUDE_MODS: "bluemap"
     volumes:
