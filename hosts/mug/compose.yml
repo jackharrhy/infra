@@ -1,7 +1,7 @@
 services:
   traefik:
     image: traefik:v3
-    restart: always
+    restart: unless-stopped
     networks: [web]
     command:
       - "--log.level=INFO"
@@ -54,7 +54,7 @@ services:
 
   easter_egg:
     image: nginx:alpine
-    restart: always
+    restart: unless-stopped
     networks: [web]
     volumes:
       - ./easter-egg:/usr/share/nginx/html:ro
@@ -71,7 +71,7 @@ services:
 
   watchtower:
     image: ghcr.io/nicholas-fedor/watchtower:latest
-    restart: always
+    restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     env_file:
@@ -79,7 +79,7 @@ services:
 
   beszel:
     image: ghcr.io/henrygd/beszel/beszel:latest
-    restart: always
+    restart: unless-stopped
     networks: [web]
     volumes:
       - ./volumes/beszel_data:/beszel_data
@@ -94,7 +94,7 @@ services:
 
   beszel-agent:
     image: ghcr.io/henrygd/beszel/beszel-agent:latest
-    restart: always
+    restart: unless-stopped
     network_mode: host
     volumes:
       - ./volumes/beszel_socket:/beszel_socket
@@ -104,7 +104,7 @@ services:
 
   jackharrhy:
     image: ghcr.io/jackharrhy/jackharrhy.com:main
-    restart: always
+    restart: unless-stopped
     networks: [web]
     env_file:
       - ./.runtime-secrets/jackharrhy.env
@@ -125,7 +125,7 @@ services:
 
   siliconharbour:
     image: ghcr.io/siliconharbour/siliconharbour.dev:main
-    restart: always
+    restart: unless-stopped
     networks: [web]
     env_file:
       - ./.runtime-secrets/siliconharbour.env
@@ -142,7 +142,7 @@ services:
 
   plow:
     image: ghcr.io/jackharrhy/where-the-plow:main
-    restart: always
+    restart: unless-stopped
     networks: [web]
     volumes:
       - ./volumes/plow:/data
@@ -156,7 +156,7 @@ services:
 
   burger:
     image: ghcr.io/jackharrhy/burger:main
-    restart: always
+    restart: unless-stopped
     networks: [web]
     environment:
       - NODE_ENV=production
@@ -178,7 +178,7 @@ services:
 
   andrewsite_astro:
     image: ghcr.io/jackharrhy/andrew-gosse-site-astro:main
-    restart: always
+    restart: unless-stopped
     networks: [web, andrewsite]
     environment:
       - STRAPI_URL=http://andrewsite_strapi:1337
@@ -195,7 +195,7 @@ services:
 
   andrewsite_strapi:
     image: ghcr.io/jackharrhy/andrew-gosse-site-strapi:main
-    restart: always
+    restart: unless-stopped
     networks: [web, andrewsite]
     env_file:
       - ./.runtime-secrets/andrewsite_strapi.env
@@ -214,7 +214,7 @@ services:
 
   stackcoin:
     image: ghcr.io/stackcoin/stackcoin:main
-    restart: always
+    restart: unless-stopped
     env_file:
       - ./.runtime-secrets/stackcoin.env
     volumes:
@@ -230,7 +230,7 @@ services:
 
   luckypot:
     image: ghcr.io/stackcoin/luckypot:main
-    restart: always
+    restart: unless-stopped
     networks: [web]
     env_file:
       - ./.runtime-secrets/luckypot.env
@@ -241,7 +241,7 @@ services:
 
   lists:
     image: ghcr.io/jackharrhy/lists:main
-    restart: always
+    restart: unless-stopped
     networks: [web]
     env_file:
       - ./.runtime-secrets/lists.env
@@ -257,7 +257,7 @@ services:
 
   zonia:
     image: ghcr.io/jackharrhy/zonia:main
-    restart: always
+    restart: unless-stopped
     networks: [web]
     env_file:
       - ./.runtime-secrets/zonia.env
@@ -274,6 +274,12 @@ services:
       - "traefik.http.routers.zonia.rule=Host(`zonia.harrhy.xyz`)"
       - "traefik.http.routers.zonia.entrypoints=websecure"
       - "traefik.http.routers.zonia.tls.certresolver=mugresolver"
+
+  quak:
+    image: ghcr.io/jackharrhy/quak:latest
+    restart: unless-stopped
+    ports:
+      - "27420:27420/udp"
 
 networks:
   andrewsite:

@@ -1,7 +1,7 @@
 services:
   traefik:
     image: traefik:v3
-    restart: always
+    restart: unless-stopped
     command:
       - "--log.level=INFO"
       - "--providers.docker=true"
@@ -22,7 +22,7 @@ services:
 
   watchtower:
     image: ghcr.io/nicholas-fedor/watchtower:latest
-    restart: always
+    restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     env_file:
@@ -30,7 +30,7 @@ services:
 
   beszel-agent:
     image: ghcr.io/henrygd/beszel/beszel-agent:latest
-    restart: always
+    restart: unless-stopped
     network_mode: host
     volumes:
       - ./volumes/beszel_socket:/beszel_socket
@@ -95,7 +95,7 @@ services:
 
   rotund_org:
     image: ghcr.io/jackharrhy/rotund.org:main
-    restart: always
+    restart: unless-stopped
     networks: [web]
     labels:
       - "traefik.docker.network=newport_web"
@@ -106,7 +106,7 @@ services:
 
   stickertrade:
     image: ghcr.io/fogo-sh/stickertrade:latest
-    restart: always
+    restart: unless-stopped
     networks: [web, stickertrade]
     volumes:
       - ./volumes/stickertrade:/app/data
@@ -121,7 +121,7 @@ services:
 
   sluggers_super_draft:
     image: ghcr.io/jackharrhy/sluggers-super-draft:main
-    restart: always
+    restart: unless-stopped
     networks: [web, sluggers_super_draft]
     env_file:
       - ./.runtime-secrets/sluggers_super_draft.env
@@ -136,7 +136,7 @@ services:
 
   sluggers_super_draft_db:
     image: postgres:17
-    restart: always
+    restart: unless-stopped
     networks: [sluggers_super_draft]
     volumes:
       - ./volumes/sluggers_super_draft_db:/var/lib/postgresql/data
@@ -147,7 +147,7 @@ services:
 
   miniflux:
     image: ghcr.io/miniflux/miniflux:latest
-    restart: always
+    restart: unless-stopped
     depends_on: [miniflux_db]
     networks: [web, miniflux]
     env_file:
@@ -161,7 +161,7 @@ services:
 
   miniflux_db:
     image: postgres:15
-    restart: always
+    restart: unless-stopped
     networks: [miniflux]
     volumes:
       - ./volumes/miniflux_db:/var/lib/postgresql/data
@@ -172,7 +172,7 @@ services:
 
   bar:
     image: ghcr.io/jackharrhy/bar:main
-    restart: always
+    restart: unless-stopped
     networks: [web]
     labels:
       - "traefik.docker.network=newport_web"
@@ -185,7 +185,7 @@ services:
 
   duaas:
     image: ghcr.io/jackharrhy/duaas:main
-    restart: always
+    restart: unless-stopped
     networks: [web]
     labels:
       - "traefik.docker.network=newport_web"
@@ -198,13 +198,13 @@ services:
 
   phapbot:
     image: ghcr.io/jackharrhy/phapbot:latest
-    restart: always
+    restart: unless-stopped
     env_file:
       - ./.runtime-secrets/phapbot.env
 
   incydecy:
     image: ghcr.io/jackharrhy/incydecy:main
-    restart: always
+    restart: unless-stopped
     env_file:
       - ./.runtime-secrets/incydecy.env
     volumes:
@@ -222,7 +222,7 @@ services:
 
   almanac:
     image: ghcr.io/fogo-sh/almanac:latest
-    restart: always
+    restart: unless-stopped
     networks: [web]
     command: --content-dir /content --use-discord-oauth --use-bundled-assets
     volumes:
@@ -237,7 +237,7 @@ services:
 
   marky:
     image: ghcr.io/jackharrhy/marky:main
-    restart: always
+    restart: unless-stopped
     networks: [web]
     env_file:
       - ./.runtime-secrets/marky.env
@@ -258,7 +258,7 @@ services:
 
   steve:
     image: ghcr.io/jackharrhy/letters-to-steve:latest
-    restart: always
+    restart: unless-stopped
     networks: [web]
     volumes:
       - ./volumes/steve:/code/data
@@ -271,7 +271,7 @@ services:
 
   notscared_site:
     image: ghcr.io/jackharrhy/notscared-site:main
-    restart: always
+    restart: unless-stopped
     networks: [web]
     labels:
       - "traefik.docker.network=newport_web"
@@ -282,7 +282,7 @@ services:
 
   rolie_polie_olie:
     image: ghcr.io/fogo-sh/rolie-polie-olie:main
-    restart: always
+    restart: unless-stopped
     networks: [web]
     env_file:
       - ./.runtime-secrets/rolie-polie-olie.env

@@ -1,6 +1,7 @@
 services:
   beancraft:
     image: itzg/minecraft-server:java21
+    restart: unless-stopped
     tty: true
     stdin_open: true
     ports:
