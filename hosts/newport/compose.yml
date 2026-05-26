@@ -107,15 +107,17 @@ services:
   stickertrade:
     image: ghcr.io/fogo-sh/stickertrade:latest
     restart: unless-stopped
-    networks: [web, stickertrade]
-    volumes:
-      - ./volumes/stickertrade:/app/data
+    networks: [web]
     env_file:
       - ./.runtime-secrets/stickertrade.env
+    volumes:
+      - ./volumes/stickertrade_db:/app/db
+      - ./volumes/stickertrade_uploads:/app/tmp/uploads
+      - ./volumes/stickertrade_sessions:/app/tmp/sessions
     labels:
       - "traefik.docker.network=newport_web"
       - "traefik.enable=true"
-      - "traefik.http.services.stickertrade.loadbalancer.server.port=3000"
+      - "traefik.http.services.stickertrade.loadbalancer.server.port=44100"
       - "traefik.http.routers.stickertrade.rule=Host(`stickertrade.ca`)"
       - "traefik.http.routers.stickertrade.entrypoints=web"
 
@@ -301,5 +303,4 @@ services:
 networks:
   web:
   miniflux:
-  stickertrade:
   sluggers_super_draft:
