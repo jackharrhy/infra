@@ -275,22 +275,6 @@ services:
       - "traefik.http.routers.zonia.entrypoints=websecure"
       - "traefik.http.routers.zonia.tls.certresolver=mugresolver"
 
-  claw_idea_jam:
-    image: ghcr.io/jackharrhy/claw-idea-jam:main
-    restart: always
-    networks: [web]
-    env_file:
-      - ./.runtime-secrets/claw-idea-jam.env
-    volumes:
-      - ./volumes/claw_idea_jam:/data
-    labels:
-      - "traefik.docker.network=mug_web"
-      - "traefik.enable=true"
-      - "traefik.http.services.claw-idea-jam.loadbalancer.server.port=8000"
-      - "traefik.http.routers.claw-idea-jam.rule=Host(`claw.jackharrhy.dev`)"
-      - "traefik.http.routers.claw-idea-jam.entrypoints=websecure"
-      - "traefik.http.routers.claw-idea-jam.tls.certresolver=mugresolver"
-
 networks:
   andrewsite:
   web:
