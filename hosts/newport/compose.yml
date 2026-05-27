@@ -172,6 +172,23 @@ services:
     labels:
       - "com.centurylinklabs.watchtower.enable=false"
 
+  cmd:
+    image: ghcr.io/s0ftspark/internal:cmd
+    restart: unless-stopped
+    networks: [web]
+    env_file:
+      - ./.runtime-secrets/cmd.env
+    environment:
+      - PHX_HOST=cmd.softspark.dev
+    volumes:
+      - ./volumes/cmd_data:/data
+    labels:
+      - "traefik.docker.network=newport_web"
+      - "traefik.enable=true"
+      - "traefik.http.services.cmd.loadbalancer.server.port=4000"
+      - "traefik.http.routers.cmd.rule=Host(`cmd.softspark.dev`)"
+      - "traefik.http.routers.cmd.entrypoints=web"
+
   bar:
     image: ghcr.io/jackharrhy/bar:main
     restart: unless-stopped

@@ -116,6 +116,15 @@ http:
         # can't write the _acme-challenge TXT record, so use HTTP-01 instead.
         certResolver: mughttp
 
+    cmd-via-newport:
+      rule: "Host(`cmd.softspark.dev`)"
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        # softspark.dev isn't on DigitalOcean, so the DNS-01 resolver
+        # can't write the _acme-challenge TXT record. Use HTTP-01.
+        certResolver: mughttp
+
   services:
     newport-origin:
       loadBalancer:
