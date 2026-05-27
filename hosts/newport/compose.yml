@@ -9,6 +9,11 @@ services:
       - "--providers.file.directory=/etc/traefik/dynamic"
       - "--providers.file.watch=true"
       - "--entrypoints.web.address=:80"
+      # Trust X-Forwarded-* from the tailnet (mug fronts us with TLS and
+      # sets the right scheme/host/port). Without this, Traefik strips
+      # those headers and downstream apps see scheme=http, which breaks
+      # things like Phoenix's Ueberauth callback URLs.
+      - "--entrypoints.web.forwardedheaders.trustedips=100.64.0.0/10"
       - "--api.dashboard=true"
       - "--api.insecure=true"
     ports:
