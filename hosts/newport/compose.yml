@@ -9,11 +9,17 @@ services:
       - "--providers.file.directory=/etc/traefik/dynamic"
       - "--providers.file.watch=true"
       - "--entrypoints.web.address=:80"
-      # Trust X-Forwarded-* from the tailnet (mug fronts us with TLS and
-      # sets the right scheme/host/port). Without this, Traefik strips
-      # those headers and downstream apps see scheme=http, which breaks
-      # things like Phoenix's Ueberauth callback URLs.
-      - "--entrypoints.web.forwardedheaders.trustedips=100.64.0.0/10"
+      # Trust X-Forwarded-* from mug (which fronts us with TLS and sets
+      # the right scheme/host/port). Without this, Traefik strips those
+      # headers and downstream apps see scheme=http, which breaks things
+      # like Phoenix's Ueberauth callback URLs.
+      #
+      # docker's userland proxy SNATs incoming connections to the bridge
+      # gateway, so traefik sees the source as 172.x.x.x rather than
+      # mug's tailnet IP — we trust the docker bridge gateway range too.
+      # newport's :80 port is only reachable via the tailnet anyway, so
+      # this is safe.
+      - "--entrypoints.web.forwardedheaders.trustedips=100.64.0.0/10,172.16.0.0/12"
       - "--api.dashboard=true"
       - "--api.insecure=true"
     ports:
