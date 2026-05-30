@@ -6,6 +6,8 @@
 #     "pyyaml",
 #     "octodns>=1.0",
 #     "octodns-digitalocean",
+#     "synology-api>=0.8",
+#     "pyotp>=2.9",
 # ]
 # ///
 """Infra CLI - tools for managing and visualizing infrastructure."""
@@ -33,6 +35,14 @@ DNS_DIR = REPO_ROOT / "dns"
 DNS_CONFIG = DNS_DIR / "config.yaml"
 DNS_ZONES_DIR = DNS_DIR / "zones"
 DNS_SECRET = DNS_DIR / "secrets" / "digitalocean.enc.yaml"
+
+NAS_DIR = REPO_ROOT / "nas"
+NAS_SECRET = NAS_DIR / "secrets" / "synology.enc.yaml"
+# Tracks the unix-timestamp window of the last TOTP code we burned, so
+# back-to-back CLI invocations don't replay the same 6-digit code (DSM
+# rejects replays within the window and returns a confusing privileges
+# error). Lives outside the repo since it's transient state.
+NAS_OTP_STATE = Path.home() / ".cache" / "infra" / "nas-otp-window"
 
 INFRA_SERVICES = {"traefik", "watchtower", "beszel", "beszel-agent"}
 DB_IMAGE_PREFIXES = ("postgres:", "mysql:", "mariadb:", "mongo:", "redis:")
@@ -846,6 +856,433 @@ def sync(zones: tuple[str, ...], force: bool, debug: bool):
     click.echo("Applying changes...")
     result = subprocess.run(cmd_apply, env=env, cwd=REPO_ROOT)
     sys.exit(result.returncode)
+
+
+# --- NAS (Synology DSM) helpers ---
+
+
+def _decrypt_synology_creds() -> dict[str, Any]:
+    """Decrypt Synology DSM credentials from SOPS.
+
+    Expected keys in the secret:
+      SYNOLOGY_HOST         - hostname or IP (e.g. stash.hedgehog-python.ts.net)
+      SYNOLOGY_PORT         - DSM HTTPS port (e.g. 5001) or HTTP (5000)
+      SYNOLOGY_USERNAME     - DSM account
+      SYNOLOGY_PASSWORD     - DSM account password
+      SYNOLOGY_SECURE       - "true" for HTTPS (default), "false" for HTTP
+      SYNOLOGY_OTP          - (optional) one-shot 2FA code
+      SYNOLOGY_TOTP_SECRET  - (optional) TOTP shared secret (base32);
+                              if present, a fresh code is generated each login
+                              and SYNOLOGY_OTP is ignored.
+    """
+    if not NAS_SECRET.exists():
+        click.echo(f"Error: {NAS_SECRET} not found", err=True)
+        click.echo(f"Create it with: sops {NAS_SECRET.relative_to(REPO_ROOT)}", err=True)
+        sys.exit(1)
+
+    sops_bin = shutil.which("sops")
+    if not sops_bin:
+        click.echo("Error: sops CLI not found. Install from https://github.com/getsops/sops", err=True)
+        sys.exit(1)
+
+    result = subprocess.run(
+        [sops_bin, "-d", "--output-type", "json", str(NAS_SECRET)],
+        capture_output=True, text=True,
+    )
+    if result.returncode != 0:
+        click.echo(f"Error decrypting {NAS_SECRET}:\n{result.stderr}", err=True)
+        sys.exit(1)
+
+    data = json.loads(result.stdout)
+    required = ("SYNOLOGY_HOST", "SYNOLOGY_USERNAME", "SYNOLOGY_PASSWORD")
+    missing = [k for k in required if not data.get(k)]
+    if missing:
+        click.echo(f"Error: missing keys in {NAS_SECRET}: {', '.join(missing)}", err=True)
+        sys.exit(1)
+
+    return data
+
+
+def _resolve_synology_otp(creds: dict[str, Any]) -> str | None:
+    """Resolve the OTP to pass to the DSM login call.
+
+    Preference order: a stored TOTP secret (generates a fresh code), then a
+    literal one-shot code, otherwise no 2FA.
+
+    When using a TOTP secret, ensures the generated code is from a 30-second
+    window that hasn't already been used by a prior CLI invocation (DSM
+    rejects replays within the same window). Sleeps until the next window if
+    needed — at most ~30s, usually 0.
+    """
+    totp_secret = creds.get("SYNOLOGY_TOTP_SECRET")
+    if not totp_secret:
+        return creds.get("SYNOLOGY_OTP") or None
+
+    import time
+    import pyotp
+
+    totp = pyotp.TOTP(totp_secret)
+    window = lambda t: int(t) // 30
+
+    last_used: int | None = None
+    if NAS_OTP_STATE.exists():
+        try:
+            last_used = int(NAS_OTP_STATE.read_text().strip())
+        except (ValueError, OSError):
+            last_used = None
+
+    now = time.time()
+    if last_used is not None and window(now) <= last_used:
+        # We already burned a code in this (or a later — clock drift) window.
+        # Wait until the next window starts, plus a small buffer for clock skew.
+        next_window_start = (last_used + 1) * 30
+        sleep_for = max(0.0, next_window_start - now) + 0.5
+        if sleep_for > 0:
+            click.echo(
+                f"(Waiting {sleep_for:.1f}s for a fresh TOTP window...)",
+                err=True,
+            )
+            time.sleep(sleep_for)
+        now = time.time()
+
+    code = totp.now()
+    try:
+        NAS_OTP_STATE.parent.mkdir(parents=True, exist_ok=True)
+        NAS_OTP_STATE.write_text(str(window(now)))
+    except OSError:
+        pass  # best-effort; if cache write fails, login still works once
+    return code
+
+
+def _synology_client(api_class: str):
+    """Return an instantiated synology-api client.
+
+    api_class is one of: 'core_share', 'filestation', 'core_sys_info'.
+    Lazy-imported so the dep isn't required for unrelated commands.
+    """
+    creds = _decrypt_synology_creds()
+    secure = str(creds.get("SYNOLOGY_SECURE", "true")).lower() != "false"
+    port = str(creds.get("SYNOLOGY_PORT", "5001" if secure else "5000"))
+    common = dict(
+        ip_address=creds["SYNOLOGY_HOST"],
+        port=port,
+        username=creds["SYNOLOGY_USERNAME"],
+        password=creds["SYNOLOGY_PASSWORD"],
+        secure=secure,
+        cert_verify=False,
+        dsm_version=7,
+        debug=bool(os.environ.get("INFRA_NAS_DEBUG")),
+        otp_code=_resolve_synology_otp(creds),
+    )
+
+    if api_class == "core_share":
+        from synology_api.core_share import Share
+        return Share(**common)
+    if api_class == "filestation":
+        from synology_api.filestation import FileStation
+        return FileStation(**common)
+    if api_class == "core_sys_info":
+        from synology_api.core_sys_info import SysInfo
+        return SysInfo(**common)
+    raise ValueError(f"Unknown api_class: {api_class}")
+
+
+@cli.group()
+def nas():
+    """Talk to the Synology NAS over the DSM API."""
+    pass
+
+
+@nas.command("login-check")
+def nas_login_check():
+    """Verify NAS credentials and print basic system info."""
+    click.echo("Authenticating...")
+    try:
+        sysinfo = _synology_client("core_sys_info")
+    except Exception as e:
+        code = getattr(e, "error_code", None)
+        if code is not None:
+            click.echo(click.style(f"Login failed (DSM error {code}): {e}", fg="red"), err=True)
+        else:
+            click.echo(click.style(f"Login failed: {e}", fg="red"), err=True)
+        sys.exit(1)
+    try:
+        info = sysinfo.sys_status()
+    except Exception as e:
+        click.echo(click.style(f"Error: {e}", fg="red"), err=True)
+        sys.exit(1)
+
+    data = info.get("data", info) if isinstance(info, dict) else {}
+    click.echo(click.style("ok", fg="green"))
+    if data:
+        # Print a small, friendly subset (DSM keys vary across versions).
+        for k in ("hostname", "model", "serial", "ram_size", "dsm_version",
+                  "uptime", "is_dsm_boot_completed", "temperature"):
+            if k in data:
+                click.echo(f"  {k}: {data[k]}")
+
+
+@nas.command("shares")
+def nas_shares():
+    """List shared folders on the NAS."""
+    share = _synology_client("core_share")
+    try:
+        result = share.list_folders()
+    except Exception as e:
+        click.echo(click.style(f"Error: {e}", fg="red"), err=True)
+        sys.exit(1)
+
+    folders = (result.get("data") or {}).get("shares", [])
+    if not folders:
+        click.echo("No shared folders found.")
+        return
+
+    name_w = max(len(f.get("name", "")) for f in folders) + 2
+    click.echo(f"{'Name':<{name_w}} {'Volume':<12} Description")
+    click.echo(f"{'─' * name_w} {'─' * 12} {'─' * 30}")
+    for f in folders:
+        name = f.get("name", "")
+        vol = f.get("vol_path", "")
+        desc = f.get("desc", "") or ""
+        click.echo(f"{name:<{name_w}} {vol:<12} {desc}")
+
+
+# --- NFS share privilege helpers ---
+#
+# The synology-api package wraps SYNO.Core.FileServ.NFS.SharePrivilege only on
+# the read side (and only for the global setting, not per-share rules). We use
+# the per-share `load` / `save` methods directly via the session's
+# request_data, following the same contract the florianehmke/synology Terraform
+# provider uses. Key contract details:
+#   - API:     SYNO.Core.FileServ.NFS.SharePrivilege   (version 1)
+#   - load:    { share_name: <json-quoted str> } -> { share_name, rule: [...] }
+#   - save:    { share_name: <json-quoted str>, rule: <json-encoded list> }
+#   - save REPLACES the entire rule list; mutations must read-modify-write.
+#
+# Rule shape (DSM raw values):
+#   { client, privilege ("ro"|"rw"), root_squash, async, crossmnt, insecure,
+#     security_flavor: { sys, kerberos, kerberos_integrity, kerberos_privacy } }
+
+_NFS_PRIVILEGE_API = "SYNO.Core.FileServ.NFS.SharePrivilege"
+
+
+def _nfs_load_rules(client, share_name: str) -> list[dict[str, Any]]:
+    """Read the current ordered NFS rule list for a share."""
+    info = client.gen_list.get(_NFS_PRIVILEGE_API)
+    if not info:
+        click.echo(f"Error: DSM does not expose {_NFS_PRIVILEGE_API}", err=True)
+        sys.exit(1)
+    resp = client.request_data(
+        _NFS_PRIVILEGE_API,
+        info["path"],
+        {
+            "version": 1,
+            "method": "load",
+            "share_name": json.dumps(share_name),
+        },
+    )
+    if not isinstance(resp, dict) or not resp.get("success"):
+        click.echo(f"Error: {resp}", err=True)
+        sys.exit(1)
+    data = resp.get("data") or {}
+    return list(data.get("rule") or [])
+
+
+def _nfs_save_rules(client, share_name: str, rules: list[dict[str, Any]]) -> None:
+    """Replace the NFS rule list for a share."""
+    info = client.gen_list.get(_NFS_PRIVILEGE_API)
+    try:
+        resp = client.request_data(
+            _NFS_PRIVILEGE_API,
+            info["path"],
+            {
+                "version": 1,
+                "method": "save",
+                "share_name": json.dumps(share_name),
+                "rule": json.dumps(rules),
+            },
+        )
+    except Exception as e:
+        code = getattr(e, "error_code", None)
+        if code is not None:
+            click.echo(click.style(f"Error: DSM error {code}: {e}", fg="red"), err=True)
+        else:
+            click.echo(click.style(f"Error: {e}", fg="red"), err=True)
+        if os.environ.get("INFRA_NAS_DEBUG"):
+            click.echo(f"Payload that was sent:", err=True)
+            click.echo(json.dumps(rules, indent=2), err=True)
+        sys.exit(1)
+    if not isinstance(resp, dict) or not resp.get("success"):
+        click.echo(f"Error: {resp}", err=True)
+        sys.exit(1)
+
+
+def _format_rule(rule: dict[str, Any]) -> str:
+    """One-line summary of a rule for display."""
+    sec = rule.get("security_flavor") or {}
+    sec_flags = [k for k in ("sys", "kerberos", "kerberos_integrity", "kerberos_privacy") if sec.get(k)]
+    flags = []
+    if rule.get("async"):
+        flags.append("async")
+    if rule.get("crossmnt"):
+        flags.append("crossmnt")
+    if rule.get("insecure"):
+        flags.append("insecure")
+    return (
+        f"{rule.get('client', '?'):<25} "
+        f"{rule.get('privilege', '?'):<3} "
+        f"squash={rule.get('root_squash', '?'):<6} "
+        f"sec=[{','.join(sec_flags) or '-'}] "
+        f"[{','.join(flags) or '-'}]"
+    )
+
+
+@nas.group("nfs")
+def nas_nfs():
+    """Manage per-share NFS export rules."""
+    pass
+
+
+@nas_nfs.command("list")
+@click.argument("share")
+def nas_nfs_list(share: str):
+    """Show NFS export rules for SHARE."""
+    client = _synology_client("core_share")
+    rules = _nfs_load_rules(client, share)
+    if not rules:
+        click.echo(f"No NFS rules configured for '{share}'.")
+        return
+    click.echo(f"NFS rules for '{share}' ({len(rules)} rule(s)):")
+    for r in rules:
+        click.echo(f"  {_format_rule(r)}")
+
+
+@nas_nfs.command("debug-roundtrip")
+@click.argument("share")
+def nas_nfs_debug_roundtrip(share: str):
+    """Save the existing rules back to SHARE unchanged (debugging only)."""
+    client = _synology_client("core_share")
+    rules = _nfs_load_rules(client, share)
+    click.echo(f"Loaded {len(rules)} rule(s). Saving unchanged...")
+    click.echo(json.dumps(rules, indent=2))
+    _nfs_save_rules(client, share, rules)
+    click.echo(click.style("save ok", fg="green"))
+
+
+@nas.command("debug-share")
+@click.argument("share")
+def nas_debug_share(share: str):
+    """Dump full DSM metadata for SHARE (debugging only)."""
+    client = _synology_client("core_share")
+    additional = [
+        "hidden", "encryption", "is_aclmode", "unite_permission",
+        "is_support_acl", "is_sync_share", "is_force_readonly",
+        "force_readonly_reason", "recyclebin", "is_cluster_share",
+        "is_exfat_share", "is_c2_share", "support_snapshot",
+        "share_quota", "enable_share_compress", "enable_share_cow",
+        "is_cold_storage_share", "is_missing_share", "is_offline_share",
+    ]
+    try:
+        res = client.get_folder(share, additional=additional)
+    except Exception as e:
+        click.echo(click.style(f"Error: {e}", fg="red"), err=True)
+        sys.exit(1)
+    click.echo(json.dumps(res, indent=2, default=str))
+
+
+@nas_nfs.command("grant")
+@click.argument("share")
+@click.argument("client_pattern")
+@click.option("--rw/--ro", "writable", default=True, help="Read-write or read-only.", show_default=True)
+@click.option(
+    "--root-squash",
+    type=click.Choice(["root", "admin", "guest"], case_sensitive=False),
+    default="root",
+    show_default=True,
+    help=(
+        "DSM squash mode. 'root' maps uid 0 to admin (recommended for most "
+        "cases); 'admin' maps everyone to admin; 'guest' maps everyone to "
+        "guest. DSM does not expose a 'no_root_squash' option via this API."
+    ),
+)
+@click.option("--async-writes/--sync-writes", "async_writes", default=True, show_default=True)
+@click.option("--crossmnt/--no-crossmnt", default=True, show_default=True)
+@click.option("--insecure/--secure-only", default=True, help="Allow non-privileged source ports.", show_default=True)
+@click.option("--yes", "-y", is_flag=True, help="Skip the confirmation prompt.")
+def nas_nfs_grant(
+    share: str,
+    client_pattern: str,
+    writable: bool,
+    root_squash: str,
+    async_writes: bool,
+    crossmnt: bool,
+    insecure: bool,
+    yes: bool,
+):
+    """Grant NFS access on SHARE to CLIENT_PATTERN (IP, CIDR, hostname).
+
+    If a rule for the same client already exists, it is replaced. Other rules
+    are preserved. The DSM API replaces the full rule list on save, so this
+    command read-modify-writes.
+    """
+    client = _synology_client("core_share")
+    rules = _nfs_load_rules(client, share)
+
+    new_rule: dict[str, Any] = {
+        "client": client_pattern,
+        "privilege": "rw" if writable else "ro",
+        "root_squash": root_squash.lower(),
+        "async": async_writes,
+        "crossmnt": crossmnt,
+        "insecure": insecure,
+        "security_flavor": {
+            "sys": True,
+            "kerberos": False,
+            "kerberos_integrity": False,
+            "kerberos_privacy": False,
+        },
+    }
+
+    # Replace any existing rule for the same client; otherwise append.
+    next_rules = [r for r in rules if r.get("client") != client_pattern]
+    replaced = len(next_rules) != len(rules)
+    next_rules.append(new_rule)
+
+    action = "Replace" if replaced else "Add"
+    click.echo(f"{action} rule on '{share}':")
+    click.echo(f"  {_format_rule(new_rule)}")
+    click.echo(f"({len(next_rules)} rule(s) total after save)")
+    if not yes and not click.confirm("Apply?"):
+        click.echo("Aborted.")
+        sys.exit(0)
+
+    _nfs_save_rules(client, share, next_rules)
+    click.echo(click.style("ok", fg="green"))
+
+
+@nas_nfs.command("revoke")
+@click.argument("share")
+@click.argument("client_pattern")
+@click.option("--yes", "-y", is_flag=True, help="Skip the confirmation prompt.")
+def nas_nfs_revoke(share: str, client_pattern: str, yes: bool):
+    """Remove the NFS rule for CLIENT_PATTERN from SHARE."""
+    client = _synology_client("core_share")
+    rules = _nfs_load_rules(client, share)
+    target = [r for r in rules if r.get("client") == client_pattern]
+    if not target:
+        click.echo(f"No rule for client '{client_pattern}' on '{share}'.")
+        sys.exit(1)
+
+    click.echo(f"Remove rule from '{share}':")
+    for r in target:
+        click.echo(f"  {_format_rule(r)}")
+    if not yes and not click.confirm("Apply?"):
+        click.echo("Aborted.")
+        sys.exit(0)
+
+    next_rules = [r for r in rules if r.get("client") != client_pattern]
+    _nfs_save_rules(client, share, next_rules)
+    click.echo(click.style("ok", fg="green"))
 
 
 if __name__ == "__main__":
