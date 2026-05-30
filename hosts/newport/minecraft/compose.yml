@@ -6,6 +6,7 @@ services:
     stdin_open: true
     ports:
       - "25565:25565"
+      - "127.0.0.1:25575:25575"
     env_file:
       - ./.runtime-secrets/beancraft.env
     environment:
@@ -18,10 +19,12 @@ services:
       OPS: cheesemany
       WHITELIST: cheesemany
       CF_FORCE_INCLUDE_MODS: "bluemap"
+      ENABLE_RCON: "true"
     volumes:
       - ./data:/data
     networks:
       - web
+      - backup
     labels:
       - "traefik.docker.network=newport_web"
       - "traefik.enable=true"
@@ -29,7 +32,32 @@ services:
       - "traefik.http.routers.beancraft.rule=Host(`craft.jackharrhy.dev`)"
       - "traefik.http.routers.beancraft.entrypoints=web"
 
+  beancraft-backup:
+    image: itzg/mc-backup
+    restart: unless-stopped
+    depends_on:
+      - beancraft
+    env_file:
+      - ./.runtime-secrets/beancraft.env
+    environment:
+      RCON_HOST: beancraft
+      RCON_PORT: "25575"
+      # Daily backup at 04:00 server-local time
+      CRON_SCHEDULE: "0 4 * * *"
+      PRUNE_BACKUPS_DAYS: "14"
+      EXCLUDES: "*.jar,cache,logs,*.tmp,mods,libraries,.cache,.mixin.out,crash-reports"
+      TZ: "America/St_Johns"
+    volumes:
+      - ./data:/data:ro
+      - ./backups:/backups
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    networks:
+      - backup
+
 networks:
   web:
     external: true
     name: newport_web
+  backup:
+    driver: bridge
