@@ -9,10 +9,11 @@ services:
       - "--providers.file.directory=/etc/traefik/dynamic"
       - "--providers.file.watch=true"
       - "--entrypoints.web.address=:80"
-      # Trust X-Forwarded-* from mug (tailnet) and the docker bridge gateway
-      # range so apps see the real scheme/host. Per-entrypoint, so the
-      # websecure entrypoint below stays untrusted (public-facing).
-      - "--entrypoints.web.forwardedheaders.trustedips=100.64.0.0/10,172.16.0.0/12"
+      # Trust X-Forwarded-* from mug's tailnet IP only (not the full
+      # tailnet CGNAT range, which would trust other peers) plus the
+      # docker bridge gateway range. Per-entrypoint, so websecure stays
+      # untrusted (public-facing).
+      - "--entrypoints.web.forwardedheaders.trustedips=100.124.6.111/32,172.16.0.0/12"
       - "--entrypoints.websecure.address=:443"
       # Entrypoint-level http→https redirect at low priority so existing
       # `web`-only services (mug-proxied) keep working; public :80 hits
@@ -40,12 +41,14 @@ services:
       - web
 
   watchtower:
-    image: ghcr.io/nicholas-fedor/watchtower:latest
+    image: ghcr.io/nicholas-fedor/watchtower:1.17
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     env_file:
       - ./.runtime-secrets/watchtower.env
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
 
   beszel-agent:
     image: ghcr.io/henrygd/beszel/beszel-agent:latest

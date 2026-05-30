@@ -46,7 +46,7 @@ services:
     env_file:
       - ./.runtime-secrets/traefik.env
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik/dynamic:/etc/traefik/dynamic:ro
       - ./volumes/traefik_letsencrypt_data:/letsencrypt
     labels:
@@ -70,12 +70,14 @@ services:
       - "traefik.http.routers.easter-egg.priority=1000"
 
   watchtower:
-    image: ghcr.io/nicholas-fedor/watchtower:latest
+    image: ghcr.io/nicholas-fedor/watchtower:1.17
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     env_file:
       - ./.runtime-secrets/watchtower.env
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
 
   beszel:
     image: ghcr.io/henrygd/beszel/beszel:latest
