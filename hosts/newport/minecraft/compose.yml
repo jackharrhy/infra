@@ -18,7 +18,7 @@ services:
       MOTD: "beancraft"
       OPS: cheesemany
       WHITELIST: cheesemany
-      CF_FORCE_INCLUDE_MODS: "bluemap"
+      CURSEFORGE_FILES: "bluemap"
       ENABLE_RCON: "true"
     volumes:
       - ./data:/data
