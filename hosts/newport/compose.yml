@@ -9,25 +9,33 @@ services:
       - "--providers.file.directory=/etc/traefik/dynamic"
       - "--providers.file.watch=true"
       - "--entrypoints.web.address=:80"
-      # Trust X-Forwarded-* from mug (which fronts us with TLS and sets
-      # the right scheme/host/port). Without this, Traefik strips those
-      # headers and downstream apps see scheme=http, which breaks things
-      # like Phoenix's Ueberauth callback URLs.
-      #
-      # docker's userland proxy SNATs incoming connections to the bridge
-      # gateway, so traefik sees the source as 172.x.x.x rather than
-      # mug's tailnet IP — we trust the docker bridge gateway range too.
-      # newport's :80 port is only reachable via the tailnet anyway, so
-      # this is safe.
+      # Trust X-Forwarded-* from mug (tailnet) and the docker bridge gateway
+      # range so apps see the real scheme/host. Per-entrypoint, so the
+      # websecure entrypoint below stays untrusted (public-facing).
       - "--entrypoints.web.forwardedheaders.trustedips=100.64.0.0/10,172.16.0.0/12"
+      - "--entrypoints.websecure.address=:443"
+      # Entrypoint-level http→https redirect at low priority so existing
+      # `web`-only services (mug-proxied) keep working; public :80 hits
+      # fall through to this redirect.
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
+      - "--entrypoints.web.http.redirections.entrypoint.priority=10"
+      # HTTP-01 rather than DNS-01 so the DO API token stays on mug.
+      - "--certificatesresolvers.newporthttp.acme.email=me@jackharrhy.com"
+      - "--certificatesresolvers.newporthttp.acme.httpchallenge=true"
+      - "--certificatesresolvers.newporthttp.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.newporthttp.acme.storage=/letsencrypt/acme-http.json"
       - "--api.dashboard=true"
       - "--api.insecure=true"
     ports:
       - "80:80"
+      - "443:443"
       - "127.0.0.1:18081:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik/dynamic:/etc/traefik/dynamic:ro
+      - ./volumes/traefik_letsencrypt_data:/letsencrypt
     networks:
       - web
 

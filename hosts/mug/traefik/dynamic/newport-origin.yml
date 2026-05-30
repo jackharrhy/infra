@@ -100,20 +100,12 @@ http:
       tls:
         certResolver: mugresolver
 
-    craft-via-newport:
-      rule: "Host(`craft.jackharrhy.dev`)"
-      entryPoints: [websecure]
-      service: newport-origin
-      tls:
-        certResolver: mugresolver
-
     rolie-polie-olie-via-newport:
       rule: "Host(`rolie-polie-olie.fogo.sh`)"
       entryPoints: [websecure]
       service: newport-origin
       tls:
-        # fogo.sh is on Cloudflare, not DigitalOcean — the DNS-01 resolver
-        # can't write the _acme-challenge TXT record, so use HTTP-01 instead.
+        # fogo.sh is on Cloudflare, not DigitalOcean, use HTTP-01 instead.
         certResolver: mughttp
 
     cmd-via-newport:
@@ -121,8 +113,7 @@ http:
       entryPoints: [websecure]
       service: newport-origin
       tls:
-        # softspark.dev isn't on DigitalOcean, so the DNS-01 resolver
-        # can't write the _acme-challenge TXT record. Use HTTP-01.
+        # softspark.dev is on Cloudflare, not DigitalOcean, use HTTP-01 instead.
         certResolver: mughttp
 
   services:
