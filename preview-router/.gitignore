@@ -1,5 +1,6 @@
 # Local host wiring and runtime state
 projects/
+install-hosts.sh
 .run/
 logs/
 caddy.json
