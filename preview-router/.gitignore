@@ -1,0 +1,14 @@
+# Local host wiring and runtime state
+projects/
+.run/
+logs/
+caddy.json
+
+# Python/uv runtime artifacts
+.venv/
+__pycache__/
+*.py[cod]
+
+# Editor/OS noise
+.DS_Store
+*.swp

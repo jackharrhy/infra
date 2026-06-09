@@ -1,0 +1,14 @@
+[project]
+name = "preview-router"
+version = "0.1.0"
+description = "Local multi-project preview router for Newport"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+preview-router = "preview_router.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
