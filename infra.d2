@@ -5,7 +5,7 @@ tailscale: Tailscale {
 }
 
 digitalocean: DigitalOcean {
-  mug: "mug (2 cores / 4GB / 50GB disk)" {
+  mug: "mug (1 cores / 2GB / 50GB disk)" {
     infra: Infrastructure {
       grid-columns: 1
       traefik: traefik
@@ -16,17 +16,24 @@ digitalocean: DigitalOcean {
 
     websites: Websites {
       grid-columns: 2
+      easter_egg: 142.93.144.29
+      easter_egg.tooltip: 142.93.144.29, 2604:a880:cad:d0::dff:a001
       jackharrhy: jackharrhy.dev
       jackharrhy.tooltip: jackharrhy.dev, jackharrhy.com, harrhy.xyz, jack.harrhy.xyz, jack.arthur.harrhy.xyz, jack.is.harrhy.xyz
       siliconharbour: siliconharbour.dev
       plow: plow.jackharrhy.dev
-      notscared_site: notsca.red
       burger: big.burger.beauty
       andrewsite_astro: andrewgossecomposer.com
       andrewsite_strapi: api.andrewgossecomposer.com
-      almanac: almanac.jackharrhy.dev
-      steve: steve-letter-writ.ing
       stackcoin: stackcoin.world
+      luckypot: luckypot
+      lists: lists.jackharrhy.dev
+      zonia: zonia.harrhy.xyz
+    }
+
+    bots: Bots & Workers {
+      grid-columns: 2
+      quak: quak
     }
 
   }
@@ -44,14 +51,21 @@ home: Home {
 
     websites: Websites {
       grid-columns: 2
+      "4orm": 4orm.harrhy.xyz
+      adam_cooks: adam-cooks.jackharrhy.dev
+      artbin: artbin.jackharrhy.dev
       rotund_org: rotund.org
       stickertrade: stickertrade.ca
       sluggers_super_draft: lil-slug-crew.jackharrhy.dev
       miniflux: miniflux.jackharrhy.dev
+      cmd: cmd.softspark.dev
       bar: jackharrhy.dev/bar
       duaas: jackharrhy.dev/urandom
-      livebook: livebook
-      pad: pad
+      almanac: almanac.jackharrhy.dev
+      marky: marky.jackharrhy.dev
+      steve: steve-letter-writ.ing
+      notscared_site: notsca.red
+      rolie_polie_olie: rolie-polie-olie.fogo.sh
     }
 
     databases: Databases {
@@ -66,10 +80,10 @@ home: Home {
 
     bots: Bots & Workers {
       grid-columns: 2
+      hikeping: hikeping
       phapbot: phapbot
       incydecy: incydecy
       house: house
-      ileah: ileah
     }
 
   }
