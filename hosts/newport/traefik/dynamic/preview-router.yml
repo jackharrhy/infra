@@ -1,0 +1,34 @@
+http:
+  routers:
+    preview-router:
+      entryPoints:
+        - web
+      rule: >-
+        Host(`preview.newport`) ||
+        Host(`dwellsmart.newport`) ||
+        Host(`siliconharbour.newport`) ||
+        Host(`silicon.newport`) ||
+        Host(`plow.newport`) ||
+        Host(`where-the-plow.newport`)
+      priority: 100
+      middlewares:
+        - preview-tailnet-only
+      service: preview-router
+
+  middlewares:
+    preview-tailnet-only:
+      ipAllowList:
+        sourceRange:
+          # Tailscale IPv4 CGNAT range
+          - 100.64.0.0/10
+          # Localhost for on-box checks only
+          - 127.0.0.1/32
+          - ::1/128
+          # Tailscale IPv6 ULA range for this tailnet
+          - fd7a:115c:a1e0::/48
+
+  services:
+    preview-router:
+      loadBalancer:
+        servers:
+          - url: http://127.0.0.1:18088

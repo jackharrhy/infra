@@ -2,6 +2,7 @@ services:
   traefik:
     image: traefik:v3
     restart: unless-stopped
+    network_mode: host
     command:
       - "--log.level=INFO"
       - "--providers.docker=true"
@@ -29,16 +30,11 @@ services:
       - "--certificatesresolvers.newporthttp.acme.storage=/letsencrypt/acme-http.json"
       - "--api.dashboard=true"
       - "--api.insecure=true"
-    ports:
-      - "80:80"
-      - "443:443"
-      - "127.0.0.1:18081:8080"
+      - "--entrypoints.traefik.address=127.0.0.1:18081"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik/dynamic:/etc/traefik/dynamic:ro
       - ./volumes/traefik_letsencrypt_data:/letsencrypt
-    networks:
-      - web
 
   watchtower:
     image: ghcr.io/nicholas-fedor/watchtower:1.17
