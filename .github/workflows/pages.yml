@@ -1,15 +1,56 @@
-name: Deploy diagram
-on: [push]
+name: Deploy docs
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/pages.yml"
+      - "README.md"
+      - "cli.py"
+      - "infra.yml"
+      - "docs/**"
+      - "hosts/**/compose.yml"
+      - "hosts/**/traefik/dynamic/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
 jobs:
-  deploy:
-    concurrency: ci-${{ github.ref }}
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
-      - name: Deploy
-        uses: JamesIves/github-pages-deploy-action@v4.8.0
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v8
+
+      - name: Install D2
+        run: curl -fsSL https://d2lang.com/install.sh | sh -s --
+
+      - name: Generate infrastructure diagram
+        run: uv run --script cli.py diagram
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v5
         with:
-          branch: gh-pages
-          folder: docs
+          path: docs
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

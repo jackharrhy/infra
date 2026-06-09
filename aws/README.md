@@ -1,21 +1,27 @@
-# jack-infra
+# AWS
 
-preview and deploy:
+Pulumi project for AWS resources.
+
+Preview and deploy:
 
 ```bash
 pulumi preview
 pulumi up
 ```
 
-tear down:
+Tear down:
 
 ```bash
 pulumi destroy
 pulumi stack rm
 ```
 
-| Key          | Description                             | Default     |
-| ------------ | --------------------------------------- | ----------- |
-| `aws:region` | The AWS region to deploy resources into | `us-east-1` |
+Config:
 
-`pulumi config set <key> <value>` to customize config.
+- `aws:region`: AWS region, defaults to `us-east-1`
+
+Set config with:
+
+```bash
+pulumi config set <key> <value>
+```

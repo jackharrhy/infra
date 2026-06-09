@@ -1,17 +1,17 @@
 # Preview router
 
-Python/uv local-dev preview router for running multiple project previews behind one localhost-bound Caddy router, optional Traefik host routing, and optional Tailscale Serve HTTPS ports.
+Local preview router for a pile of dev servers. It uses Python/uv, Caddy, optional Traefik host routing, and optional Tailscale Serve ports.
 
-The repo is intentionally generic. Host-specific values live in a local `preview-router.toml`, and project wiring lives in ignored `projects/` symlinks plus each target repo's `.preview-router.toml`.
+The checked-in code is generic. Put host-specific values in local `preview-router.toml`. Put project wiring in ignored `projects/` symlinks and each repo's `.preview-router.toml`.
 
-## Configure this host
+## Host config
 
 ```bash
 cp preview-router.example.toml preview-router.toml
 $EDITOR preview-router.toml
 ```
 
-Root config fields are top-level TOML keys:
+Example:
 
 ```toml
 preview_hostname = "preview.example.test"
@@ -24,29 +24,25 @@ caddy_admin_listen = "127.0.0.1:2019"
 projects_dir = "projects"
 ```
 
-- `preview_hostname`: hostname for the status UI.
-- `host_domain`: optional suffix for project hostnames when a project does not set `hostnames`.
-- `tailscale_host`: optional MagicDNS/FQDN used only to print Tailscale HTTPS URLs.
-- `host_router_port`: localhost-bound Caddy Host-header router port.
-- `ui_port`: localhost-bound status UI port.
-- `projects_dir`: directory of symlinks to repos.
+Notes:
 
-## Add projects
+- `preview_hostname`: status UI hostname
+- `host_domain`: suffix for project hostnames when a project does not set `hostnames`
+- `tailscale_host`: MagicDNS/FQDN used when printing HTTPS URLs
+- `host_router_port`: localhost Caddy Host-header router
+- `ui_port`: localhost status UI
+- `projects_dir`: symlinks to repos
 
-Create ignored symlinks under `projects_dir`:
+## Projects
+
+Add ignored symlinks:
 
 ```bash
 mkdir -p projects
 ln -sfn /path/to/app projects/app
 ```
 
-Each target repo owns its own local config file:
-
-```text
-.preview-router.toml
-```
-
-Example project config:
+Each target repo can have a local `.preview-router.toml`:
 
 ```toml
 name = "Example App"
@@ -63,7 +59,7 @@ readiness_statuses = [200, 302]
 SOME_ENV = "value"
 ```
 
-If `hostnames` is omitted, the router uses `{project-symlink-name}.{host_domain}`. If `caddy_port` and `tailscale_port` are set, `preview-router start` also configures `tailscale serve` for that project.
+If `hostnames` is missing, the router uses `{project-symlink-name}.{host_domain}`. If `caddy_port` and `tailscale_port` are set, `start` also configures `tailscale serve` for that project.
 
 ## Run
 
@@ -73,32 +69,31 @@ uv run preview-router status
 uv run preview-router stop
 ```
 
-## Architecture
+## Shape
 
 ```text
-Browser on trusted network -> optional external proxy :80 -> host Caddy host_router_port -> app dev server on 127.0.0.1
-Tailscale Serve HTTPS high port -> host Caddy per-service caddy_port -> app dev server on 127.0.0.1
+trusted browser -> optional external proxy :80 -> Caddy host_router_port -> app on 127.0.0.1
+Tailscale Serve HTTPS port -> Caddy caddy_port -> app on 127.0.0.1
 ```
 
-Keep the generated Caddy listeners, preview UI, app dev servers, and dev databases bound to `127.0.0.1`. If you front this with Traefik/Caddy/nginx on a LAN-facing port, protect that route with a tailnet/VPN-only allowlist.
+Keep Caddy listeners, the UI, dev servers, and dev databases on `127.0.0.1`. If a LAN-facing proxy sits in front, lock it down to your tailnet/VPN.
 
-## `/etc/hosts` helper
+## Hosts helper
 
-Generate a local installer script from the configured project hostnames when the names do not resolve on a device:
+Generate a local `/etc/hosts` installer when a device cannot resolve your preview names:
 
 ```bash
 uv run preview-router hosts-script --output install-hosts.sh
-# or print it without writing a file:
 uv run preview-router hosts-script --output -
 ```
 
-`install-hosts.sh` is generated local state and is intentionally gitignored. The generated script manages a block like:
+`install-hosts.sh` is generated local state and is gitignored. It manages a block like this:
 
 ```text
 100.x.y.z preview.example.test app.example.test another-app.example.test
 ```
 
-Override the generated IP if needed:
+Override the IP if needed:
 
 ```bash
 uv run preview-router hosts-script --preview-ip 100.x.y.z --output install-hosts.sh
