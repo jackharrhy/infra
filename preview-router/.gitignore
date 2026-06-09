@@ -1,4 +1,5 @@
 # Local host wiring and runtime state
+preview-router.toml
 projects/
 install-hosts.sh
 .run/

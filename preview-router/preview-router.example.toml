@@ -1,0 +1,26 @@
+# Copy to preview-router.toml and customize for the host running the router.
+# preview-router.toml is local-only and gitignored.
+
+# Hostname for the built-in preview status UI.
+preview_hostname = "preview.example.test"
+
+# Optional domain used when a project omits `hostnames` in .preview-router.toml.
+# A project symlink named `my-app` would default to `my-app.example.test`.
+host_domain = "example.test"
+
+# Optional MagicDNS/FQDN for Tailscale Serve URLs in status output.
+# Leave blank if you only use HTTP host routing.
+tailscale_host = ""
+
+# Localhost-only ports used by the preview router.
+host_router_port = 18088
+ui_port = 18089
+
+# Docker container name for the generated Caddy router.
+caddy_container = "preview-caddy"
+
+# Caddy admin listener for the generated config.
+caddy_admin_listen = "127.0.0.1:2019"
+
+# Directory containing symlinks to target projects.
+projects_dir = "projects"

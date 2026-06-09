@@ -7,7 +7,6 @@ import os
 import signal
 import socket
 import subprocess
-import sys
 import time
 import urllib.error
 import urllib.request
@@ -18,19 +17,23 @@ from typing import Any
 import tomllib
 
 ROOT = Path(__file__).resolve().parents[1]
-PROJECTS_DIR = ROOT / "projects"
+CONFIG_FILE = ROOT / "preview-router.toml"
+PROJECT_CONFIG_NAME = ".preview-router.toml"
 RUN_DIR = ROOT / ".run"
 LOG_DIR = ROOT / "logs"
 CADDY_CONFIG = RUN_DIR / "caddy.json"
-CONFIG_NAME = ".preview-router.toml"
 
-DEFAULTS = {
-    "tailscale_host": "newport.hedgehog-python.ts.net",
-    "preview_hostname": "preview.newport",
-    "host_router_port": 18088,
-    "ui_port": 18089,
-    "caddy_container": "preview-caddy",
-}
+
+@dataclass
+class Settings:
+    preview_hostname: str
+    host_router_port: int
+    ui_port: int
+    caddy_container: str
+    projects_dir: Path
+    tailscale_host: str | None = None
+    host_domain: str | None = None
+    caddy_admin_listen: str = "127.0.0.1:2019"
 
 
 @dataclass
@@ -71,14 +74,56 @@ def run_quiet(cmd: list[str]) -> None:
     subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
 
 
-def ensure_dirs() -> None:
-    PROJECTS_DIR.mkdir(exist_ok=True)
+def ensure_dirs(settings: Settings | None = None) -> None:
     RUN_DIR.mkdir(exist_ok=True)
     LOG_DIR.mkdir(exist_ok=True)
+    if settings:
+        settings.projects_dir.mkdir(exist_ok=True)
 
 
-def load_project(path: Path) -> Project:
-    cfg_path = path / CONFIG_NAME
+def require_str(data: dict[str, Any], key: str) -> str:
+    value = data.get(key)
+    if not isinstance(value, str) or not value.strip():
+        raise SystemExit(f"Missing required string `{key}` in {CONFIG_FILE}. Copy preview-router.example.toml to preview-router.toml and edit it.")
+    return value.strip()
+
+
+def require_int(data: dict[str, Any], key: str) -> int:
+    if key not in data:
+        raise SystemExit(f"Missing required integer `{key}` in {CONFIG_FILE}. Copy preview-router.example.toml to preview-router.toml and edit it.")
+    return int(data[key])
+
+
+def load_settings() -> Settings:
+    if not CONFIG_FILE.exists():
+        raise SystemExit(f"Missing {CONFIG_FILE}. Copy preview-router.example.toml to preview-router.toml and edit it for this host.")
+    data = tomllib.loads(CONFIG_FILE.read_text())
+    projects_dir = Path(str(data.get("projects_dir", "projects")))
+    if not projects_dir.is_absolute():
+        projects_dir = ROOT / projects_dir
+    return Settings(
+        preview_hostname=require_str(data, "preview_hostname"),
+        host_router_port=require_int(data, "host_router_port"),
+        ui_port=require_int(data, "ui_port"),
+        caddy_container=require_str(data, "caddy_container"),
+        projects_dir=projects_dir,
+        tailscale_host=str(data["tailscale_host"]).strip() if data.get("tailscale_host") else None,
+        host_domain=str(data["host_domain"]).strip().lstrip(".") if data.get("host_domain") else None,
+        caddy_admin_listen=str(data.get("caddy_admin_listen", "127.0.0.1:2019")),
+    )
+
+
+def default_project_hostname(key: str, settings: Settings) -> str:
+    if not settings.host_domain:
+        raise SystemExit(
+            f"Project {key} has no hostnames and root config has no host_domain. "
+            f"Set hostnames in {PROJECT_CONFIG_NAME} or host_domain in {CONFIG_FILE}."
+        )
+    return f"{key}.{settings.host_domain}"
+
+
+def load_project(path: Path, settings: Settings) -> Project:
+    cfg_path = path / PROJECT_CONFIG_NAME
     if not cfg_path.exists():
         raise FileNotFoundError(f"Missing {cfg_path}")
     data = tomllib.loads(cfg_path.read_text())
@@ -87,7 +132,7 @@ def load_project(path: Path) -> Project:
         key=key,
         path=path.resolve(),
         name=data.get("name", key),
-        hostnames=list(data.get("hostnames", [f"{key}.newport"])),
+        hostnames=list(data.get("hostnames", [default_project_hostname(key, settings)])),
         app_host=data.get("app_host", f"{key}.localhost"),
         app_port=int(data["app_port"]),
         caddy_port=int(data["caddy_port"]) if data.get("caddy_port") else None,
@@ -100,16 +145,16 @@ def load_project(path: Path) -> Project:
     )
 
 
-def load_projects() -> list[Project]:
-    ensure_dirs()
+def load_projects(settings: Settings) -> list[Project]:
+    ensure_dirs(settings)
     projects = []
-    for path in sorted(PROJECTS_DIR.iterdir()):
+    for path in sorted(settings.projects_dir.iterdir()):
         if path.is_dir() or path.is_symlink():
-            cfg = path / CONFIG_NAME
+            cfg = path / PROJECT_CONFIG_NAME
             if cfg.exists():
-                projects.append(load_project(path))
+                projects.append(load_project(path, settings))
     if not projects:
-        raise SystemExit(f"No projects configured. Add symlinks under {PROJECTS_DIR} with {CONFIG_NAME} inside each target repo.")
+        raise SystemExit(f"No projects configured. Add symlinks under {settings.projects_dir} with {PROJECT_CONFIG_NAME} inside each target repo.")
     return projects
 
 
@@ -179,16 +224,16 @@ def start_process(name: str, cmd: str | list[str], cwd: Path, log_file: Path, pi
     print(f"==> started {name} pid {proc.pid}; log {log_file}")
 
 
-def render_caddy(projects: list[Project]) -> dict[str, Any]:
+def render_caddy(projects: list[Project], settings: Settings) -> dict[str, Any]:
     host_routes: list[dict[str, Any]] = [
         {
-            "match": [{"host": [str(DEFAULTS["preview_hostname"])]}],
-            "handle": [{"handler": "reverse_proxy", "upstreams": [{"dial": f"127.0.0.1:{DEFAULTS['ui_port']}"}]}],
+            "match": [{"host": [settings.preview_hostname]}],
+            "handle": [{"handler": "reverse_proxy", "upstreams": [{"dial": f"127.0.0.1:{settings.ui_port}"}]}],
         }
     ]
     servers: dict[str, Any] = {
         "hostnames": {
-            "listen": [f"127.0.0.1:{DEFAULTS['host_router_port']}"],
+            "listen": [f"127.0.0.1:{settings.host_router_port}"],
             "automatic_https": {"disable": True},
             "routes": host_routes,
         }
@@ -211,14 +256,14 @@ def render_caddy(projects: list[Project]) -> dict[str, Any]:
                     "headers": {"request": {"set": {"Host": [p.app_host]}}},
                 }]}],
             }
-    return {"admin": {"listen": "127.0.0.1:2019"}, "apps": {"http": {"servers": servers}}}
+    return {"admin": {"listen": settings.caddy_admin_listen}, "apps": {"http": {"servers": servers}}}
 
 
-def start_caddy(projects: list[Project]) -> None:
-    CADDY_CONFIG.write_text(json.dumps(render_caddy(projects), indent=2))
-    run_quiet(["docker", "rm", "-f", str(DEFAULTS["caddy_container"])])
+def start_caddy(projects: list[Project], settings: Settings) -> None:
+    CADDY_CONFIG.write_text(json.dumps(render_caddy(projects, settings), indent=2))
+    run_quiet(["docker", "rm", "-f", settings.caddy_container])
     sh([
-        "docker", "run", "-d", "--rm", "--name", str(DEFAULTS["caddy_container"]), "--network", "host",
+        "docker", "run", "-d", "--rm", "--name", settings.caddy_container, "--network", "host",
         "-v", f"{CADDY_CONFIG}:/etc/caddy/caddy.json:ro",
         "caddy:2-alpine", "caddy", "run", "--config", "/etc/caddy/caddy.json",
     ])
@@ -241,8 +286,8 @@ def shell_single_quote(value: str) -> str:
     return "'" + value.replace("'", "'\\''") + "'"
 
 
-def configured_hostnames(projects: list[Project]) -> list[str]:
-    hosts = [str(DEFAULTS["preview_hostname"])]
+def configured_hostnames(projects: list[Project], settings: Settings) -> list[str]:
+    hosts = [settings.preview_hostname]
     for project in projects:
         hosts.extend(project.hostnames)
     return sorted(dict.fromkeys(hosts))
@@ -323,8 +368,9 @@ echo \"Note: /etc/hosts maps names to IPs only; it cannot map ports or TLS certs
 
 
 def cmd_hosts_script(args: argparse.Namespace) -> None:
-    projects = load_projects()
-    hosts = configured_hostnames(projects)
+    settings = load_settings()
+    projects = load_projects(settings)
+    hosts = configured_hostnames(projects, settings)
     preview_ip = args.preview_ip or detect_tailscale_ipv4() or "127.0.0.1"
     script = render_hosts_script(hosts, preview_ip)
     if args.output == "-":
@@ -337,12 +383,13 @@ def cmd_hosts_script(args: argparse.Namespace) -> None:
 
 
 def cmd_start(args: argparse.Namespace) -> None:
-    ensure_dirs()
-    projects = load_projects()
+    settings = load_settings()
+    ensure_dirs(settings)
+    projects = load_projects(settings)
     if args.clean:
         cmd_stop(argparse.Namespace())
-    start_process("preview UI", ["uv", "run", "preview-router", "ui", "--port", str(DEFAULTS["ui_port"])], ROOT, LOG_DIR / "ui.log", RUN_DIR / "ui.pid")
-    wait_http("preview UI", f"http://127.0.0.1:{DEFAULTS['ui_port']}/health", [200], 30)
+    start_process("preview UI", ["uv", "run", "preview-router", "ui", "--port", str(settings.ui_port)], ROOT, LOG_DIR / "ui.log", RUN_DIR / "ui.pid")
+    wait_http("preview UI", f"http://127.0.0.1:{settings.ui_port}/health", [200], 30)
 
     for p in projects:
         for setup in p.setup:
@@ -353,8 +400,8 @@ def cmd_start(args: argparse.Namespace) -> None:
     for p in projects:
         wait_http(p.name, p.local_url, p.readiness_statuses, 120)
 
-    start_caddy(projects)
-    wait_http("Caddy preview UI route", f"http://127.0.0.1:{DEFAULTS['host_router_port']}/health", [200], 30)
+    start_caddy(projects, settings)
+    wait_http("Caddy preview UI route", f"http://127.0.0.1:{settings.host_router_port}/health", [200], 30)
     for p in projects:
         if p.caddy_port:
             wait_http(f"Caddy {p.name} route", f"http://127.0.0.1:{p.caddy_port}{p.readiness_path}", p.readiness_statuses, 30)
@@ -362,20 +409,20 @@ def cmd_start(args: argparse.Namespace) -> None:
     start_tailscale(projects)
 
     print("\nPreview ready:")
-    preview_host = str(DEFAULTS["preview_hostname"])
-    print(f"  UI:              http://{preview_host}/  or http://{preview_host}:{DEFAULTS['host_router_port']}/")
+    print(f"  UI:              http://{settings.preview_hostname}/  or http://{settings.preview_hostname}:{settings.host_router_port}/")
     for p in projects:
         primary = f"http://{p.hostnames[0]}/"
-        local = f"http://{p.hostnames[0]}:{DEFAULTS['host_router_port']}/"
-        ts = f"https://{DEFAULTS['tailscale_host']}:{p.tailscale_port}/" if p.tailscale_port else ""
+        local = f"http://{p.hostnames[0]}:{settings.host_router_port}/"
+        ts = f"https://{settings.tailscale_host}:{p.tailscale_port}/" if settings.tailscale_host and p.tailscale_port else ""
         print(f"  {p.name:<16} {primary:<34} {local:<42} {ts}")
 
 
 def cmd_stop(args: argparse.Namespace) -> None:
-    ensure_dirs()
+    settings = load_settings()
+    ensure_dirs(settings)
     projects = []
     try:
-        projects = load_projects()
+        projects = load_projects(settings)
     except SystemExit:
         pass
     for p in projects:
@@ -383,7 +430,7 @@ def cmd_stop(args: argparse.Namespace) -> None:
     stop_pid(RUN_DIR / "portless-proxy.pid", "portless proxy")
     stop_pid(RUN_DIR / "ui.pid", "preview UI")
     stop_tailscale(projects)
-    run_quiet(["docker", "rm", "-f", str(DEFAULTS["caddy_container"])])
+    run_quiet(["docker", "rm", "-f", settings.caddy_container])
 
 
 def probe(url: str, statuses: list[int] | None = None) -> str:
@@ -399,9 +446,16 @@ def probe(url: str, statuses: list[int] | None = None) -> str:
 
 
 def collect_status() -> dict[str, Any]:
-    projects = load_projects()
+    settings = load_settings()
+    projects = load_projects(settings)
     return {
-        "ports": {"host_router": is_port_open(int(DEFAULTS["host_router_port"])), "ui": is_port_open(int(DEFAULTS["ui_port"]))},
+        "ports": {"host_router": is_port_open(settings.host_router_port), "ui": is_port_open(settings.ui_port)},
+        "config": {
+            "preview_hostname": settings.preview_hostname,
+            "host_router_port": settings.host_router_port,
+            "ui_port": settings.ui_port,
+            "tailscale_host": settings.tailscale_host,
+        },
         "projects": [
             {
                 "key": p.key,
@@ -410,8 +464,8 @@ def collect_status() -> dict[str, Any]:
                 "pid": read_pid(p.pid_file),
                 "local": probe(p.local_url, p.readiness_statuses),
                 "host_url": f"http://{p.hostnames[0]}/",
-                "port_url": f"http://{p.hostnames[0]}:{DEFAULTS['host_router_port']}/",
-                "tailscale_url": f"https://{DEFAULTS['tailscale_host']}:{p.tailscale_port}/" if p.tailscale_port else None,
+                "port_url": f"http://{p.hostnames[0]}:{settings.host_router_port}/",
+                "tailscale_url": f"https://{settings.tailscale_host}:{p.tailscale_port}/" if settings.tailscale_host and p.tailscale_port else None,
             }
             for p in projects
         ],
@@ -452,21 +506,24 @@ class UIHandler(BaseHTTPRequestHandler):
 def render_ui(status: dict[str, Any]) -> str:
     rows = []
     for p in status["projects"]:
-        links = [f'<a href="{html.escape(p["host_url"])}">{html.escape(p["host_url"])}</a>', f'<a href="{html.escape(p["port_url"])}">:18088</a>']
+        links = [f'<a href="{html.escape(p["host_url"])}">{html.escape(p["host_url"])}</a>', f'<a href="{html.escape(p["port_url"])}">:{html.escape(str(status["config"]["host_router_port"]))}</a>']
         if p.get("tailscale_url"):
             links.append(f'<a href="{html.escape(p["tailscale_url"])}">Tailscale HTTPS</a>')
         rows.append(f"<tr><td>{html.escape(p['name'])}</td><td>{html.escape(', '.join(p['hosts']))}</td><td>{html.escape(str(p['local']))}</td><td>{' · '.join(links)}</td></tr>")
     ports = " · ".join(f"{k}: {'up' if v else 'down'}" for k, v in status["ports"].items())
+    title = html.escape(f"{status['config']['preview_hostname']} previews")
     return f"""<!doctype html>
 <html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
-<title>Newport previews</title>
+<title>{title}</title>
 <style>body{{font-family:system-ui,sans-serif;margin:2rem;background:#0b1020;color:#eef}}a{{color:#8bd3ff}}table{{border-collapse:collapse;width:100%;background:#121a33}}td,th{{padding:.75rem;border-bottom:1px solid #2b365f;text-align:left}}code{{background:#1c2645;padding:.15rem .35rem;border-radius:.25rem}}.muted{{color:#aab}}</style>
-</head><body><h1>Newport previews</h1><p class='muted'>{html.escape(ports)}</p><table><thead><tr><th>Project</th><th>Hosts</th><th>Local status</th><th>Links</th></tr></thead><tbody>{''.join(rows)}</tbody></table><p>Control: <code>uv run preview-router start</code> · <code>uv run preview-router stop</code> · <code>uv run preview-router status</code></p></body></html>"""
+</head><body><h1>{title}</h1><p class='muted'>{html.escape(ports)}</p><table><thead><tr><th>Project</th><th>Hosts</th><th>Local status</th><th>Links</th></tr></thead><tbody>{''.join(rows)}</tbody></table><p>Control: <code>uv run preview-router start</code> · <code>uv run preview-router stop</code> · <code>uv run preview-router status</code></p></body></html>"""
 
 
 def cmd_ui(args: argparse.Namespace) -> None:
-    server = ThreadingHTTPServer(("127.0.0.1", args.port), UIHandler)
-    print(f"UI listening on http://127.0.0.1:{args.port}")
+    settings = load_settings()
+    port = args.port or settings.ui_port
+    server = ThreadingHTTPServer(("127.0.0.1", port), UIHandler)
+    print(f"UI listening on http://127.0.0.1:{port}")
     server.serve_forever()
 
 
@@ -485,7 +542,7 @@ def main(argv: list[str] | None = None) -> None:
     p_hosts.add_argument("--preview-ip", help="IP to write into the hosts script; defaults to `tailscale ip -4` or 127.0.0.1")
     p_hosts.set_defaults(func=cmd_hosts_script)
     p_ui = sub.add_parser("ui")
-    p_ui.add_argument("--port", type=int, default=int(DEFAULTS["ui_port"]))
+    p_ui.add_argument("--port", type=int, help="override configured UI port")
     p_ui.set_defaults(func=cmd_ui)
     args = parser.parse_args(argv)
     args.func(args)
