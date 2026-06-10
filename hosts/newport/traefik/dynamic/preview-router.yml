@@ -6,6 +6,8 @@ http:
       rule: >-
         Host(`preview.newport`) ||
         Host(`dwellsmart.newport`) ||
+        Host(`alderpoint.newport`) ||
+        Host(`cmd.newport`) ||
         Host(`siliconharbour.newport`) ||
         Host(`silicon.newport`) ||
         Host(`plow.newport`) ||

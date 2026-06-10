@@ -1,0 +1,15 @@
+http:
+  routers:
+    hermes-webui:
+      entryPoints:
+        - web
+      rule: Host(`hermes.newport`)
+      middlewares:
+        - preview-tailnet-only
+      service: hermes-webui
+
+  services:
+    hermes-webui:
+      loadBalancer:
+        servers:
+          - url: http://127.0.0.1:8787
