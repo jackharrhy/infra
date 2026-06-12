@@ -199,8 +199,23 @@ services:
     environment:
       - PHX_HOST=cmd.softspark.dev
       - MIGRATE_ON_BOOT=1
+      # Workspace containers (agent-in-sandbox + SSH access containers).
+      # cmd commands the host daemon via the mounted socket; workspace
+      # containers join newport_web so they can reach cmd's MCP endpoint
+      # by service name.
+      - WORKSPACE_IMAGE=ghcr.io/s0ftspark/internal:workspace
+      - WORKSPACE_DOCKER_NETWORK=newport_web
+      - MCP_URL=http://cmd:4000/api/mcp
+      - WORKSPACE_HOST_ROOT=/mnt/terrabud/docker-data/newport/cmd_data/workspaces
+      - OPENCODE_DATA_HOST_DIR=/mnt/terrabud/docker-data/newport/cmd_data/opencode
+      # SSH workspace gateway (BEAM-terminated; host key persists in /data).
+      - SSH_GATEWAY_PORT=2222
+      - SSH_HOST_KEY_DIR=/data/ssh_host_keys
+    ports:
+      - "2222:2222"
     volumes:
       - /mnt/terrabud/docker-data/newport/cmd_data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
     labels:
       - "traefik.docker.network=newport_web"
       - "traefik.enable=true"
