@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ title }}</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        margin: 2rem;
+        background: #0b1020;
+        color: #eef;
+        line-height: 1.5;
+      }
+      a {
+        color: #8bd3ff;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        background: #121a33;
+        margin-top: 1rem;
+      }
+      td,
+      th {
+        padding: 0.75rem;
+        border-bottom: 1px solid #2b365f;
+        text-align: left;
+        vertical-align: top;
+      }
+      code,
+      pre {
+        background: #1c2645;
+        border-radius: 0.35rem;
+      }
+      code {
+        padding: 0.15rem 0.35rem;
+      }
+      pre {
+        overflow-x: auto;
+        padding: 0.9rem 1rem;
+        margin: 0;
+      }
+      .muted {
+        color: #aab;
+      }
+      .section {
+        margin-top: 1.5rem;
+        padding: 1rem 1.1rem;
+        border: 1px solid #2b365f;
+        border-radius: 0.75rem;
+        background: #10182f;
+      }
+      .section h2 {
+        margin: 0 0 0.75rem;
+        font-size: 1rem;
+      }
+      .stack {
+        display: grid;
+        gap: 0.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>{{ title }}</h1>
+    <p class="muted">{{ ports }}</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Project</th>
+          <th>Hosts</th>
+          <th>Local status</th>
+          <th>Links</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for project in projects %}
+        <tr>
+          <td>{{ project.name }}</td>
+          <td>{{ project.hosts | join(', ') }}</td>
+          <td>{{ project.local }}</td>
+          <td>
+            {% for link in project.links %}
+            <a href="{{ link.href }}">{{ link.label }}</a>{% if not loop.last %} · {% endif %}
+            {% endfor %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="section">
+      <h2>macOS copy-pasta</h2>
+      <p class="muted">
+        If the preview hostnames do not resolve on your Mac, install the generated /etc/hosts block first.
+      </p>
+      <div class="stack">
+        <pre>{% for line in macos_copy_pasta %}{{ line }}{% if not loop.last %}
+{% endif %}{% endfor %}</pre>
+        <p class="muted">
+          Then use the direct router URL:
+          <code>http://{{ preview_hostname }}:{{ host_router_port }}/</code>
+        </p>
+      </div>
+    </div>
+
+    <p class="muted">
+      Control: <code>uv run preview-router start</code> · <code>uv run preview-router stop</code> · <code>uv run preview-router status</code>
+    </p>
+  </body>
+</html>

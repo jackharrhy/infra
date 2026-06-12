@@ -65,9 +65,9 @@ services:
     environment:
       - SITE_URL=https://4orm.harrhy.xyz
     volumes:
-      - ./volumes/4orm_data:/app/data
-      - ./volumes/4orm_uploads:/app/uploads
-      - ./volumes/4orm_backups:/app/backups
+      - /mnt/terrabud/docker-data/newport/4orm_data:/app/data
+      - /mnt/terrabud/docker-data/newport/4orm_uploads:/app/uploads
+      - /mnt/terrabud/docker-data/newport/4orm_backups:/app/backups
     labels:
       - "traefik.docker.network=newport_web"
       - "traefik.enable=true"
@@ -101,9 +101,9 @@ services:
       - FOURM_CLIENT_ID=artbin
       - ARTBIN_URL=https://artbin.jackharrhy.dev
     volumes:
-      - ./volumes/artbin_data/data:/app/apps/web/data
-      - ./volumes/artbin_data/uploads:/app/apps/web/public/uploads
-      - ./volumes/artbin_data/tmp:/app/apps/web/tmp/uploads
+      - /mnt/terrabud/docker-data/newport/artbin_data/data:/app/apps/web/data
+      - /mnt/terrabud/docker-data/newport/artbin_data/uploads:/app/apps/web/public/uploads
+      - /mnt/terrabud/docker-data/newport/artbin_data/tmp:/app/apps/web/tmp/uploads
     labels:
       - "traefik.docker.network=newport_web"
       - "traefik.enable=true"
@@ -198,8 +198,9 @@ services:
       - ./.runtime-secrets/cmd.env
     environment:
       - PHX_HOST=cmd.softspark.dev
+      - MIGRATE_ON_BOOT=1
     volumes:
-      - ./volumes/cmd_data:/data
+      - /mnt/terrabud/docker-data/newport/cmd_data:/data
     labels:
       - "traefik.docker.network=newport_web"
       - "traefik.enable=true"

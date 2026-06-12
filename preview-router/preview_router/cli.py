@@ -14,7 +14,9 @@ from dataclasses import dataclass, field
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
+
 import tomllib
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG_FILE = ROOT / "preview-router.toml"
@@ -22,6 +24,11 @@ PROJECT_CONFIG_NAME = ".preview-router.toml"
 RUN_DIR = ROOT / ".run"
 LOG_DIR = ROOT / "logs"
 CADDY_CONFIG = RUN_DIR / "caddy.json"
+TEMPLATE_ENV = Environment(
+    loader=FileSystemLoader(ROOT / "templates"),
+    autoescape=select_autoescape(("html", "xml")),
+)
+UI_TEMPLATE = TEMPLATE_ENV.get_template("ui.html.j2")
 
 
 @dataclass
@@ -504,19 +511,38 @@ class UIHandler(BaseHTTPRequestHandler):
 
 
 def render_ui(status: dict[str, Any]) -> str:
-    rows = []
+    projects = []
     for p in status["projects"]:
-        links = [f'<a href="{html.escape(p["host_url"])}">{html.escape(p["host_url"])}</a>', f'<a href="{html.escape(p["port_url"])}">:{html.escape(str(status["config"]["host_router_port"]))}</a>']
+        links = [
+            {"href": p["host_url"], "label": p["host_url"]},
+            {"href": p["port_url"], "label": p["port_url"]},
+        ]
         if p.get("tailscale_url"):
-            links.append(f'<a href="{html.escape(p["tailscale_url"])}">Tailscale HTTPS</a>')
-        rows.append(f"<tr><td>{html.escape(p['name'])}</td><td>{html.escape(', '.join(p['hosts']))}</td><td>{html.escape(str(p['local']))}</td><td>{' · '.join(links)}</td></tr>")
-    ports = " · ".join(f"{k}: {'up' if v else 'down'}" for k, v in status["ports"].items())
-    title = html.escape(f"{status['config']['preview_hostname']} previews")
-    return f"""<!doctype html>
-<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
-<title>{title}</title>
-<style>body{{font-family:system-ui,sans-serif;margin:2rem;background:#0b1020;color:#eef}}a{{color:#8bd3ff}}table{{border-collapse:collapse;width:100%;background:#121a33}}td,th{{padding:.75rem;border-bottom:1px solid #2b365f;text-align:left}}code{{background:#1c2645;padding:.15rem .35rem;border-radius:.25rem}}.muted{{color:#aab}}</style>
-</head><body><h1>{title}</h1><p class='muted'>{html.escape(ports)}</p><table><thead><tr><th>Project</th><th>Hosts</th><th>Local status</th><th>Links</th></tr></thead><tbody>{''.join(rows)}</tbody></table><p>Control: <code>uv run preview-router start</code> · <code>uv run preview-router stop</code> · <code>uv run preview-router status</code></p></body></html>"""
+            links.append({"href": p["tailscale_url"], "label": "Tailscale HTTPS"})
+        projects.append(
+            {
+                "name": p["name"],
+                "hosts": p["hosts"],
+                "local": p["local"],
+                "links": links,
+            }
+        )
+
+    macos_copy_pasta = [
+        "uv run preview-router hosts-script --output install-hosts.sh",
+        "chmod +x install-hosts.sh",
+        "sudo ./install-hosts.sh",
+        f"open http://{status['config']['preview_hostname']}/",
+    ]
+
+    return UI_TEMPLATE.render(
+        title=f"{status['config']['preview_hostname']} previews",
+        preview_hostname=status["config"]["preview_hostname"],
+        ports=" · ".join(f"{k}: {'up' if v else 'down'}" for k, v in status["ports"].items()),
+        host_router_port=status["config"]["host_router_port"],
+        projects=projects,
+        macos_copy_pasta=macos_copy_pasta,
+    )
 
 
 def cmd_ui(args: argparse.Namespace) -> None:

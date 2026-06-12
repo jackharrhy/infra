@@ -21,7 +21,7 @@ services:
       CURSEFORGE_FILES: "bluemap"
       ENABLE_RCON: "true"
     volumes:
-      - ./data:/data
+      - /mnt/terrabud/docker-data/newport/minecraft/data:/data
     networks:
       - web
       - backup
@@ -51,8 +51,8 @@ services:
       EXCLUDES: "*.jar,cache,logs,*.tmp,mods,libraries,.cache,.mixin.out,crash-reports"
       TZ: "America/St_Johns"
     volumes:
-      - ./data:/data:ro
-      - ./backups:/backups
+      - /mnt/terrabud/docker-data/newport/minecraft/data:/data:ro
+      - /mnt/terrabud/docker-data/newport/minecraft/backups:/backups
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
     networks:
