@@ -1,0 +1,27 @@
+# Wildcard TLS for workspace previews + the workspace SSH/preview URL
+# family. The router exists primarily to make traefik ISSUE the
+# wildcard cert via the cfdns (Cloudflare DNS-01) resolver; the
+# placeholder service 502s until per-workspace preview routing lands
+# (cmd will register real routes — see plans/ in s0ftspark/internal).
+http:
+  routers:
+    workspace-wildcard:
+      entryPoints:
+        - websecure
+      rule: HostRegexp(`^[a-z0-9-]+\.workspace\.cmd\.softspark\.dev$`)
+      priority: 1
+      service: workspace-placeholder
+      tls:
+        certResolver: cfdns
+        domains:
+          - main: workspace.cmd.softspark.dev
+            sans:
+              - "*.workspace.cmd.softspark.dev"
+
+  services:
+    workspace-placeholder:
+      loadBalancer:
+        servers:
+          # Nothing listens here on purpose: valid TLS + 502 means the
+          # cert layer works and the preview layer doesn't exist yet.
+          - url: http://127.0.0.1:18089

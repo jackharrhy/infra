@@ -28,9 +28,18 @@ services:
       - "--certificatesresolvers.newporthttp.acme.httpchallenge=true"
       - "--certificatesresolvers.newporthttp.acme.httpchallenge.entrypoint=web"
       - "--certificatesresolvers.newporthttp.acme.storage=/letsencrypt/acme-http.json"
+      # DNS-01 via Cloudflare for wildcard certs (*.workspace.cmd.softspark.dev
+      # can't be issued over HTTP-01). Token lives in .runtime-secrets/traefik.env
+      # (CF_DNS_API_TOKEN, scoped Zone:DNS:Edit on softspark.dev only).
+      - "--certificatesresolvers.cfdns.acme.email=me@jackharrhy.com"
+      - "--certificatesresolvers.cfdns.acme.dnschallenge.provider=cloudflare"
+      - "--certificatesresolvers.cfdns.acme.dnschallenge.resolvers=1.1.1.1:53,8.8.8.8:53"
+      - "--certificatesresolvers.cfdns.acme.storage=/letsencrypt/acme-dns.json"
       - "--api.dashboard=true"
       - "--api.insecure=true"
       - "--entrypoints.traefik.address=127.0.0.1:18081"
+    env_file:
+      - ./.runtime-secrets/traefik.env
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik/dynamic:/etc/traefik/dynamic:ro
@@ -211,6 +220,9 @@ services:
       # SSH workspace gateway (BEAM-terminated; host key persists in /data).
       - SSH_GATEWAY_PORT=2222
       - SSH_HOST_KEY_DIR=/data/ssh_host_keys
+      # Public DNS + router forward live as of 2026-06-12; pages
+      # advertise ssh <workspace>@workspace.cmd.softspark.dev.
+      - SSH_ADVERTISED_HOST=workspace.cmd.softspark.dev
     ports:
       - "2222:2222"
     volumes:
