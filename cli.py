@@ -685,7 +685,11 @@ def refresh(host: str | None):
             f"cd {info['compose_path']}"
             f" && docker compose pull"
             f" && docker compose up -d"
-            f" && docker image prune -a -f"
+            # label!=cmd.keep spares images that opt in to surviving the
+            # prune (e.g. cmd's workspace image on newport, which is
+            # unreferenced between agent runs by design). Harmless on
+            # hosts with no labeled images.
+            f' && docker image prune -a -f --filter "label!=cmd.keep"'
         )
         exit_code = ssh_run(info["ssh"], cmd, stream=True)
         if exit_code != 0:
