@@ -202,7 +202,7 @@ services:
   cmd:
     image: ghcr.io/s0ftspark/internal:cmd
     restart: unless-stopped
-    networks: [web]
+    networks: [web, cmd_db]
     env_file:
       - ./.runtime-secrets/cmd.env
     environment:
@@ -367,3 +367,6 @@ networks:
   web:
   miniflux:
   sluggers_super_draft:
+  cmd_db:
+    external: true
+    name: newport_cmd_db
