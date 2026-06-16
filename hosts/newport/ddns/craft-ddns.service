@@ -1,0 +1,16 @@
+[Unit]
+Description=Update craft.jackharrhy.dev A record to the current home WAN IP (octodns-ddns)
+Documentation=https://github.com/octodns/octodns-ddns
+# Only meaningful with working network/DNS; the sync itself is a no-op when
+# the IP is unchanged, so failures here just retry on the next timer tick.
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/infra
+# cli.py is `#!/usr/bin/env -S uv run --script` with PEP-723 inline deps,
+# so uv resolves octodns + octodns-ddns into a cached env on first run.
+ExecStart=%h/.local/bin/uv run --script %h/infra/cli.py dns auto-sync jackharrhy.dev.
+# Keep one-shot logs tidy and identifiable in `journalctl --user -u craft-ddns`.
+SyslogIdentifier=craft-ddns

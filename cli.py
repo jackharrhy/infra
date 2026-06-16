@@ -6,6 +6,7 @@
 #     "pyyaml",
 #     "octodns>=1.0",
 #     "octodns-digitalocean",
+#     "octodns-ddns",
 #     "synology-api>=0.8",
 #     "pyotp>=2.9",
 # ]
@@ -859,6 +860,33 @@ def sync(zones: tuple[str, ...], force: bool, debug: bool):
     click.echo()
     click.echo("Applying changes...")
     result = subprocess.run(cmd_apply, env=env, cwd=REPO_ROOT)
+    sys.exit(result.returncode)
+
+
+@dns.command("auto-sync")
+@click.argument("zones", nargs=-1)
+@click.option("--force", is_flag=True, help="Force through significant changes")
+def auto_sync(zones: tuple[str, ...], force: bool):
+    """Non-interactive sync for automation (systemd timer / cron).
+
+    Applies directly without the interactive confirmation that `sync` uses.
+    Primarily for the octodns-ddns dynamic `craft` record: run on a schedule
+    from newport so the home WAN IP stays current. octoDNS only writes when
+    the value actually changes, so repeated runs are cheap no-ops.
+    """
+    env = _octodns_env()
+
+    cmd = [
+        sys.executable, "-m", "octodns.cmds.sync",
+        "--config-file", str(DNS_CONFIG),
+        "--doit",
+    ]
+    for z in zones:
+        cmd.append(z)
+    if force:
+        cmd.append("--force")
+
+    result = subprocess.run(cmd, env=env, cwd=REPO_ROOT)
     sys.exit(result.returncode)
 
 

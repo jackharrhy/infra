@@ -10,7 +10,31 @@ providers:
     class: octodns_digitalocean.DigitalOceanProvider
     token: env/DIGITALOCEAN_TOKEN
 
+  # Dynamic DNS source. The provider id ("craft") becomes the record name,
+  # so this injects a `craft` A record whose value is the public IP of the
+  # machine running the sync (looked up via an outbound HTTP echo service).
+  # This MUST be synced from home (newport) so the echoed IP is the home WAN
+  # IP that the Minecraft :25565 port-forward lives behind. See the systemd
+  # timer in hosts/newport for the scheduled runner.
+  craft:
+    class: octodns_ddns.DdnsSource
+    types:
+      - A
+    ttl: 300
+
 zones:
+  # jackharrhy.dev. is matched first and claimed with both the static config
+  # and the dynamic `craft` source. Matchers are applied in order and a zone
+  # is no longer available once claimed, so the "*" catch-all below only sees
+  # the remaining zones (which keep just the static config source).
+  "jackharrhy.dev.":
+    glob: "jackharrhy.dev."
+    sources:
+      - config
+      - craft
+    targets:
+      - digitalocean
+
   "*":
     sources:
       - config

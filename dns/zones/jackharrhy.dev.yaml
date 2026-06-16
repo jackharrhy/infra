@@ -25,9 +25,9 @@ _atproto:
 _dmarc:
   type: TXT
   value: v=DMARC1\; p=quarantine\;
-craft:
-  type: A
-  value: 156.57.123.137
+# `craft` is intentionally NOT defined here. It is managed dynamically by the
+# octodns-ddns source (provider id `craft` in dns/config.yaml), which sets it
+# to the home WAN IP at sync time. Synced on a schedule from newport.
 leo6o3hye2ykivscjdoufsda4kz42boc._domainkey:
   ttl: 43200
   type: CNAME

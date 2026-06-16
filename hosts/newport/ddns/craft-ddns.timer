@@ -1,0 +1,16 @@
+[Unit]
+Description=Periodically refresh craft.jackharrhy.dev to the current home WAN IP
+Documentation=https://github.com/octodns/octodns-ddns
+
+[Timer]
+# Run shortly after boot (catches an IP that changed while newport was down)...
+OnBootSec=2min
+# ...then every 5 minutes. The DO A record TTL is 300s, so 5-minute checks
+# keep worst-case staleness bounded to roughly TTL + one interval.
+OnUnitActiveSec=5min
+# Avoid every home device hammering the IP-echo service on the same second.
+RandomizedDelaySec=30s
+Persistent=true
+
+[Install]
+WantedBy=timers.target
