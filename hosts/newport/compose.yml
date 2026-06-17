@@ -200,7 +200,7 @@ services:
       - "com.centurylinklabs.watchtower.enable=false"
 
   cmd:
-    image: ghcr.io/s0ftspark/internal:cmd
+    image: ghcr.io/s0ftspark/cmd:latest
     restart: unless-stopped
     networks: [web, cmd_db]
     env_file:
@@ -212,7 +212,7 @@ services:
       # cmd commands the host daemon via the mounted socket; workspace
       # containers join newport_web so they can reach cmd's MCP endpoint
       # by service name.
-      - WORKSPACE_IMAGE=ghcr.io/s0ftspark/internal:workspace
+      - WORKSPACE_IMAGE=ghcr.io/s0ftspark/cmd:workspace
       - WORKSPACE_DOCKER_NETWORK=newport_web
       - MCP_URL=http://cmd:4000/api/mcp
       - WORKSPACE_HOST_ROOT=/mnt/terrabud/docker-data/newport/cmd_data/workspaces
@@ -234,6 +234,37 @@ services:
       - "traefik.http.services.cmd.loadbalancer.server.port=4000"
       - "traefik.http.routers.cmd.rule=Host(`cmd.softspark.dev`)"
       - "traefik.http.routers.cmd.entrypoints=web"
+
+  # cmd's Postgres + pgvector. Internal-only (cmd_db network, no published
+  # ports); cmd reaches it at cmd_postgres:5432 (its DATABASE_URL). Data on
+  # the big terrabud disk.
+  cmd_postgres:
+    image: pgvector/pgvector:pg17
+    restart: unless-stopped
+    networks: [cmd_db]
+    env_file:
+      - ./.runtime-secrets/cmd_postgres.env
+    volumes:
+      - /mnt/terrabud/docker-data/newport/cmd_postgres:/var/lib/postgresql/data
+
+  # Object storage (S3-compatible) for cmd: finance source documents + the
+  # docs typst import surface (Cmd.ObjectStore.S3 → http://garage:3900).
+  # Internal-only (cmd_db, no published ports). rpc_secret + admin_token come
+  # from the env (cmd_garage.enc.yaml), not garage.toml. The bucket + access
+  # key were bootstrapped via `docker exec ... /garage {layout,bucket,key}`
+  # (the distroless image has no /bin/sh); OBJECT_STORE_* live in cmd.enc.yaml.
+  cmd_garage:
+    image: dxflrs/garage:v1.0.1
+    restart: unless-stopped
+    networks:
+      cmd_db:
+        aliases: [garage]
+    env_file:
+      - ./.runtime-secrets/cmd_garage.env
+    volumes:
+      - /mnt/terrabud/docker-data/newport/cmd_garage/meta:/var/lib/garage/meta
+      - /mnt/terrabud/docker-data/newport/cmd_garage/data:/var/lib/garage/data
+      - ./cmd_garage/garage.toml:/etc/garage.toml:ro
 
   bar:
     image: ghcr.io/jackharrhy/bar:main
