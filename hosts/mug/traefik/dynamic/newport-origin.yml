@@ -79,8 +79,8 @@ http:
       tls:
         certResolver: mugresolver
 
-    adam-cooks-via-newport:
-      rule: "Host(`adam-cooks.jackharrhy.dev`)"
+    adam-eats-via-newport:
+      rule: "Host(`adam-eats.jackharrhy.dev`)"
       entryPoints: [websecure]
       service: newport-origin
       tls:
