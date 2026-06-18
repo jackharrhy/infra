@@ -94,10 +94,14 @@ services:
     image: ghcr.io/jackharrhy/adam__eats:main
     restart: unless-stopped
     networks: [web]
+    environment:
+      - EMDASH_SITE_URL=https://adam-eats.jackharrhy.dev
+    env_file:
+      - ./.runtime-secrets/adam_eats.env
     labels:
       - "traefik.docker.network=newport_web"
       - "traefik.enable=true"
-      - "traefik.http.services.adam_eats.loadbalancer.server.port=80"
+      - "traefik.http.services.adam_eats.loadbalancer.server.port=4321"
       - "traefik.http.routers.adam_eats.rule=Host(`adam-eats.jackharrhy.dev`)"
       - "traefik.http.routers.adam_eats.entrypoints=web"
 
