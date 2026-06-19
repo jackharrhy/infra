@@ -398,8 +398,107 @@ services:
       - "traefik.http.routers.rolie_polie_olie.rule=Host(`rolie-polie-olie.fogo.sh`)"
       - "traefik.http.routers.rolie_polie_olie.entrypoints=web"
 
+  # Penpot — open-source design platform (Figma alternative). Only the
+  # frontend is web-exposed; backend/exporter/mcp/postgres/valkey stay on
+  # the internal penpot network. Registration is closed (no `registration`
+  # flag) and email verification is disabled (no SMTP relay); create users
+  # via the backend CLI:
+  #   docker exec -ti penpot-penpot-backend-1 python3 manage.py create-profile
+  # Secure session cookies are kept enabled (served over HTTPS via mug's
+  # traefik → newport tailnet forward). Version pinned per Penpot docs.
+  penpot_frontend:
+    image: penpotapp/frontend:2.16
+    restart: unless-stopped
+    networks: [web, penpot]
+    environment:
+      - PENPOT_FLAGS=enable-prepl-server enable-mcp disable-email-verification
+      - PENPOT_PUBLIC_URI=https://penpot.jackharrhy.dev
+      - PENPOT_HTTP_SERVER_MAX_BODY_SIZE=367001600
+    volumes:
+      - ./volumes/penpot_assets:/opt/data/assets
+    depends_on: [penpot_backend, penpot_exporter, penpot_mcp]
+    labels:
+      - "traefik.docker.network=newport_web"
+      - "traefik.enable=true"
+      - "traefik.http.services.penpot.loadbalancer.server.port=8080"
+      - "traefik.http.routers.penpot.rule=Host(`penpot.jackharrhy.dev`)"
+      - "traefik.http.routers.penpot.entrypoints=web"
+
+  penpot_backend:
+    image: penpotapp/backend:2.16
+    restart: unless-stopped
+    networks: [penpot]
+    env_file:
+      - ./.runtime-secrets/penpot_db.env
+      - ./.runtime-secrets/penpot.env
+    environment:
+      - PENPOT_FLAGS=enable-prepl-server enable-mcp disable-email-verification
+      - PENPOT_PUBLIC_URI=https://penpot.jackharrhy.dev
+      - PENPOT_HTTP_SERVER_MAX_BODY_SIZE=367001600
+      - PENPOT_DATABASE_URI=postgresql://penpot_postgres/penpot
+      - PENPOT_REDIS_URI=redis://penpot_valkey/0
+      - PENPOT_OBJECTS_STORAGE_BACKEND=fs
+      - PENPOT_OBJECTS_STORAGE_FS_DIRECTORY=/opt/data/assets
+    volumes:
+      - ./volumes/penpot_assets:/opt/data/assets
+    depends_on:
+      penpot_postgres:
+        condition: service_healthy
+      penpot_valkey:
+        condition: service_healthy
+
+  penpot_mcp:
+    image: penpotapp/mcp:2.16
+    restart: unless-stopped
+    networks: [penpot]
+
+  penpot_exporter:
+    image: penpotapp/exporter:2.16
+    restart: unless-stopped
+    networks: [penpot]
+    env_file:
+      - ./.runtime-secrets/penpot.env
+    environment:
+      - PENPOT_PUBLIC_URI=http://penpot_frontend:8080
+      - PENPOT_REDIS_URI=redis://penpot_valkey/0
+    depends_on:
+      penpot_valkey:
+        condition: service_healthy
+
+  penpot_postgres:
+    image: postgres:15
+    restart: unless-stopped
+    stop_signal: SIGINT
+    networks: [penpot]
+    env_file:
+      - ./.runtime-secrets/penpot_db.env
+    environment:
+      - POSTGRES_INITDB_ARGS=--data-checksums
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U penpot"]
+      interval: 2s
+      timeout: 10s
+      retries: 5
+      start_period: 2s
+    volumes:
+      - ./volumes/penpot_postgres:/var/lib/postgresql/data
+
+  penpot_valkey:
+    image: valkey/valkey:8.1
+    restart: unless-stopped
+    networks: [penpot]
+    healthcheck:
+      test: ["CMD-SHELL", "valkey-cli ping | grep PONG"]
+      interval: 1s
+      timeout: 3s
+      retries: 5
+      start_period: 3s
+    environment:
+      - VALKEY_EXTRA_FLAGS=--maxmemory 128mb --maxmemory-policy volatile-lfu
+
 networks:
   web:
+  penpot:
   miniflux:
   sluggers_super_draft:
   cmd_db:

@@ -116,6 +116,13 @@ http:
         # softspark.dev is on Cloudflare, not DigitalOcean, use HTTP-01 instead.
         certResolver: mughttp
 
+    penpot-via-newport:
+      rule: "Host(`penpot.jackharrhy.dev`)"
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
+
   services:
     newport-origin:
       loadBalancer:
