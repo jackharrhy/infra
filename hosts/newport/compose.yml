@@ -400,18 +400,18 @@ services:
 
   # Penpot — open-source design platform (Figma alternative). Only the
   # frontend is web-exposed; backend/exporter/mcp/postgres/valkey stay on
-  # the internal penpot network. Registration is closed (no `registration`
-  # flag) and email verification is disabled (no SMTP relay); create users
-  # via the backend CLI:
+  # the internal penpot network. Registration is disabled (single-user
+  # instance); create your account via the backend CLI:
   #   docker exec -ti penpot-penpot-backend-1 python3 manage.py create-profile
-  # Secure session cookies are kept enabled (served over HTTPS via mug's
-  # traefik → newport tailnet forward). Version pinned per Penpot docs.
+  # Email verification is disabled (no SMTP relay). Secure session cookies
+  # are kept enabled (served over HTTPS via mug's traefik → newport tailnet
+  # forward). Version pinned per Penpot docs.
   penpot_frontend:
     image: penpotapp/frontend:2.16
     restart: unless-stopped
     networks: [web, penpot]
     environment:
-      - PENPOT_FLAGS=enable-prepl-server enable-mcp disable-email-verification
+      - PENPOT_FLAGS=enable-prepl-server enable-mcp disable-email-verification disable-registration
       - PENPOT_PUBLIC_URI=https://penpot.jackharrhy.dev
       - PENPOT_HTTP_SERVER_MAX_BODY_SIZE=367001600
     volumes:
@@ -427,12 +427,15 @@ services:
   penpot_backend:
     image: penpotapp/backend:2.16
     restart: unless-stopped
-    networks: [penpot]
+    networks:
+      penpot:
+        # Frontend's bundled nginx.conf hardcodes hyphenated upstream names.
+        aliases: [penpot-backend]
     env_file:
       - ./.runtime-secrets/penpot_db.env
       - ./.runtime-secrets/penpot.env
     environment:
-      - PENPOT_FLAGS=enable-prepl-server enable-mcp disable-email-verification
+      - PENPOT_FLAGS=enable-prepl-server enable-mcp disable-email-verification disable-registration
       - PENPOT_PUBLIC_URI=https://penpot.jackharrhy.dev
       - PENPOT_HTTP_SERVER_MAX_BODY_SIZE=367001600
       - PENPOT_DATABASE_URI=postgresql://penpot_postgres/penpot
@@ -450,12 +453,16 @@ services:
   penpot_mcp:
     image: penpotapp/mcp:2.16
     restart: unless-stopped
-    networks: [penpot]
+    networks:
+      penpot:
+        aliases: [penpot-mcp]
 
   penpot_exporter:
     image: penpotapp/exporter:2.16
     restart: unless-stopped
-    networks: [penpot]
+    networks:
+      penpot:
+        aliases: [penpot-exporter]
     env_file:
       - ./.runtime-secrets/penpot.env
     environment:
