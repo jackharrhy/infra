@@ -222,6 +222,12 @@ services:
     volumes:
       - ./volumes/stackcoin:/data
     networks: [web]
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:80/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
     labels:
       - "traefik.docker.network=mug_web"
       - "traefik.enable=true"
@@ -240,6 +246,9 @@ services:
       - LUCKYPOT_DB_PATH=/app/data/luckypot.db
     volumes:
       - ./volumes/luckypot:/app/data
+    depends_on:
+      stackcoin:
+        condition: service_healthy
 
   lists:
     image: ghcr.io/jackharrhy/lists:main
