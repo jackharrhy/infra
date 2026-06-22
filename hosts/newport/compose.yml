@@ -98,6 +98,8 @@ services:
       - EMDASH_SITE_URL=https://adam-eats.jackharrhy.dev
     env_file:
       - ./.runtime-secrets/adam_eats.env
+    volumes:
+      - ./volumes/adam_eats:/app/data
     labels:
       - "traefik.docker.network=newport_web"
       - "traefik.enable=true"
