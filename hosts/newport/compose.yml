@@ -386,6 +386,18 @@ services:
     image: ghcr.io/fogo-sh/rolie-polie-olie:main
     restart: unless-stopped
     networks: [web]
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "bun",
+          "-e",
+          "const res = await fetch('http://127.0.0.1:3000/api/health'); if (!res.ok) throw new Error(`healthcheck failed: $${res.status}`);",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
     env_file:
       - ./.runtime-secrets/rolie-polie-olie.env
     environment:
