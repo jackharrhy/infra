@@ -84,12 +84,6 @@ services:
       - "traefik.http.routers.4orm.rule=Host(`4orm.harrhy.xyz`)"
       - "traefik.http.routers.4orm.entrypoints=web"
 
-  hikeping:
-    image: ghcr.io/jackharrhy/hikeping:main
-    restart: unless-stopped
-    env_file:
-      - ./.runtime-secrets/hikeping.env
-
   adam_eats:
     image: ghcr.io/jackharrhy/adam__eats:main
     restart: unless-stopped
@@ -153,32 +147,6 @@ services:
       - "traefik.http.services.stickertrade.loadbalancer.server.port=44100"
       - "traefik.http.routers.stickertrade.rule=Host(`stickertrade.ca`)"
       - "traefik.http.routers.stickertrade.entrypoints=web"
-
-  sluggers_super_draft:
-    image: ghcr.io/jackharrhy/sluggers-super-draft:main
-    restart: unless-stopped
-    networks: [web, sluggers_super_draft]
-    env_file:
-      - ./.runtime-secrets/sluggers_super_draft.env
-    volumes:
-      - ./volumes/sluggers_super_draft/images:/app/build/client/images
-    labels:
-      - "traefik.docker.network=newport_web"
-      - "traefik.enable=true"
-      - "traefik.http.services.sluggers_super_draft.loadbalancer.server.port=3000"
-      - "traefik.http.routers.sluggers_super_draft.rule=Host(`lil-slug-crew.jackharrhy.dev`)"
-      - "traefik.http.routers.sluggers_super_draft.entrypoints=web"
-
-  sluggers_super_draft_db:
-    image: postgres:17
-    restart: unless-stopped
-    networks: [sluggers_super_draft]
-    volumes:
-      - ./volumes/sluggers_super_draft_db:/var/lib/postgresql/data
-    env_file:
-      - ./.runtime-secrets/sluggers_super_draft_db.env
-    labels:
-      - "com.centurylinklabs.watchtower.enable=false"
 
   miniflux:
     image: ghcr.io/miniflux/miniflux:latest
@@ -322,42 +290,6 @@ services:
     volumes:
       - ./volumes/house_data:/data
 
-  almanac:
-    image: ghcr.io/fogo-sh/almanac:latest
-    restart: unless-stopped
-    networks: [web]
-    command: --content-dir /content --use-discord-oauth --use-bundled-assets
-    volumes:
-      - ./volumes/almanac_config:/config
-      - ./volumes/almanac_content/content:/content
-    labels:
-      - "traefik.docker.network=newport_web"
-      - "traefik.enable=true"
-      - "traefik.http.services.almanac.loadbalancer.server.port=8080"
-      - "traefik.http.routers.almanac.rule=Host(`almanac.jackharrhy.dev`)"
-      - "traefik.http.routers.almanac.entrypoints=web"
-
-  marky:
-    image: ghcr.io/jackharrhy/marky:main
-    restart: unless-stopped
-    networks: [web]
-    env_file:
-      - ./.runtime-secrets/marky.env
-    environment:
-      - MARKY_AUTH=discord
-      - MARKY_BASE_URL=https://marky.jackharrhy.dev
-      - MARKY_CONTENT_DIR=/repo/content
-      - MARKY_GIT_REPO=/repo
-      - MARKY_GIT_PUSH=true
-    volumes:
-      - ./volumes/almanac_content:/repo
-    labels:
-      - "traefik.docker.network=newport_web"
-      - "traefik.enable=true"
-      - "traefik.http.services.marky.loadbalancer.server.port=44100"
-      - "traefik.http.routers.marky.rule=Host(`marky.jackharrhy.dev`)"
-      - "traefik.http.routers.marky.entrypoints=web"
-
   steve:
     image: ghcr.io/jackharrhy/letters-to-steve:latest
     restart: unless-stopped
@@ -381,36 +313,6 @@ services:
       - "traefik.http.services.notscared_site.loadbalancer.server.port=4321"
       - "traefik.http.routers.notscared_site.rule=Host(`notsca.red`)"
       - "traefik.http.routers.notscared_site.entrypoints=web"
-
-  rolie_polie_olie:
-    image: ghcr.io/fogo-sh/rolie-polie-olie:main
-    restart: unless-stopped
-    networks: [web]
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "bun",
-          "-e",
-          "const res = await fetch('http://127.0.0.1:3000/api/health'); if (!res.ok) throw new Error(`healthcheck failed: $${res.status}`);",
-        ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
-    env_file:
-      - ./.runtime-secrets/rolie-polie-olie.env
-    environment:
-      - RPO_PUBLIC_URL=https://rolie-polie-olie.fogo.sh
-      - RPO_DATABASE_PATH=/data/rolebot.sqlite
-    volumes:
-      - ./volumes/rolie_polie_olie:/data
-    labels:
-      - "traefik.docker.network=newport_web"
-      - "traefik.enable=true"
-      - "traefik.http.services.rolie_polie_olie.loadbalancer.server.port=3000"
-      - "traefik.http.routers.rolie_polie_olie.rule=Host(`rolie-polie-olie.fogo.sh`)"
-      - "traefik.http.routers.rolie_polie_olie.entrypoints=web"
 
   # Penpot — open-source design platform (Figma alternative). Only the
   # frontend is web-exposed; backend/exporter/mcp/postgres/valkey stay on
