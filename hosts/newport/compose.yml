@@ -65,6 +65,17 @@ services:
     env_file:
       - ./.runtime-secrets/beszel-agent.env
 
+  vector:
+    image: docker.io/timberio/vector:latest-debian
+    restart: unless-stopped
+    user: root
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker:/var/lib/docker:ro
+      - ./vector/victorialogs.yaml:/etc/vector/vector.yaml:ro
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+
   4orm:
     image: ghcr.io/jackharrhy/4orm:main
     restart: unless-stopped

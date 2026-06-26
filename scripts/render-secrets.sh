@@ -26,12 +26,19 @@ for f in "$BASE"/**/secrets/*.enc.yaml "$BASE"/**/secrets/*.enc.yml; do
 
   if [[ "$base" == *.env ]]; then
     out="$out_dir/$base"
+    output_type=dotenv
+  elif [[ "$base" == *.yml || "$base" == *.yaml ]]; then
+    out="$out_dir/$base"
+    output_type=yaml
   else
     out="$out_dir/$base.env"
+    output_type=dotenv
   fi
 
-  # Decrypt YAML secrets and render them as dotenv KEY=VALUE output.
-  sops -d --output-type dotenv "$f" > "$out"
+  # Most secrets are rendered as dotenv KEY=VALUE files for Compose env_file.
+  # Files named *.yml.enc.yaml / *.yaml.enc.yaml are rendered back to YAML for
+  # apps that need structured secret config, such as Authelia's users database.
+  sops -d --output-type "$output_type" "$f" > "$out"
   chmod 600 "$out"
   echo "rendered $out"
 done

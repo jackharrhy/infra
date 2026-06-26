@@ -104,6 +104,70 @@ services:
     env_file:
       - ./.runtime-secrets/beszel-agent.env
 
+  victorialogs:
+    image: docker.io/victoriametrics/victoria-logs:v1.51.0
+    restart: unless-stopped
+    networks: [web]
+    command:
+      - "-storageDataPath=/victoria-logs-data"
+      - "-retentionPeriod=30d"
+    ports:
+      - "127.0.0.1:9428:9428"
+      # Tailnet-only ingest/query endpoint for agents on other hosts.
+      - "100.124.6.111:9428:9428"
+    volumes:
+      - ./volumes/victorialogs:/victoria-logs-data
+    labels:
+      - "traefik.docker.network=mug_web"
+      - "traefik.enable=true"
+      - "traefik.http.middlewares.victorialogs-vmui.redirectregex.regex=^https://logs\\.jackharrhy\\.dev/?$"
+      - "traefik.http.middlewares.victorialogs-vmui.redirectregex.replacement=https://logs.jackharrhy.dev/select/vmui/"
+      - "traefik.http.middlewares.victorialogs-vmui.redirectregex.permanent=true"
+      - "traefik.http.services.victorialogs.loadbalancer.server.port=9428"
+      - "traefik.http.routers.victorialogs.rule=Host(`logs.jackharrhy.dev`)"
+      - "traefik.http.routers.victorialogs.entrypoints=websecure"
+      - "traefik.http.routers.victorialogs.middlewares=authelia@docker,victorialogs-vmui@docker"
+      - "traefik.http.routers.victorialogs.tls.certresolver=mugresolver"
+      - "com.centurylinklabs.watchtower.enable=false"
+
+  authelia:
+    image: docker.io/authelia/authelia:4.39
+    restart: unless-stopped
+    networks: [web]
+    env_file:
+      - ./.runtime-secrets/authelia.env
+    environment:
+      - TZ=America/St_Johns
+    volumes:
+      - ./authelia/configuration.yml:/config/configuration.yml:ro
+      - ./.runtime-secrets/authelia-users_database.yml:/config/users_database.yml:ro
+      - ./volumes/authelia:/data
+    labels:
+      - "traefik.docker.network=mug_web"
+      - "traefik.enable=true"
+      - "traefik.http.services.authelia.loadbalancer.server.port=9091"
+      - "traefik.http.routers.authelia.rule=Host(`auth.jackharrhy.dev`)"
+      - "traefik.http.routers.authelia.entrypoints=websecure"
+      - "traefik.http.routers.authelia.tls.certresolver=mugresolver"
+      - "traefik.http.middlewares.authelia.forwardauth.address=http://authelia:9091/api/authz/forward-auth"
+      - "traefik.http.middlewares.authelia.forwardauth.trustForwardHeader=true"
+      - "traefik.http.middlewares.authelia.forwardauth.maxResponseBodySize=8192"
+      - "traefik.http.middlewares.authelia.forwardauth.authResponseHeaders=Remote-User,Remote-Groups,Remote-Email,Remote-Name"
+      - "com.centurylinklabs.watchtower.enable=false"
+
+  vector:
+    image: docker.io/timberio/vector:latest-debian
+    restart: unless-stopped
+    user: root
+    depends_on: [victorialogs]
+    networks: [web]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker:/var/lib/docker:ro
+      - ./vector/victorialogs.yaml:/etc/vector/vector.yaml:ro
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+
   jackharrhy:
     image: ghcr.io/jackharrhy/jackharrhy.com:main
     restart: unless-stopped
