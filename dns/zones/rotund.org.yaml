@@ -10,3 +10,8 @@
     - ns1.digitalocean.com.
     - ns2.digitalocean.com.
     - ns3.digitalocean.com.
+'*':
+- type: A
+  value: 142.93.144.29
+- type: AAAA
+  value: 2604:a880:cad:d0::dff:a001
