@@ -316,6 +316,8 @@ services:
       - "traefik.http.routers.gurgur.rule=Host(`gurgur.rotund.org`)"
       - "traefik.http.routers.gurgur.entrypoints=websecure"
       - "traefik.http.routers.gurgur.tls.certresolver=mugresolver"
+      - "traefik.http.routers.gurgur.tls.domains[0].main=rotund.org"
+      - "traefik.http.routers.gurgur.tls.domains[0].sans=*.rotund.org"
 
   quak:
     image: ghcr.io/jackharrhy/quak:latest
