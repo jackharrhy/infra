@@ -291,10 +291,13 @@ services:
     restart: unless-stopped
     mem_limit: 256m
     networks: [web]
+    ports:
+      - "40000-40100:40000-40100/udp"
     env_file:
       - ./.runtime-secrets/gurgur.env
     environment:
       - PUBLIC_ORIGIN=https://gurgur.rotund.org
+      - RTC_ADDITIONAL_HOST_IPS=142.93.144.29
     volumes:
       - ./volumes/gurgur_data:/data
     healthcheck:
