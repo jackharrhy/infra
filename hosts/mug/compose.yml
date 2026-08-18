@@ -162,8 +162,8 @@ services:
     restart: unless-stopped
     networks: [web]
     volumes:
-      - ./volumes/radio_uploads:/app/public/uploads
-      - ./volumes/radio_state:/app/tmp
+      - radio_uploads:/app/public/uploads
+      - radio_state:/app/tmp
     labels:
       - "traefik.docker.network=mug_web"
       - "traefik.enable=true"
@@ -350,3 +350,7 @@ services:
 networks:
   andrewsite:
   web:
+
+volumes:
+  radio_state:
+  radio_uploads:
