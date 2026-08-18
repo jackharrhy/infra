@@ -48,6 +48,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik/dynamic:/etc/traefik/dynamic:ro
+      - ./.runtime-secrets/radio.htpasswd:/etc/traefik/auth/radio.htpasswd:ro
       - ./volumes/traefik_letsencrypt_data:/letsencrypt
     labels:
       - "com.centurylinklabs.watchtower.enable=false"
@@ -155,6 +156,24 @@ services:
       - "traefik.http.routers.plow.rule=Host(`plow.jackharrhy.dev`)"
       - "traefik.http.routers.plow.entrypoints=websecure"
       - "traefik.http.routers.plow.tls.certresolver=mugresolver"
+
+  radio:
+    image: ghcr.io/jackharrhy/radio:main
+    restart: unless-stopped
+    networks: [web]
+    volumes:
+      - ./volumes/radio_uploads:/app/public/uploads
+      - ./volumes/radio_state:/app/tmp
+    labels:
+      - "traefik.docker.network=mug_web"
+      - "traefik.enable=true"
+      - "traefik.http.services.radio.loadbalancer.server.port=44100"
+      - "traefik.http.routers.radio.rule=Host(`radio.jackharrhy.dev`)"
+      - "traefik.http.routers.radio.entrypoints=websecure"
+      - "traefik.http.routers.radio.tls.certresolver=mugresolver"
+      - "traefik.http.routers.radio.middlewares=radio-auth"
+      - "traefik.http.middlewares.radio-auth.basicauth.usersfile=/etc/traefik/auth/radio.htpasswd"
+      - "traefik.http.middlewares.radio-auth.basicauth.removeheader=true"
 
   burger:
     image: ghcr.io/jackharrhy/burger:main

@@ -24,14 +24,21 @@ for f in "$BASE"/**/secrets/*.enc.yaml "$BASE"/**/secrets/*.enc.yml; do
   base="${name%.enc.yaml}"
   base="${base%.enc.yml}"
 
-  if [[ "$base" == *.env ]]; then
+  if [[ "$base" == *.htpasswd ]]; then
+    out="$out_dir/$base"
+  elif [[ "$base" == *.env ]]; then
     out="$out_dir/$base"
   else
     out="$out_dir/$base.env"
   fi
 
-  # Decrypt YAML secrets and render them as dotenv KEY=VALUE output.
-  sops -d --output-type dotenv "$f" > "$out"
+  if [[ "$base" == *.htpasswd ]]; then
+    # Traefik expects htpasswd's user:hash format rather than dotenv output.
+    sops -d --output-type dotenv "$f" | sed 's/=/:/' > "$out"
+  else
+    # Decrypt YAML secrets and render them as dotenv KEY=VALUE output.
+    sops -d --output-type dotenv "$f" > "$out"
+  fi
   chmod 600 "$out"
   echo "rendered $out"
 done
