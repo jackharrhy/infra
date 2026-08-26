@@ -13,7 +13,6 @@ diagram: https://jackharrhy.github.io/infra/infra.svg
 - `hosts/mug/`: DigitalOcean host compose stack
 - `hosts/newport/`: home host compose stack
 - `hosts/newport/minecraft/`: Minecraft stack and backups
-- `preview-router/`: local multi-project preview router
 - `scripts/`: small helper scripts
 - `cli.py`: the `infra` CLI
 - `infra.yml`: host metadata and diagram hints
@@ -81,21 +80,6 @@ infra nas nfs list SHARE
 infra nas nfs grant SHARE CLIENT_PATTERN
 infra nas nfs revoke SHARE CLIENT_PATTERN --yes
 ```
-
-## Preview router
-
-`preview-router/` runs local project previews behind a small Caddy router. Host-specific config lives in ignored local files.
-
-```bash
-cd preview-router
-cp preview-router.example.toml preview-router.toml
-uv run preview-router start
-uv run preview-router status
-uv run preview-router hosts-script --output install-hosts.sh
-uv run preview-router stop
-```
-
-See `preview-router/README.md` for the full setup.
 
 ## Minecraft
 
