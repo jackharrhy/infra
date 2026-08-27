@@ -72,6 +72,7 @@ services:
     env_file:
       - ./.runtime-secrets/4orm.env
     environment:
+      - FOURM_ENV=production
       - SITE_URL=https://4orm.harrhy.xyz
     volumes:
       - /mnt/terrabud/docker-data/newport/4orm_data:/app/data
