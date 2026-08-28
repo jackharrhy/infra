@@ -275,6 +275,8 @@ services:
     networks: [web]
     env_file:
       - ./.runtime-secrets/lists.env
+    environment:
+      - OAUTH_DYNAMIC_REGISTRATION_ENABLED=true
     volumes:
       - ./volumes/lists_data:/data
     labels:
