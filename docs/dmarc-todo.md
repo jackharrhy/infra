@@ -1,6 +1,7 @@
-# DMARC/DKIM gaps
+# DMARC/DKIM status
 
-Two domains have mail configured (MX + SPF) but are missing DKIM and DMARC records.
+DMARC aggregate reporting for the newsletter domains is handled by the `lists`
+service through SES inbound email, S3, SQS, and its DMARC dashboard.
 
 ## jackharrhy.com
 
@@ -25,24 +26,8 @@ Two domains have mail configured (MX + SPF) but are missing DKIM and DMARC recor
 5. `infra dns diff` to verify, `infra dns sync` to apply
 6. Verify with `dig TXT _dmarc.jackharrhy.com` and an email test service
 
-## siliconharbour.dev
+## Newsletter domains
 
-**Current state:** MX points to Porkbun forwarding (`fwd1.porkbun.com`, `fwd2.porkbun.com`), SPF includes `_spf.porkbun.com`.
-
-**Missing:**
-
-- **DKIM** -- Porkbun's email forwarding may not support outbound DKIM signing. Check Porkbun's docs to see if they provide DKIM records for forwarded mail. If not, DKIM may not be applicable here (forwarding-only setup).
-- **DMARC** -- No `_dmarc` TXT record. Even for forwarding-only, a DMARC record prevents spoofing. Add:
-  ```
-  _dmarc:
-    type: TXT
-    value: "v=DMARC1; p=reject;"
-  ```
-  Using `p=reject` is appropriate here if no legitimate mail is sent from this domain (only forwarded inbound).
-
-**Steps:**
-
-1. Check Porkbun for any DKIM configuration options
-2. Add `_dmarc` TXT record to `dns/zones/siliconharbour.dev.yaml`
-3. `infra dns diff` to verify, `infra dns sync` to apply
-4. Verify with `dig TXT _dmarc.siliconharbour.dev`
+`jackharrhy.dev` and `siliconharbour.dev` both have SES Easy DKIM, custom
+`mail.*` MAIL FROM MX/SPF records, and enforcing DMARC policies. Aggregate
+reports are delivered to `reports@dmarc.<domain>` and ingested by `lists`.

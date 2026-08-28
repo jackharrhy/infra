@@ -16,7 +16,7 @@ const configSet = new aws.sesv2.ConfigurationSet("jackharrhy-dev-config-set", {
   },
 });
 
-new aws.sesv2.EmailIdentity("jackharrhy-dev", {
+const jackharrhyDevIdentity = new aws.sesv2.EmailIdentity("jackharrhy-dev", {
   emailIdentity: "jackharrhy.dev",
   configurationSetName: configSet.configurationSetName,
   dkimSigningAttributes: {
@@ -24,12 +24,24 @@ new aws.sesv2.EmailIdentity("jackharrhy-dev", {
   },
 });
 
-new aws.sesv2.EmailIdentity("siliconharbour-dev", {
+new aws.sesv2.EmailIdentityMailFromAttributes("jackharrhy-dev-mail-from", {
+  emailIdentity: jackharrhyDevIdentity.emailIdentity,
+  behaviorOnMxFailure: "USE_DEFAULT_VALUE",
+  mailFromDomain: "mail.jackharrhy.dev",
+});
+
+const siliconharbourDevIdentity = new aws.sesv2.EmailIdentity("siliconharbour-dev", {
   emailIdentity: "siliconharbour.dev",
   configurationSetName: configSet.configurationSetName,
   dkimSigningAttributes: {
     nextSigningKeyLength: "RSA_2048_BIT",
   },
+});
+
+new aws.sesv2.EmailIdentityMailFromAttributes("siliconharbour-dev-mail-from", {
+  emailIdentity: siliconharbourDevIdentity.emailIdentity,
+  behaviorOnMxFailure: "USE_DEFAULT_VALUE",
+  mailFromDomain: "mail.siliconharbour.dev",
 });
 
 const sesEventsTopic = new aws.sns.Topic("ses-events", {
@@ -67,7 +79,15 @@ new aws.sesv2.ConfigurationSetEventDestination("ses-events-destination", {
   eventDestinationName: "ses-events",
   eventDestination: {
     enabled: true,
-    matchingEventTypes: ["BOUNCE", "COMPLAINT"],
+    matchingEventTypes: [
+      "SEND",
+      "DELIVERY",
+      "DELIVERY_DELAY",
+      "REJECT",
+      "RENDERING_FAILURE",
+      "BOUNCE",
+      "COMPLAINT",
+    ],
     snsDestination: {
       topicArn: sesEventsTopic.arn,
     },
@@ -180,15 +200,25 @@ const inboundEmailLambda = new aws.lambda.CallbackFunction("ses-inbound-email-la
 
     const mail = record.ses.mail;
     const receipt = record.ses.receipt;
-    const toAddrs: string[] = mail.commonHeaders?.to ?? [];
+    const toAddrs: string[] = [...(mail.destination ?? []), ...(mail.commonHeaders?.to ?? [])];
 
-    // determine structured S3 key from first reply.* address
+    // Determine a structured S3 key and message kind from the recipient domain.
     const originalKey = `${receipt.action.objectKeyPrefix ?? "inbound/"}${mail.messageId}`;
     let structuredKey = originalKey;
+    let kind: "reply" | "dmarc" = "reply";
 
-    const replyAddr = toAddrs.find((a: string) => a.includes("@reply."));
-    if (replyAddr) {
-      const match = replyAddr.match(/<?([^@<]+)@(reply\.[^>]+)>?/);
+    const dmarcAddr = toAddrs.find((a: string) => a.includes("@dmarc."));
+    if (dmarcAddr) {
+      const match = dmarcAddr.match(/<?([^@<]+)@(dmarc\.[^>]+)>?/);
+      if (match) {
+        kind = "dmarc";
+        const localpart = match[1];
+        const domain = match[2];
+        structuredKey = `dmarc/${domain}/${localpart}/${mail.messageId}`;
+      }
+    } else {
+      const replyAddr = toAddrs.find((a: string) => a.includes("@reply."));
+      const match = replyAddr?.match(/<?([^@<]+)@(reply\.[^>]+)>?/);
       if (match) {
         const localpart = match[1];
         const domain = match[2];
@@ -215,15 +245,16 @@ const inboundEmailLambda = new aws.lambda.CallbackFunction("ses-inbound-email-la
     }
 
     const payload = {
+      kind,
       messageId: mail.messageId,
       rfc822MessageId: mail.commonHeaders?.messageId,
       inReplyTo: mail.commonHeaders?.inReplyTo,
       references: mail.commonHeaders?.references,
       timestamp: mail.timestamp,
       source: mail.source,
-      from: mail.commonHeaders?.from,
-      to: mail.commonHeaders?.to,
-      subject: mail.commonHeaders?.subject,
+      from: mail.commonHeaders?.from ?? [mail.source],
+      to: toAddrs,
+      subject: mail.commonHeaders?.subject ?? "",
       spamVerdict: receipt.spamVerdict?.status,
       virusVerdict: receipt.virusVerdict?.status,
       spfVerdict: receipt.spfVerdict?.status,
@@ -272,7 +303,12 @@ new aws.ses.ActiveReceiptRuleSet("ses-inbound-active-rule-set", {
 new aws.ses.ReceiptRule("ses-inbound-receipt-rule", {
   name: "store-and-forward",
   ruleSetName: inboundRuleSet.ruleSetName,
-  recipients: ["reply.jackharrhy.dev", "reply.siliconharbour.dev"],
+  recipients: [
+    "reply.jackharrhy.dev",
+    "reply.siliconharbour.dev",
+    "dmarc.jackharrhy.dev",
+    "dmarc.siliconharbour.dev",
+  ],
   enabled: true,
   scanEnabled: true,
   s3Actions: [
@@ -367,6 +403,12 @@ new aws.iam.UserPolicy("lists-policy", {
             Effect: "Allow",
             Action: ["s3:PutObject", "s3:DeleteObject"],
             Resource: `${mediaBucketArn}/*`,
+          },
+          {
+            Sid: "S3MediaList",
+            Effect: "Allow",
+            Action: ["s3:ListBucket"],
+            Resource: mediaBucketArn,
           },
           {
             Sid: "SESSend",

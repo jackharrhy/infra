@@ -23,7 +23,12 @@
     - google-site-verification=5q311nXABXQ_UGCXIuBA5rOm0fi5TBqESGXS_HOqbW0
 _dmarc:
   type: TXT
-  value: v=DMARC1\; p=quarantine\;
+  value: v=DMARC1\; p=quarantine\; sp=quarantine\; np=reject\; rua=mailto:reports@dmarc.siliconharbour.dev\;
+dmarc:
+  type: MX
+  value:
+    exchange: inbound-smtp.us-east-1.amazonaws.com.
+    preference: 10
 edhg5a3s7yztr6bwfk3lnuxhfq4kknxn._domainkey:
   ttl: 43200
   type: CNAME
