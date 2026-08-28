@@ -3,7 +3,9 @@
   "main": "index.ts",
   "scripts": {
     "fmt": "oxfmt",
-    "lint": "oxlint --fix"
+    "lint": "oxlint --fix",
+    "pulumi:preview": "set -a; . ./.env; set +a; PULUMI_BACKEND_URL=\"file://$PWD\" \"$HOME/.pulumi/bin/pulumi\" preview --stack dev",
+    "pulumi:up": "set -a; . ./.env; set +a; PULUMI_BACKEND_URL=\"file://$PWD\" \"$HOME/.pulumi/bin/pulumi\" up --stack dev"
   },
   "dependencies": {
     "@pulumi/aws": "^7.0.0",

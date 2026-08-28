@@ -1,16 +1,4 @@
-#!/usr/bin/env -S uv run --script
-# /// script
-# requires-python = ">=3.11"
-# dependencies = [
-#     "click",
-#     "pyyaml",
-#     "octodns>=1.0",
-#     "octodns-digitalocean",
-#     "octodns-ddns",
-#     "synology-api>=0.8",
-#     "pyotp>=2.9",
-# ]
-# ///
+#!/usr/bin/env -S uv run
 """Infra CLI - tools for managing and visualizing infrastructure."""
 
 from __future__ import annotations
@@ -706,7 +694,7 @@ def install():
     target = bin_dir / "infra"
 
     script = f"""#!/usr/bin/env bash
-exec uv run --script {REPO_ROOT / "cli.py"} "$@"
+exec uv run --project {REPO_ROOT} {REPO_ROOT / "cli.py"} "$@"
 """
     target.write_text(script)
     target.chmod(0o755)

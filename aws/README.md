@@ -5,9 +5,12 @@ Pulumi project for AWS resources.
 Preview and deploy:
 
 ```bash
-pulumi preview
-pulumi up
+npm run pulumi:preview
+npm run pulumi:up
 ```
+
+These scripts load `.env`, use the project-local `.pulumi` backend, and select
+the `dev` stack.
 
 Tear down:
 

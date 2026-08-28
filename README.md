@@ -22,13 +22,13 @@ diagram: https://jackharrhy.github.io/infra/infra.svg
 Install the shortcut:
 
 ```bash
-uv run --script cli.py install
+uv run cli.py install
 ```
 
 Or run it directly:
 
 ```bash
-uv run --script cli.py --help
+uv run cli.py --help
 ```
 
 Useful commands:
