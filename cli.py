@@ -7,6 +7,7 @@ import json
 import os
 import re
 import shutil
+import socket
 import subprocess
 import sys
 from dataclasses import dataclass, field
@@ -477,6 +478,44 @@ def ssh_run(ssh_target: str, command: str, *, stream: bool = False) -> subproces
     return subprocess.run(ssh_cmd, capture_output=True, text=True, timeout=30)
 
 
+def is_local_ssh_target(ssh_target: str) -> bool:
+    """Return whether an SSH target names this machine.
+
+    The deployment config uses an SSH target for every host, including the
+    controller itself. A local target may not accept the user's SSH key, even
+    though the equivalent command can run locally without SSH.
+    """
+    host = ssh_target.rsplit("@", 1)[-1].rstrip(".").lower()
+    hostname = socket.gethostname().rstrip(".").lower()
+    fqdn = socket.getfqdn().rstrip(".").lower()
+    local_names = {hostname, fqdn, hostname.split(".", 1)[0], fqdn.split(".", 1)[0]}
+    return host in local_names
+
+
+def run_host_command(
+    ssh_target: str,
+    remote_command: str,
+    local_commands: list[list[str]],
+    *,
+    cwd: Path,
+    stream: bool = False,
+) -> subprocess.CompletedProcess[str] | int:
+    """Run configured host work locally when it targets this machine."""
+    if not is_local_ssh_target(ssh_target):
+        return ssh_run(ssh_target, remote_command, stream=stream)
+
+    if stream:
+        for command in local_commands:
+            result = subprocess.run(command, cwd=cwd)
+            if result.returncode != 0:
+                return result.returncode
+        return 0
+
+    if len(local_commands) != 1:
+        raise ValueError("non-streaming local commands require one command")
+    return subprocess.run(local_commands[0], cwd=cwd, capture_output=True, text=True)
+
+
 def get_local_head() -> str:
     """Get the local HEAD commit hash."""
     result = subprocess.run(
@@ -602,7 +641,12 @@ def status(host: str | None):
         remote_head = ""
         status_str = ""
         try:
-            result = ssh_run(info["ssh"], f"git -C {info['repo_path']} rev-parse HEAD")
+            result = run_host_command(
+                info["ssh"],
+                f"git -C {info['repo_path']} rev-parse HEAD",
+                [["git", "rev-parse", "HEAD"]],
+                cwd=Path(info["repo_path"]).expanduser(),
+            )
             if isinstance(result, int):
                 status_str = click.style("error", fg="red")
             elif result.returncode != 0:
@@ -644,7 +688,13 @@ def update(host: str | None):
     for name, info in targets.items():
         click.echo(f"── {name} ({info['ssh']}) ──")
         cmd = f"cd {info['repo_path']} && git pull"
-        exit_code = ssh_run(info["ssh"], cmd, stream=True)
+        exit_code = run_host_command(
+            info["ssh"],
+            cmd,
+            [["git", "pull"]],
+            cwd=Path(info["repo_path"]).expanduser(),
+            stream=True,
+        )
         if exit_code != 0:
             click.echo(click.style(f"  Failed (exit {exit_code})", fg="red"))
         click.echo()
@@ -680,7 +730,25 @@ def refresh(host: str | None):
             # hosts with no labeled images.
             f' && docker image prune -a -f --filter "label!=cmd.keep"'
         )
-        exit_code = ssh_run(info["ssh"], cmd, stream=True)
+        exit_code = run_host_command(
+            info["ssh"],
+            cmd,
+            [
+                ["docker", "compose", "pull"],
+                ["docker", "compose", "up", "-d"],
+                [
+                    "docker",
+                    "image",
+                    "prune",
+                    "-a",
+                    "-f",
+                    "--filter",
+                    "label!=cmd.keep",
+                ],
+            ],
+            cwd=Path(info["compose_path"]).expanduser(),
+            stream=True,
+        )
         if exit_code != 0:
             click.echo(click.style(f"  Failed (exit {exit_code})", fg="red"))
         click.echo()
