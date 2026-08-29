@@ -203,7 +203,17 @@ services:
       - CELLD_BUCKET=s3://radio-celld
       - CELLD_ESBUILD=/app/node_modules/.bin/esbuild
       - S3_ENDPOINT=http://radio-minio:9000
-    command: ["sh", "-c", "celld diagnose && celld deploy ."]
+    command:
+      - sh
+      - -c
+      - |
+        attempt=0
+        until celld diagnose; do
+          attempt=$$((attempt + 1))
+          test "$$attempt" -ge 15 && exit 1
+          sleep 2
+        done
+        celld deploy .
     pids_limit: 128
     mem_limit: 512m
     cpus: 1
