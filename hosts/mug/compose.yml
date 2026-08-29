@@ -235,11 +235,6 @@ services:
       - CELLD_DURABILITY=bucket
       - CELLD_WATCH=/app/.celld
       - CELLD_TRUST_FORWARDED_HEADERS=1
-    command:
-      - "--listen"
-      - "0.0.0.0:44100"
-      - "--internal-listen"
-      - "127.0.0.1:44101"
     volumes:
       - ./volumes/radio_celld:/app/.celld
     pids_limit: 256
