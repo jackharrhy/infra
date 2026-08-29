@@ -74,6 +74,16 @@ services:
     environment:
       - FOURM_ENV=production
       - SITE_URL=https://4orm.harrhy.xyz
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/', timeout=5)"
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     volumes:
       - /mnt/terrabud/docker-data/newport/4orm_data:/app/data
       - /mnt/terrabud/docker-data/newport/4orm_uploads:/app/uploads
@@ -123,34 +133,80 @@ services:
       - "traefik.http.routers.artbin.rule=Host(`artbin.jackharrhy.dev`)"
       - "traefik.http.routers.artbin.entrypoints=web"
 
-  # Worldview is ready for the production hostname, but stays disabled until
-  # ghcr.io/jackharrhy/worldview:main is ready for deployment.
-  # worldview:
-  #   image: ghcr.io/jackharrhy/worldview:main
-  #   restart: unless-stopped
-  #   networks: [web]
-  #   env_file:
-  #     - ./.runtime-secrets/worldview.env
-  #   environment:
-  #     - PORT=8789
-  #     - WORLDVIEW_URL=https://worldview.harrhy.xyz
-  #     - FOURM_URL=https://4orm.harrhy.xyz
-  #     - FOURM_CLIENT_ID=worldview
-  #     - ARTBIN_URL=http://artbin:3000
-  #     - WORLDVIEW_QUAKE_COMPILER_URL=http://host.docker.internal:8788
-  #   extra_hosts:
-  #     - "host.docker.internal:host-gateway"
-  #   volumes:
-  #     - /mnt/terrabud/docker-data/newport/worldview_data:/data
-  #   ports:
-  #     - "127.0.0.1:8789:8789"
-  #   labels:
-  #     - "com.centurylinklabs.watchtower.enable=false"
-  #     - "traefik.docker.network=newport_web"
-  #     - "traefik.enable=true"
-  #     - "traefik.http.services.worldview.loadbalancer.server.port=8789"
-  #     - "traefik.http.routers.worldview.rule=Host(`worldview.harrhy.xyz`)"
-  #     - "traefik.http.routers.worldview.entrypoints=web"
+  worldview:
+    image: ghcr.io/jackharrhy/worldview:main
+    restart: unless-stopped
+    networks: [web]
+    env_file:
+      - ./.runtime-secrets/worldview.env
+    environment:
+      - PORT=8789
+      - WORLDVIEW_URL=https://worldview.harrhy.xyz
+      - FOURM_URL=https://4orm.harrhy.xyz
+      - FOURM_CLIENT_ID=worldview
+      - ARTBIN_URL=https://artbin.jackharrhy.dev
+      - FOURM_SERVICE_CLIENT_ID=worldview-service
+      # FOURM_SERVICE_CLIENT_SECRET and WORLDVIEW_REALTIME_TICKET_SECRET come from worldview.env.
+      - WORLDVIEW_QUAKE_COMPILER_URL=http://host.docker.internal:8788
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - /mnt/terrabud/docker-data/newport/worldview_data:/data
+    ports:
+      - "127.0.0.1:8789:8789"
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+      - "traefik.docker.network=newport_web"
+      - "traefik.enable=true"
+      - "traefik.http.services.worldview.loadbalancer.server.port=8789"
+      - "traefik.http.routers.worldview.rule=Host(`worldview.harrhy.xyz`)"
+      - "traefik.http.routers.worldview.entrypoints=web"
+
+  # Celld's Azurite adapter intentionally connects to loopback. Sharing the
+  # network namespace keeps the emulator private while exposing only the
+  # Worker listener through Traefik. This is a single-host, non-critical
+  # deployment; Azurite is not a qualified production fleet store.
+  worldview-azurite:
+    image: mcr.microsoft.com/azure-storage/azurite:3.37.0
+    restart: unless-stopped
+    networks: [web]
+    command: azurite-blob --blobHost 0.0.0.0 --disableTelemetry
+    volumes:
+      - /mnt/terrabud/docker-data/newport/worldview_azurite:/data
+    ports:
+      - "127.0.0.1:10000:10000"
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+      - "traefik.docker.network=newport_web"
+      - "traefik.enable=true"
+      - "traefik.http.services.worldview-celld.loadbalancer.server.port=8080"
+      - "traefik.http.routers.worldview-celld.rule=Host(`worldview.harrhy.xyz`) && PathPrefix(`/rooms/`)"
+      - "traefik.http.routers.worldview-celld.entrypoints=web"
+      - "traefik.http.routers.worldview-celld.priority=100"
+
+  worldview-celld:
+    image: ghcr.io/denoland/celld:0.4.0
+    restart: unless-stopped
+    network_mode: service:worldview-azurite
+    depends_on:
+      - worldview-azurite
+    environment:
+      - AZURE_STORAGE_USE_EMULATOR=true
+      - AZURE_STORAGE_ACCOUNT_NAME=devstoreaccount1
+      - CELLD_BUCKET=az://worldview-celld
+      - CELLD_WATCH=/var/lib/celld/state
+      - CELLD_VARS_FILE=/run/secrets/worldview.env
+      - CELLD_TRUST_FORWARDED_HEADERS=1
+    command:
+      - "--listen"
+      - "0.0.0.0:8080"
+      - "--internal-listen"
+      - "127.0.0.1:8081"
+    volumes:
+      - /mnt/terrabud/docker-data/newport/worldview_celld:/var/lib/celld
+      - ./.runtime-secrets/worldview.env:/run/secrets/worldview.env:ro
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
 
   # Monbooru keeps originals as ordinary files under /gallery and stores its
   # rebuildable SQLite index/thumbnails separately under /data. Monloader is
