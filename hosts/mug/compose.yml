@@ -206,7 +206,7 @@ services:
     command: ["sh", "-c", "celld diagnose && celld deploy ."]
     pids_limit: 128
     mem_limit: 512m
-    cpus: 2
+    cpus: 1
     labels:
       - "com.centurylinklabs.watchtower.enable=false"
 
@@ -234,7 +234,7 @@ services:
       - ./volumes/radio_celld:/app/.celld
     pids_limit: 256
     mem_limit: 1g
-    cpus: 2
+    cpus: 1
     labels:
       - "traefik.docker.network=mug_web"
       - "traefik.enable=true"
