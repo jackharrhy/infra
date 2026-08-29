@@ -147,9 +147,7 @@ services:
       - ARTBIN_URL=https://artbin.jackharrhy.dev
       - FOURM_SERVICE_CLIENT_ID=worldview-service
       # FOURM_SERVICE_CLIENT_SECRET and WORLDVIEW_REALTIME_TICKET_SECRET come from worldview.env.
-      - WORLDVIEW_QUAKE_COMPILER_URL=http://host.docker.internal:8788
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - WORLDVIEW_QUAKE_COMPILER_URL=http://worldview-compiler:8788
     volumes:
       - /mnt/terrabud/docker-data/newport/worldview_data:/data
     ports:
@@ -162,6 +160,39 @@ services:
       - "traefik.http.routers.worldview.rule=Host(`worldview.harrhy.xyz`)"
       - "traefik.http.routers.worldview.entrypoints=web"
 
+  worldview-compiler:
+    image: ghcr.io/jackharrhy/worldview:main
+    restart: unless-stopped
+    command: ["node", "apps/compiler-service/dist/server.js"]
+    networks: [web]
+    read_only: true
+    tmpfs:
+      - /tmp:size=512m,mode=1777
+    environment:
+      - WORLDVIEW_COMPILER_HOST=0.0.0.0
+      - WORLDVIEW_COMPILER_PORT=8788
+      - WORLDVIEW_COMPILER_MAX_CONCURRENT=1
+      - WORLDVIEW_COMPILER_THREADS=4
+      - ERICW_QBSP=/opt/ericw-tools/qbsp
+      - ERICW_VIS=/opt/ericw-tools/vis
+      - ERICW_LIGHT=/opt/ericw-tools/light
+    volumes:
+      - /home/jack/.local/lib/ericw-tools/2.0.0-alpha11:/opt/ericw-tools:ro
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 128
+    mem_limit: 2g
+    cpus: 4
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8788/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 5s
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+
   # Celld's Azurite adapter intentionally connects to loopback. Sharing the
   # network namespace keeps the emulator private while exposing only the
   # Worker listener through Traefik. This is a single-host, non-critical
@@ -170,11 +201,16 @@ services:
     image: mcr.microsoft.com/azure-storage/azurite:3.37.0
     restart: unless-stopped
     networks: [web]
-    command: azurite-blob --blobHost 0.0.0.0 --disableTelemetry
+    command: azurite-blob --blobHost 0.0.0.0 --location /data --disableTelemetry
     volumes:
       - /mnt/terrabud/docker-data/newport/worldview_azurite:/data
     ports:
       - "127.0.0.1:10000:10000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "const s=require('net').connect(10000,'127.0.0.1',()=>{s.end();process.exit(0)});s.on('error',()=>process.exit(1))"]
+      interval: 2s
+      timeout: 2s
+      retries: 15
     labels:
       - "com.centurylinklabs.watchtower.enable=false"
       - "traefik.docker.network=newport_web"
@@ -184,12 +220,26 @@ services:
       - "traefik.http.routers.worldview-celld.entrypoints=web"
       - "traefik.http.routers.worldview-celld.priority=100"
 
+  worldview-celld-bootstrap:
+    image: ghcr.io/jackharrhy/worldview-celld-deployer:main
+    network_mode: service:worldview-azurite
+    depends_on:
+      worldview-azurite:
+        condition: service_healthy
+    environment:
+      - AZURE_STORAGE_USE_EMULATOR=true
+      - AZURE_STORAGE_ACCOUNT_NAME=devstoreaccount1
+      - CELLD_BUCKET=az://worldview-celld
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+
   worldview-celld:
     image: ghcr.io/denoland/celld:0.4.0
     restart: unless-stopped
     network_mode: service:worldview-azurite
     depends_on:
-      - worldview-azurite
+      worldview-celld-bootstrap:
+        condition: service_completed_successfully
     environment:
       - AZURE_STORAGE_USE_EMULATOR=true
       - AZURE_STORAGE_ACCOUNT_NAME=devstoreaccount1
