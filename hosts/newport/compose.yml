@@ -231,6 +231,9 @@ services:
       - /mnt/terrabud/docker-data/newport/worldview_azurite:/data
     ports:
       - "127.0.0.1:10000:10000"
+    pids_limit: 128
+    mem_limit: 512m
+    cpus: 1
     healthcheck:
       test: ["CMD", "node", "-e", "const s=require('net').connect(10000,'127.0.0.1',()=>{s.end();process.exit(0)});s.on('error',()=>process.exit(1))"]
       interval: 2s
@@ -261,6 +264,9 @@ services:
       - AZURE_STORAGE_USE_EMULATOR=true
       - AZURE_STORAGE_ACCOUNT_NAME=devstoreaccount1
       - CELLD_BUCKET=az://worldview-celld
+    pids_limit: 128
+    mem_limit: 512m
+    cpus: 2
     labels:
       - "com.centurylinklabs.watchtower.enable=false"
 
@@ -286,6 +292,9 @@ services:
     volumes:
       - /mnt/terrabud/docker-data/newport/worldview_celld:/var/lib/celld
       - ./.runtime-secrets/worldview.env:/run/secrets/worldview.env:ro
+    pids_limit: 128
+    mem_limit: 512m
+    cpus: 1
     labels:
       - "com.centurylinklabs.watchtower.enable=false"
 
