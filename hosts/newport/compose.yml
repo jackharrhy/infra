@@ -135,6 +135,7 @@ services:
 
   worldview:
     image: ghcr.io/jackharrhy/worldview:main
+    user: "1000:1000"
     restart: unless-stopped
     networks: [web, worldview_backend]
     env_file:
