@@ -192,7 +192,7 @@ services:
       - "com.centurylinklabs.watchtower.enable=false"
 
   radio-celld-bootstrap:
-    image: ghcr.io/jackharrhy/radio-celld-deployer:sha-54b27040fbf106277bb5e86b4eefe0c243f8ba03
+    image: ghcr.io/jackharrhy/radio-celld-deployer:sha-c84601d4895a283c5288803af99c6e0c0b71803e
     networks: [radio]
     depends_on:
       radio-minio-bootstrap:
@@ -221,7 +221,7 @@ services:
       - "com.centurylinklabs.watchtower.enable=false"
 
   radio-celld:
-    image: ghcr.io/jackharrhy/radio:sha-54b27040fbf106277bb5e86b4eefe0c243f8ba03
+    image: ghcr.io/jackharrhy/radio:sha-c84601d4895a283c5288803af99c6e0c0b71803e
     restart: unless-stopped
     networks: [web, radio]
     depends_on:
