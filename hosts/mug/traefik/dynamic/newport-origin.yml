@@ -79,6 +79,13 @@ http:
       tls:
         certResolver: mugresolver
 
+    worldview-via-newport:
+      rule: "Host(`worldview.harrhy.xyz`)"
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
+
     adam-eats-via-newport:
       rule: "Host(`adam-eats.jackharrhy.dev`)"
       entryPoints: [websecure]
