@@ -147,6 +147,7 @@ services:
       - ARTBIN_URL=https://artbin.jackharrhy.dev
       - FOURM_SERVICE_CLIENT_ID=worldview-service
       # FOURM_SERVICE_CLIENT_SECRET and WORLDVIEW_REALTIME_TICKET_SECRET come from worldview.env.
+      - WORLDVIEW_MAP_SERVICE_URL=http://worldview-azurite:8080
       - WORLDVIEW_QUAKE_COMPILER_URL=http://worldview-compiler:8788
     volumes:
       - /mnt/terrabud/docker-data/newport/worldview_data:/data
@@ -244,7 +245,7 @@ services:
       - "traefik.docker.network=newport_web"
       - "traefik.enable=true"
       - "traefik.http.services.worldview-celld.loadbalancer.server.port=8080"
-      - "traefik.http.routers.worldview-celld.rule=Host(`worldview.harrhy.xyz`) && PathPrefix(`/rooms/`)"
+      - "traefik.http.routers.worldview-celld.rule=Host(`worldview.harrhy.xyz`) && PathPrefix(`/sync/maps/`)"
       - "traefik.http.routers.worldview-celld.entrypoints=web"
       - "traefik.http.routers.worldview-celld.priority=100"
       - "traefik.http.routers.worldview-celld.middlewares=worldview-rooms-rate-limit,worldview-rooms-body-limit"
