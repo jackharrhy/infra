@@ -201,6 +201,7 @@ services:
       - ./.runtime-secrets/radio-minio.env
     environment:
       - CELLD_BUCKET=s3://radio-celld
+      - CELLD_ESBUILD=/app/node_modules/.bin/esbuild
       - S3_ENDPOINT=http://radio-minio:9000
     command: ["sh", "-c", "celld diagnose && celld deploy ."]
     pids_limit: 128
