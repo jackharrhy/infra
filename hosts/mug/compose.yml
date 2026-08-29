@@ -158,7 +158,7 @@ services:
       - "traefik.http.routers.plow.tls.certresolver=mugresolver"
 
   radio:
-    image: ghcr.io/jackharrhy/radio:main
+    image: ghcr.io/jackharrhy/radio@sha256:701ea917037cb9fc597b396691d2861bc16d7888eb2f9fd2040d8bfa0be10912
     restart: unless-stopped
     networks: [web]
     volumes:
@@ -174,6 +174,7 @@ services:
       - "traefik.http.routers.radio.middlewares=radio-auth"
       - "traefik.http.middlewares.radio-auth.basicauth.usersfile=/etc/traefik/auth/radio.htpasswd"
       - "traefik.http.middlewares.radio-auth.basicauth.removeheader=true"
+      - "com.centurylinklabs.watchtower.enable=false"
 
   burger:
     image: ghcr.io/jackharrhy/burger:main
