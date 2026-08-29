@@ -157,13 +157,84 @@ services:
       - "traefik.http.routers.plow.entrypoints=websecure"
       - "traefik.http.routers.plow.tls.certresolver=mugresolver"
 
-  radio:
-    image: ghcr.io/jackharrhy/radio@sha256:701ea917037cb9fc597b396691d2861bc16d7888eb2f9fd2040d8bfa0be10912
+  radio-minio:
+    image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z
     restart: unless-stopped
-    networks: [web]
+    command: server /data --address :9000
+    networks: [radio]
+    env_file:
+      - ./.runtime-secrets/radio-minio.env
     volumes:
-      - radio_uploads:/app/public/uploads
-      - radio_state:/app/tmp
+      - ./volumes/radio_minio:/data
+    pids_limit: 128
+    mem_limit: 512m
+    cpus: 1
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 2s
+      timeout: 2s
+      retries: 15
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+
+  radio-minio-bootstrap:
+    image: quay.io/minio/mc:RELEASE.2025-08-13T08-35-41Z
+    depends_on:
+      radio-minio:
+        condition: service_healthy
+    networks: [radio]
+    env_file:
+      - ./.runtime-secrets/radio-minio.env
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - mc alias set local http://radio-minio:9000 "$$MINIO_ROOT_USER" "$$MINIO_ROOT_PASSWORD" && mc mb --ignore-existing local/radio-celld
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+
+  radio-celld-bootstrap:
+    image: ghcr.io/jackharrhy/radio-celld-deployer:sha-0dd299157f377c08e6f848a5ce24b5493582e06c
+    networks: [radio]
+    depends_on:
+      radio-minio-bootstrap:
+        condition: service_completed_successfully
+    env_file:
+      - ./.runtime-secrets/radio-minio.env
+    environment:
+      - CELLD_BUCKET=s3://radio-celld
+      - CELLD_ESBUILD=/app/node_modules/.bin/esbuild
+      - S3_ENDPOINT=http://radio-minio:9000
+    command: ["sh", "-c", "celld diagnose && celld deploy ."]
+    pids_limit: 128
+    mem_limit: 512m
+    cpus: 2
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+
+  radio-celld:
+    image: ghcr.io/jackharrhy/radio:sha-0dd299157f377c08e6f848a5ce24b5493582e06c
+    restart: unless-stopped
+    networks: [web, radio]
+    depends_on:
+      radio-celld-bootstrap:
+        condition: service_completed_successfully
+    env_file:
+      - ./.runtime-secrets/radio-minio.env
+    environment:
+      - CELLD_BUCKET=s3://radio-celld
+      - S3_ENDPOINT=http://radio-minio:9000
+      - CELLD_DURABILITY=bucket
+      - CELLD_WATCH=/app/.celld
+      - CELLD_TRUST_FORWARDED_HEADERS=1
+    command:
+      - "--listen"
+      - "0.0.0.0:44100"
+      - "--internal-listen"
+      - "127.0.0.1:44101"
+    volumes:
+      - ./volumes/radio_celld:/app/.celld
+    pids_limit: 256
+    mem_limit: 1g
+    cpus: 2
     labels:
       - "traefik.docker.network=mug_web"
       - "traefik.enable=true"
@@ -352,6 +423,8 @@ services:
 
 networks:
   andrewsite:
+  radio:
+    internal: true
   web:
 
 volumes:
