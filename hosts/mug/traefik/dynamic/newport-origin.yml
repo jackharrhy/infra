@@ -1,5 +1,12 @@
 http:
   routers:
+    cado-via-newport:
+      rule: "Host(`cado.jackharrhy.dev`)"
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
+
     miniflux-via-newport:
       rule: "Host(`miniflux.jackharrhy.dev`)"
       entryPoints: [websecure]

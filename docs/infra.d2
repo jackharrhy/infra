@@ -22,6 +22,7 @@ digitalocean: DigitalOcean {
       jackharrhy.tooltip: jackharrhy.dev, jackharrhy.com, harrhy.xyz, jack.harrhy.xyz, jack.arthur.harrhy.xyz, jack.is.harrhy.xyz
       siliconharbour: siliconharbour.dev
       plow: plow.jackharrhy.dev
+      radio-celld: radio.jackharrhy.dev
       burger: big.burger.beauty
       andrewsite_astro: andrewgossecomposer.com
       andrewsite_strapi: api.andrewgossecomposer.com
@@ -34,6 +35,9 @@ digitalocean: DigitalOcean {
 
     bots: Bots & Workers {
       grid-columns: 2
+      radio-minio: radio-minio
+      radio-minio-bootstrap: radio-minio-bootstrap
+      radio-celld-bootstrap: radio-celld-bootstrap
       quak: quak
     }
 
@@ -52,41 +56,51 @@ home: Home {
 
     websites: Websites {
       grid-columns: 2
+      cado: cado.jackharrhy.dev
       "4orm": 4orm.harrhy.xyz
       adam_eats: adam-eats.jackharrhy.dev
       artbin: artbin.jackharrhy.dev
+      worldview: worldview.harrhy.xyz
+      worldview-azurite: worldview.harrhy.xyz/sync/maps/
+      monbooru: monbooru.jackharrhy.dev
+      monloader: monloader.jackharrhy.dev
       rotund_org: rotund.org
       stickertrade: stickertrade.ca
-      sluggers_super_draft: lil-slug-crew.jackharrhy.dev
       miniflux: miniflux.jackharrhy.dev
       cmd: cmd.softspark.dev
       bar: jackharrhy.dev/bar
       duaas: jackharrhy.dev/urandom
-      almanac: almanac.jackharrhy.dev
-      marky: marky.jackharrhy.dev
       steve: steve-letter-writ.ing
       notscared_site: notsca.red
-      rolie_polie_olie: rolie-polie-olie.fogo.sh
+      penpot_frontend: penpot.jackharrhy.dev
     }
 
     databases: Databases {
       grid-columns: 1
-      sluggers_super_draft_db: sluggers_super_draft_db (postgres:17) {
+      miniflux_db: miniflux_db (postgres:15) {
         shape: cylinder
       }
-      miniflux_db: miniflux_db (postgres:15) {
+      penpot_postgres: penpot_postgres (postgres:15) {
         shape: cylinder
       }
     }
 
     bots: Bots & Workers {
       grid-columns: 2
-      hikeping: hikeping
+      cado-snapshot-ready: cado-snapshot-ready
+      cado-refresh: cado-refresh
+      worldview-compiler: worldview-compiler
+      worldview-celld-bootstrap: worldview-celld-bootstrap
+      worldview-celld: worldview-celld
       cmd_postgres: cmd_postgres
       cmd_garage: cmd_garage
       phapbot: phapbot
       incydecy: incydecy
       house: house
+      penpot_backend: penpot_backend
+      penpot_mcp: penpot_mcp
+      penpot_exporter: penpot_exporter
+      penpot_valkey: penpot_valkey
     }
 
   }
@@ -101,5 +115,9 @@ tailscale -- home
 
 digitalocean.mug.infra.traefik -> home.newport.infra.traefik: proxy
 
-home.newport.websites.sluggers_super_draft -> home.newport.databases.sluggers_super_draft_db
 home.newport.websites.miniflux -> home.newport.databases.miniflux_db
+home.newport.websites.penpot_frontend -> home.newport.databases.penpot_postgres
+home.newport.bots.penpot_backend -> home.newport.databases.penpot_postgres
+home.newport.bots.penpot_mcp -> home.newport.databases.penpot_postgres
+home.newport.bots.penpot_exporter -> home.newport.databases.penpot_postgres
+home.newport.bots.penpot_valkey -> home.newport.databases.penpot_postgres
