@@ -65,7 +65,6 @@ services:
     env_file:
       - ./.runtime-secrets/beszel-agent.env
 
-  # One container bootstraps, serves, and periodically refreshes CADO.
   cado:
     image: ghcr.io/jackharrhy/cado-search:latest
     restart: unless-stopped
