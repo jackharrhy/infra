@@ -106,22 +106,3 @@ infra status
 infra update mug
 infra refresh mug
 ```
-
-## CADO
-
-`cado.jackharrhy.dev` terminates TLS on mug and is forwarded over Tailscale to
-Traefik on newport. One container bootstraps the DuckDB snapshot, serves it,
-and refreshes it every 30 days.
-
-The first fetch takes roughly 2–3 hours and resumes after interruption:
-
-```bash
-cd ~/infra/hosts/newport
-install -d -m 0750 /mnt/terrabud/docker-data/newport/cado
-docker compose up -d cado
-docker compose logs -f cado
-curl --fail -H 'Host: cado.jackharrhy.dev' http://127.0.0.1/health/ready
-```
-
-Update the deployment with `infra refresh newport`. Watchtower is disabled for
-CADO so image updates remain explicit.
