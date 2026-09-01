@@ -110,30 +110,18 @@ infra refresh mug
 ## CADO
 
 `cado.jackharrhy.dev` terminates TLS on mug and is forwarded over Tailscale to
-Traefik on newport. The application serves a read-only DuckDB snapshot from the
-large terrabud volume; only the one-shot refresh service mounts that directory
-writable.
+Traefik on newport. One container bootstraps the DuckDB snapshot, serves it,
+and refreshes it every 30 days.
 
-Bootstrap the snapshot before starting the public service (the first fetch takes
-roughly 2–3 hours and safely resumes after interruption):
+The first fetch takes roughly 2–3 hours and resumes after interruption:
 
 ```bash
 cd ~/infra/hosts/newport
 install -d -m 0750 /mnt/terrabud/docker-data/newport/cado
-docker compose --profile tools run --rm cado-refresh
 docker compose up -d cado
+docker compose logs -f cado
 curl --fail -H 'Host: cado.jackharrhy.dev' http://127.0.0.1/health/ready
 ```
 
-Install the monthly refresh timer on newport:
-
-```bash
-sudo install -m 0644 cado/cado-refresh.service cado/cado-refresh.timer /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable --now cado-refresh.timer
-systemctl list-timers cado-refresh.timer
-```
-
-The timer uses the same locally pulled image as the web service. Update the
-deployment with `infra refresh newport`; Watchtower is deliberately disabled for
-CADO so code/schema changes and snapshot refreshes remain explicit operations.
+Update the deployment with `infra refresh newport`. Watchtower is disabled for
+CADO so image updates remain explicit.
