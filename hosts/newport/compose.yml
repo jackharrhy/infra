@@ -525,16 +525,6 @@ services:
     volumes:
       - ./volumes/incydecy:/app/data
 
-  house:
-    image: ghcr.io/jackharrhy/get-house-pls:main
-    restart: unless-stopped
-    # Chrome needs more than Docker's default 64MB /dev/shm
-    shm_size: "2gb"
-    env_file:
-      - ./.runtime-secrets/house.env
-    volumes:
-      - ./volumes/house_data:/data
-
   steve:
     image: ghcr.io/jackharrhy/letters-to-steve:latest
     restart: unless-stopped
