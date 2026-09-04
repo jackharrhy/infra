@@ -114,6 +114,13 @@ http:
       tls:
         certResolver: mugresolver
 
+    karakeep-via-newport:
+      rule: "Host(`karakeep.jackharrhy.dev`)"
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
+
     marky-via-newport:
       rule: "Host(`marky.jackharrhy.dev`)"
       entryPoints: [websecure]

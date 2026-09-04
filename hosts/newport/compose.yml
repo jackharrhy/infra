@@ -382,6 +382,53 @@ services:
       - "traefik.http.routers.monloader.rule=Host(`monloader.jackharrhy.dev`)"
       - "traefik.http.routers.monloader.entrypoints=web"
 
+  # Karakeep is the web-capture inbox. Its SQLite DB and downloaded assets are
+  # separate from Monbooru's gallery, so both libraries remain independently
+  # restorable while we assess the new workflow.
+  karakeep:
+    image: ghcr.io/karakeep-app/karakeep:0.33.2
+    restart: unless-stopped
+    networks: [web, karakeep]
+    env_file:
+      - ./.runtime-secrets/karakeep.env
+    environment:
+      - NEXTAUTH_URL=https://karakeep.jackharrhy.dev
+      - DATA_DIR=/data
+      - MEILI_ADDR=http://karakeep_meilisearch:7700
+      - BROWSER_WEB_URL=http://karakeep_chrome:9222
+      - TZ=America/St_Johns
+    volumes:
+      - /mnt/terrabud/docker-data/newport/karakeep/data:/data
+    labels:
+      - "traefik.docker.network=newport_web"
+      - "traefik.enable=true"
+      - "traefik.http.services.karakeep.loadbalancer.server.port=3000"
+      - "traefik.http.routers.karakeep.rule=Host(`karakeep.jackharrhy.dev`)"
+      - "traefik.http.routers.karakeep.entrypoints=web"
+
+  karakeep_chrome:
+    image: ghcr.io/karakeep-app/karakeep-chrome:release
+    restart: unless-stopped
+    init: true
+    networks: [karakeep]
+    command:
+      - --disable-gpu
+      - --disable-dev-shm-usage
+      - --hide-scrollbars
+      - --disable-blink-features=AutomationControlled
+      - --window-size=1440,900
+
+  karakeep_meilisearch:
+    image: getmeili/meilisearch:v1.41.0
+    restart: unless-stopped
+    networks: [karakeep]
+    env_file:
+      - ./.runtime-secrets/karakeep.env
+    environment:
+      - MEILI_NO_ANALYTICS=true
+    volumes:
+      - /mnt/terrabud/docker-data/newport/karakeep/meilisearch:/meili_data
+
   rotund_org:
     image: ghcr.io/jackharrhy/rotund.org:main
     restart: unless-stopped
@@ -686,6 +733,8 @@ networks:
   worldview_backend:
     internal: true
   monbooru:
+  karakeep:
+    internal: true
   penpot:
   miniflux:
   sluggers_super_draft:
