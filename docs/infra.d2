@@ -71,15 +71,11 @@ home: Home {
       duaas: jackharrhy.dev/urandom
       steve: steve-letter-writ.ing
       notscared_site: notsca.red
-      penpot_frontend: penpot.jackharrhy.dev
     }
 
     databases: Databases {
       grid-columns: 1
       miniflux_db: miniflux_db (postgres:15) {
-        shape: cylinder
-      }
-      penpot_postgres: penpot_postgres (postgres:15) {
         shape: cylinder
       }
     }
@@ -94,10 +90,6 @@ home: Home {
       phapbot: phapbot
       incydecy: incydecy
       house: house
-      penpot_backend: penpot_backend
-      penpot_mcp: penpot_mcp
-      penpot_exporter: penpot_exporter
-      penpot_valkey: penpot_valkey
     }
 
   }
@@ -113,8 +105,3 @@ tailscale -- home
 digitalocean.mug.infra.traefik -> home.newport.infra.traefik: proxy
 
 home.newport.websites.miniflux -> home.newport.databases.miniflux_db
-home.newport.websites.penpot_frontend -> home.newport.databases.penpot_postgres
-home.newport.bots.penpot_backend -> home.newport.databases.penpot_postgres
-home.newport.bots.penpot_mcp -> home.newport.databases.penpot_postgres
-home.newport.bots.penpot_exporter -> home.newport.databases.penpot_postgres
-home.newport.bots.penpot_valkey -> home.newport.databases.penpot_postgres
