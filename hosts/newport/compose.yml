@@ -418,9 +418,15 @@ services:
     environment:
       - PHX_HOST=cmd.softspark.dev
       - MIGRATE_ON_BOOT=1
+      # Traefik reaches this service through the newport_web bridge gateway.
+      - OAUTH_TRUSTED_PROXIES=172.21.0.1/32
+      - GITHUB_APP_PRIVATE_KEY_PATH=/run/secrets/cmd_github_app.pem
+      - OAUTH_SIGNING_PRIVATE_KEY_PATH=/run/secrets/cmd_oauth_signing.pem
     volumes:
       # Generated document PDFs are cached here.
       - /mnt/terrabud/docker-data/newport/cmd_data:/data
+      - ./.runtime-secrets/cmd_github_app.pem:/run/secrets/cmd_github_app.pem:ro
+      - ./.runtime-secrets/cmd_oauth_signing.pem:/run/secrets/cmd_oauth_signing.pem:ro
     labels:
       - "traefik.docker.network=newport_web"
       - "traefik.enable=true"

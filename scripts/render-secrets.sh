@@ -24,7 +24,7 @@ for f in "$BASE"/**/secrets/*.enc.yaml "$BASE"/**/secrets/*.enc.yml; do
   base="${name%.enc.yaml}"
   base="${base%.enc.yml}"
 
-  if [[ "$base" == *.htpasswd ]]; then
+  if [[ "$base" == *.htpasswd || "$base" == *.pem ]]; then
     out="$out_dir/$base"
   elif [[ "$base" == *.env ]]; then
     out="$out_dir/$base"
@@ -32,7 +32,9 @@ for f in "$BASE"/**/secrets/*.enc.yaml "$BASE"/**/secrets/*.enc.yml; do
     out="$out_dir/$base.env"
   fi
 
-  if [[ "$base" == *.htpasswd ]]; then
+  if [[ "$base" == *.pem ]]; then
+    sops -d --extract '["pem"]' --output-type binary "$f" > "$out"
+  elif [[ "$base" == *.htpasswd ]]; then
     # Traefik expects htpasswd's user:hash format rather than dotenv output.
     sops -d --output-type dotenv "$f" | sed 's/=/:/' > "$out"
   else
