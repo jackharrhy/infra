@@ -393,6 +393,8 @@ services:
       - ./.runtime-secrets/karakeep.env
     environment:
       - NEXTAUTH_URL=https://karakeep.jackharrhy.dev
+      # The initial owner account exists; subsequent accounts are admin-created.
+      - DISABLE_SIGNUPS=true
       - DATA_DIR=/data
       - MEILI_ADDR=http://karakeep_meilisearch:7700
       - BROWSER_WEB_URL=http://karakeep_chrome:9222
