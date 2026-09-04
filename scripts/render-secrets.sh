@@ -36,8 +36,9 @@ for f in "$BASE"/**/secrets/*.enc.yaml "$BASE"/**/secrets/*.enc.yml; do
     # Traefik expects htpasswd's user:hash format rather than dotenv output.
     sops -d --output-type dotenv "$f" | sed 's/=/:/' > "$out"
   else
-    # Decrypt YAML secrets and render them as dotenv KEY=VALUE output.
-    sops -d --output-type dotenv "$f" > "$out"
+    # Docker Compose interpolates $VAR in env_file values. Escape literal dollar
+    # signs from SOPS output so containers receive the original secret value.
+    sops -d --output-type dotenv "$f" | sed 's/\$/$$/g' > "$out"
   fi
   chmod 600 "$out"
   echo "rendered $out"
