@@ -107,13 +107,6 @@ http:
       tls:
         certResolver: mugresolver
 
-    monbooru-via-newport:
-      rule: "Host(`monbooru.jackharrhy.dev`)"
-      entryPoints: [websecure]
-      service: newport-origin
-      tls:
-        certResolver: mugresolver
-
     karakeep-via-newport:
       rule: "Host(`karakeep.jackharrhy.dev`)"
       entryPoints: [websecure]

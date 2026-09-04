@@ -316,75 +316,9 @@ services:
     labels:
       - "com.centurylinklabs.watchtower.enable=false"
 
-  # Monbooru keeps originals as ordinary files under /gallery and stores its
-  # rebuildable SQLite index/thumbnails separately under /data. Monloader is
-  # the optional network-facing downloader used by the browser extension.
-  # Both UIs use the same bootstrap password from monbooru-stack.env. Rotate
-  # both bcrypt hashes in the encrypted SOPS source so restarts keep the change.
-  monbooru:
-    image: ghcr.io/monbooru/monbooru:v1.19.1
-    restart: unless-stopped
-    user: "1000:1000"
-    networks: [web, monbooru]
-    env_file:
-      - ./.runtime-secrets/monbooru-stack.env
-    environment:
-      - MONBOORU_SERVER_BIND_ADDRESS=0.0.0.0:8080
-      - MONBOORU_SERVER_BASE_URL=https://monbooru.jackharrhy.dev
-      - MONBOORU_SERVER_MONLOADER_URL=https://monloader.jackharrhy.dev
-      - MONBOORU_MONLOADER_API_URL=http://monloader:8081
-      - TZ=America/St_Johns
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
-    cap_add:
-      - CHOWN
-      - DAC_OVERRIDE
-    volumes:
-      - /mnt/terrabud/docker-data/newport/monbooru/gallery:/gallery
-      - /mnt/terrabud/docker-data/newport/monbooru/data:/data
-      - /mnt/terrabud/docker-data/newport/monbooru/config:/config
-      - /mnt/terrabud/docker-data/newport/monbooru/models:/models
-    labels:
-      - "traefik.docker.network=newport_web"
-      - "traefik.enable=true"
-      - "traefik.http.services.monbooru.loadbalancer.server.port=8080"
-      - "traefik.http.routers.monbooru.rule=Host(`monbooru.jackharrhy.dev`)"
-      - "traefik.http.routers.monbooru.entrypoints=web"
-
-  monloader:
-    image: ghcr.io/monbooru/monloader:v1.10.0
-    restart: unless-stopped
-    user: "1000:1000"
-    depends_on:
-      monbooru:
-        condition: service_healthy
-    networks: [web, monbooru]
-    env_file:
-      - ./.runtime-secrets/monbooru-stack.env
-    environment:
-      - MONLOADER_SERVER_BIND_ADDRESS=0.0.0.0:8081
-      - MONLOADER_SERVER_BASE_URL=https://monloader.jackharrhy.dev
-      - MONLOADER_MONBOORU_API_URL=http://monbooru:8080
-      - MONLOADER_MONBOORU_WEB_URL=https://monbooru.jackharrhy.dev
-      - TZ=America/St_Johns
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
-    volumes:
-      - /mnt/terrabud/docker-data/newport/monloader/config:/config
-    labels:
-      - "traefik.docker.network=newport_web"
-      - "traefik.enable=true"
-      - "traefik.http.services.monloader.loadbalancer.server.port=8081"
-      - "traefik.http.routers.monloader.rule=Host(`monloader.jackharrhy.dev`)"
-      - "traefik.http.routers.monloader.entrypoints=web"
-
   # Karakeep is the web-capture inbox. Its SQLite DB and downloaded assets are
-  # separate from Monbooru's gallery, so both libraries remain independently
-  # restorable while we assess the new workflow.
+  # kept separate; the retired Monbooru gallery + metadata are archived under
+  # /mnt/terrabud/docker-data/newport/monbooru-archive-20260904.
   karakeep:
     image: ghcr.io/karakeep-app/karakeep:0.33.2
     restart: unless-stopped
@@ -734,7 +668,6 @@ networks:
   web:
   worldview_backend:
     internal: true
-  monbooru:
   karakeep:
     internal: true
   penpot:
