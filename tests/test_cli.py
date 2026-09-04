@@ -62,6 +62,37 @@ class IsLocalSshTargetTests(unittest.TestCase):
             stream=True,
         )
 
+    @patch("cli.run_host_command", return_value=0)
+    @patch("cli.get_deploy_hosts")
+    @patch("cli.load_infra_config", return_value={})
+    def test_refresh_prunes_all_unused_images(
+        self, _load_config, get_hosts, run_host
+    ):
+        host = {
+            "ssh": "jack@newport",
+            "repo_path": "~/infra",
+            "compose_path": "~/infra/hosts/newport",
+        }
+        get_hosts.return_value = {"newport": host}
+
+        result = CliRunner().invoke(cli.cli, ["refresh", "newport"])
+
+        self.assertEqual(0, result.exit_code, result.output)
+        run_host.assert_called_once_with(
+            "jack@newport",
+            "cd ~/infra/hosts/newport"
+            " && docker compose pull"
+            " && docker compose up -d"
+            " && docker image prune -a -f",
+            [
+                ["docker", "compose", "pull"],
+                ["docker", "compose", "up", "-d"],
+                ["docker", "image", "prune", "-a", "-f"],
+            ],
+            cwd=Path("~/infra/hosts/newport").expanduser(),
+            stream=True,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
