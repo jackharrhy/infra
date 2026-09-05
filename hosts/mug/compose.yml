@@ -158,7 +158,7 @@ services:
 
   # Radio uses the fork's single-node SQLite object store on this host.
   radio-celld:
-    image: ghcr.io/jackharrhy/radio@sha256:3dab1f12cac9e12c5b72c86ef09b658b9048539af3f647a6566b736b6ff0a416
+    image: ghcr.io/jackharrhy/radio:latest
     restart: unless-stopped
     networks: [web]
     env_file:

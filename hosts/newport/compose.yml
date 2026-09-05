@@ -141,7 +141,8 @@ services:
       - "traefik.http.routers.artbin.entrypoints=web"
 
   worldview:
-    image: ghcr.io/jackharrhy/worldview:main
+    image: ghcr.io/jackharrhy/worldview:latest
+    init: true
     user: "1000:1000"
     restart: unless-stopped
     networks: [web, worldview_backend]
@@ -155,7 +156,7 @@ services:
       - ARTBIN_URL=https://artbin.jackharrhy.dev
       - FOURM_SERVICE_CLIENT_ID=worldview-service
       # FOURM_SERVICE_CLIENT_SECRET and WORLDVIEW_REALTIME_TICKET_SECRET come from worldview.env.
-      - WORLDVIEW_MAP_SERVICE_URL=http://worldview-azurite:8080
+      - WORLDVIEW_MAP_SERVICE_URL=http://worldview-celld:8080
       - WORLDVIEW_QUAKE_COMPILER_URL=http://worldview-compiler:8788
     volumes:
       - /mnt/terrabud/docker-data/newport/worldview_data:/data
@@ -186,7 +187,7 @@ services:
       - "traefik.http.middlewares.worldview-body-limit.buffering.memRequestBodyBytes=1048576"
 
   worldview-compiler:
-    image: ghcr.io/jackharrhy/worldview:main
+    image: ghcr.io/jackharrhy/worldview:latest
     restart: unless-stopped
     command: ["node", "apps/compiler-service/dist/server.js"]
     networks: [worldview_backend]
@@ -227,27 +228,23 @@ services:
     labels:
       - "com.centurylinklabs.watchtower.enable=false"
 
-  # Celld's Azurite adapter intentionally connects to loopback. Sharing the
-  # network namespace keeps the emulator private while exposing only the
-  # Worker listener through Traefik. This is a single-host, non-critical
-  # deployment; Azurite is not a qualified production fleet store.
-  worldview-azurite:
-    image: mcr.microsoft.com/azure-storage/azurite:3.37.0
+  worldview-celld:
+    image: ghcr.io/jackharrhy/worldview-celld:latest
     restart: unless-stopped
     networks: [web]
-    command: azurite-blob --blobHost 0.0.0.0 --location /data --disableTelemetry
+    environment:
+      - CELLD_BUCKET=sqlite:///var/lib/celld/object-store/objects.sqlite3
+      - CELLD_DURABILITY=bucket
+      - CELLD_WATCH=/var/lib/celld/state-sqlite
+      - CELLD_VARS_FILE=/run/secrets/worldview.env
+      - CELLD_TRUST_FORWARDED_HEADERS=1
     volumes:
-      - /mnt/terrabud/docker-data/newport/worldview_azurite:/data
-    ports:
-      - "127.0.0.1:10000:10000"
+      - /mnt/terrabud/docker-data/newport/worldview_celld:/var/lib/celld
+      - ./.runtime-secrets/worldview.env:/run/secrets/worldview.env:ro
     pids_limit: 128
     mem_limit: 512m
     cpus: 1
-    healthcheck:
-      test: ["CMD", "node", "-e", "const s=require('net').connect(10000,'127.0.0.1',()=>{s.end();process.exit(0)});s.on('error',()=>process.exit(1))"]
-      interval: 2s
-      timeout: 2s
-      retries: 15
+    stop_grace_period: 90s
     labels:
       - "com.centurylinklabs.watchtower.enable=false"
       - "traefik.docker.network=newport_web"
@@ -262,29 +259,6 @@ services:
       - "traefik.http.middlewares.worldview-rooms-rate-limit.ratelimit.burst=20"
       - "traefik.http.middlewares.worldview-rooms-body-limit.buffering.maxRequestBodyBytes=8388608"
       - "traefik.http.middlewares.worldview-rooms-body-limit.buffering.memRequestBodyBytes=1048576"
-
-  worldview-celld:
-    image: ghcr.io/jackharrhy/worldview-celld:main
-    restart: unless-stopped
-    network_mode: service:worldview-azurite
-    depends_on:
-      worldview-azurite:
-        condition: service_healthy
-    environment:
-      - AZURE_STORAGE_USE_EMULATOR=true
-      - AZURE_STORAGE_ACCOUNT_NAME=devstoreaccount1
-      - CELLD_BUCKET=az://worldview-celld
-      - CELLD_WATCH=/var/lib/celld/state
-      - CELLD_VARS_FILE=/run/secrets/worldview.env
-      - CELLD_TRUST_FORWARDED_HEADERS=1
-    volumes:
-      - /mnt/terrabud/docker-data/newport/worldview_celld:/var/lib/celld
-      - ./.runtime-secrets/worldview.env:/run/secrets/worldview.env:ro
-    pids_limit: 128
-    mem_limit: 512m
-    cpus: 1
-    labels:
-      - "com.centurylinklabs.watchtower.enable=false"
 
   # Karakeep is the web-capture inbox. Its SQLite DB and downloaded assets are
   # kept separate; the retired Monbooru gallery + metadata are archived under
