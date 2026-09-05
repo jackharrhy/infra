@@ -156,89 +156,24 @@ services:
       - "traefik.http.routers.plow.entrypoints=websecure"
       - "traefik.http.routers.plow.tls.certresolver=mugresolver"
 
-  radio-minio:
-    image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z
+  # Celld's Azurite adapter connects to loopback. Radio shares this network
+  # namespace so the blob emulator remains private and only the Worker listener
+  # is exposed through Traefik.
+  radio-azurite:
+    image: mcr.microsoft.com/azure-storage/azurite:3.37.0
     restart: unless-stopped
-    command: server /data --address :9000
-    networks: [radio]
-    env_file:
-      - ./.runtime-secrets/radio-minio.env
+    networks: [web]
+    command: azurite-blob --blobHost 0.0.0.0 --location /data --disableTelemetry
     volumes:
-      - ./volumes/radio_minio:/data
+      - ./volumes/radio_azurite:/data
     pids_limit: 128
     mem_limit: 512m
     cpus: 1
     healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
+      test: ["CMD", "node", "-e", "const s=require('net').connect(10000,'127.0.0.1',()=>{s.end();process.exit(0)});s.on('error',()=>process.exit(1))"]
       interval: 2s
       timeout: 2s
       retries: 15
-    labels:
-      - "com.centurylinklabs.watchtower.enable=false"
-
-  radio-minio-bootstrap:
-    image: quay.io/minio/mc:RELEASE.2025-08-13T08-35-41Z
-    depends_on:
-      radio-minio:
-        condition: service_healthy
-    networks: [radio]
-    env_file:
-      - ./.runtime-secrets/radio-minio.env
-    entrypoint: ["/bin/sh", "-c"]
-    command:
-      - mc alias set local http://radio-minio:9000 "$$MINIO_ROOT_USER" "$$MINIO_ROOT_PASSWORD" && mc mb --ignore-existing local/radio-celld
-    labels:
-      - "com.centurylinklabs.watchtower.enable=false"
-
-  radio-celld-bootstrap:
-    image: ghcr.io/jackharrhy/radio-celld-deployer:main
-    networks: [radio]
-    depends_on:
-      radio-minio-bootstrap:
-        condition: service_completed_successfully
-    env_file:
-      - ./.runtime-secrets/radio-minio.env
-    environment:
-      - CELLD_BUCKET=s3://radio-celld
-      - CELLD_ESBUILD=/app/node_modules/.bin/esbuild
-      - S3_ENDPOINT=http://radio-minio:9000
-    command:
-      - sh
-      - -c
-      - |
-        attempt=0
-        until celld diagnose; do
-          attempt=$$((attempt + 1))
-          test "$$attempt" -ge 15 && exit 1
-          sleep 2
-        done
-        celld deploy .
-    pids_limit: 128
-    mem_limit: 512m
-    cpus: 1
-    labels:
-      - "com.centurylinklabs.watchtower.enable=false"
-
-  radio-celld:
-    image: ghcr.io/jackharrhy/radio:main
-    restart: unless-stopped
-    networks: [web, radio]
-    depends_on:
-      radio-celld-bootstrap:
-        condition: service_completed_successfully
-    env_file:
-      - ./.runtime-secrets/radio-minio.env
-    environment:
-      - CELLD_BUCKET=s3://radio-celld
-      - S3_ENDPOINT=http://radio-minio:9000
-      - CELLD_DURABILITY=bucket
-      - CELLD_WATCH=/app/.celld
-      - CELLD_TRUST_FORWARDED_HEADERS=1
-    volumes:
-      - ./volumes/radio_celld:/app/.celld
-    pids_limit: 256
-    mem_limit: 1g
-    cpus: 1
     labels:
       - "traefik.docker.network=mug_web"
       - "traefik.enable=true"
@@ -255,6 +190,30 @@ services:
       - "traefik.http.middlewares.radio-login-rate.ratelimit.average=6"
       - "traefik.http.middlewares.radio-login-rate.ratelimit.period=1m"
       - "traefik.http.middlewares.radio-login-rate.ratelimit.burst=10"
+      - "com.centurylinklabs.watchtower.enable=false"
+
+  radio-celld:
+    image: ghcr.io/jackharrhy/radio:main
+    restart: unless-stopped
+    network_mode: service:radio-azurite
+    depends_on:
+      radio-azurite:
+        condition: service_healthy
+    env_file:
+      - ./.runtime-secrets/radio-minio.env
+    environment:
+      - AZURE_STORAGE_USE_EMULATOR=true
+      - AZURE_STORAGE_ACCOUNT_NAME=devstoreaccount1
+      - CELLD_BUCKET=az://radio-celld
+      - CELLD_DURABILITY=bucket
+      - CELLD_WATCH=/app/.celld
+      - CELLD_TRUST_FORWARDED_HEADERS=1
+    volumes:
+      - ./volumes/radio_celld:/app/.celld
+    pids_limit: 256
+    mem_limit: 1g
+    cpus: 1
+    labels:
       - "com.centurylinklabs.watchtower.enable=false"
 
   burger:
@@ -433,8 +392,6 @@ services:
 
 networks:
   andrewsite:
-  radio:
-    internal: true
   web:
 
 volumes:
