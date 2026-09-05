@@ -263,8 +263,9 @@ services:
       - "traefik.http.middlewares.worldview-rooms-body-limit.buffering.maxRequestBodyBytes=8388608"
       - "traefik.http.middlewares.worldview-rooms-body-limit.buffering.memRequestBodyBytes=1048576"
 
-  worldview-celld-bootstrap:
-    image: ghcr.io/jackharrhy/worldview-celld-deployer:main
+  worldview-celld:
+    image: ghcr.io/jackharrhy/worldview-celld:main
+    restart: unless-stopped
     network_mode: service:worldview-azurite
     depends_on:
       worldview-azurite:
@@ -273,31 +274,9 @@ services:
       - AZURE_STORAGE_USE_EMULATOR=true
       - AZURE_STORAGE_ACCOUNT_NAME=devstoreaccount1
       - CELLD_BUCKET=az://worldview-celld
-    pids_limit: 128
-    mem_limit: 512m
-    cpus: 2
-    labels:
-      - "com.centurylinklabs.watchtower.enable=false"
-
-  worldview-celld:
-    image: ghcr.io/denoland/celld:0.4.0
-    restart: unless-stopped
-    network_mode: service:worldview-azurite
-    depends_on:
-      worldview-celld-bootstrap:
-        condition: service_completed_successfully
-    environment:
-      - AZURE_STORAGE_USE_EMULATOR=true
-      - AZURE_STORAGE_ACCOUNT_NAME=devstoreaccount1
-      - CELLD_BUCKET=az://worldview-celld
       - CELLD_WATCH=/var/lib/celld/state
       - CELLD_VARS_FILE=/run/secrets/worldview.env
       - CELLD_TRUST_FORWARDED_HEADERS=1
-    command:
-      - "--listen"
-      - "0.0.0.0:8080"
-      - "--internal-listen"
-      - "127.0.0.1:8081"
     volumes:
       - /mnt/terrabud/docker-data/newport/worldview_celld:/var/lib/celld
       - ./.runtime-secrets/worldview.env:/run/secrets/worldview.env:ro
