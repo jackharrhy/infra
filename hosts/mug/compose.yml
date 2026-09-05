@@ -156,24 +156,25 @@ services:
       - "traefik.http.routers.plow.entrypoints=websecure"
       - "traefik.http.routers.plow.tls.certresolver=mugresolver"
 
-  # Celld's Azurite adapter connects to loopback. Radio shares this network
-  # namespace so the blob emulator remains private and only the Worker listener
-  # is exposed through Traefik.
-  radio-azurite:
-    image: mcr.microsoft.com/azure-storage/azurite:3.37.0
+  # Radio uses the fork's single-node SQLite object store on this host.
+  radio-celld:
+    image: ghcr.io/jackharrhy/radio@sha256:3dab1f12cac9e12c5b72c86ef09b658b9048539af3f647a6566b736b6ff0a416
     restart: unless-stopped
     networks: [web]
-    command: azurite-blob --blobHost 0.0.0.0 --location /data --disableTelemetry
+    env_file:
+      - ./.runtime-secrets/radio-minio.env
+    environment:
+      - CELLD_BUCKET=sqlite:///app/.celld/object-store/objects.sqlite3
+      - CELLD_DURABILITY=bucket
+      - CELLD_WATCH=/app/.celld/state
+      - CELLD_TRUST_FORWARDED_HEADERS=1
     volumes:
-      - ./volumes/radio_azurite:/data
-    pids_limit: 128
-    mem_limit: 512m
+      - ./volumes/radio_celld:/app/.celld
+    pids_limit: 256
+    mem_limit: 1g
+    memswap_limit: 1g
     cpus: 1
-    healthcheck:
-      test: ["CMD", "node", "-e", "const s=require('net').connect(10000,'127.0.0.1',()=>{s.end();process.exit(0)});s.on('error',()=>process.exit(1))"]
-      interval: 2s
-      timeout: 2s
-      retries: 15
+    stop_grace_period: 90s
     labels:
       - "traefik.docker.network=mug_web"
       - "traefik.enable=true"
@@ -190,30 +191,6 @@ services:
       - "traefik.http.middlewares.radio-login-rate.ratelimit.average=6"
       - "traefik.http.middlewares.radio-login-rate.ratelimit.period=1m"
       - "traefik.http.middlewares.radio-login-rate.ratelimit.burst=10"
-      - "com.centurylinklabs.watchtower.enable=false"
-
-  radio-celld:
-    image: ghcr.io/jackharrhy/radio:main
-    restart: unless-stopped
-    network_mode: service:radio-azurite
-    depends_on:
-      radio-azurite:
-        condition: service_healthy
-    env_file:
-      - ./.runtime-secrets/radio-minio.env
-    environment:
-      - AZURE_STORAGE_USE_EMULATOR=true
-      - AZURE_STORAGE_ACCOUNT_NAME=devstoreaccount1
-      - CELLD_BUCKET=az://radio-celld
-      - CELLD_DURABILITY=bucket
-      - CELLD_WATCH=/app/.celld
-      - CELLD_TRUST_FORWARDED_HEADERS=1
-    volumes:
-      - ./volumes/radio_celld:/app/.celld
-    pids_limit: 256
-    mem_limit: 1g
-    cpus: 1
-    labels:
       - "com.centurylinklabs.watchtower.enable=false"
 
   burger:
