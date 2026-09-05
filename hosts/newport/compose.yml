@@ -506,12 +506,19 @@ services:
       - ./volumes/incydecy:/app/data
 
   steve:
-    image: ghcr.io/jackharrhy/letters-to-steve:latest
+    image: ghcr.io/jackharrhy/letters-to-steve:sha-512571fc56d496c02cc7eee93d44956168bacf79
     restart: unless-stopped
     networks: [web]
+    env_file:
+      - ./.runtime-secrets/steve.env
+    environment:
+      - DATABASE_PATH=/code/data/letters.sqlite
+      - UPLOAD_DIRECTORY=/code/data/uploads
+      - TRUST_PROXY=true
     volumes:
       - ./volumes/steve:/code/data
     labels:
+      - "com.centurylinklabs.watchtower.enable=false"
       - "traefik.docker.network=newport_web"
       - "traefik.enable=true"
       - "traefik.http.services.steve.loadbalancer.server.port=5000"
