@@ -216,11 +216,12 @@ services:
       - "traefik.http.routers.burger.tls.domains[0].sans=*.burger.beauty"
 
   andrewsite_remix:
-    image: ghcr.io/jackharrhy/andrew-gosse-site@sha256:c0da7d16f35e515dcfffe8236f507be993e6c2d903c71e128998d0d01e5035ec
+    image: ghcr.io/jackharrhy/andrew-gosse-site@sha256:ea717a7f895baca76015a8a6048803c2f1b2e7ba319584435e4c1f7c0bd79c34
     restart: unless-stopped
     networks: [web]
     environment:
       - APP_ORIGIN=https://andrewgossecomposer.com
+      - GOOGLE_ANALYTICS_ID=G-YKGRMT757F
     volumes:
       - ./volumes/andrewsite_tea_data:/app/data
     labels:
