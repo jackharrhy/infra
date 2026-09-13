@@ -216,7 +216,7 @@ services:
       - "traefik.http.routers.burger.tls.domains[0].sans=*.burger.beauty"
 
   andrewsite_remix:
-    image: ghcr.io/jackharrhy/andrew-gosse-site@sha256:19a93c183bf254e7637aea2b31fe801e3e7b7f5b3beda572a4ffaa06750b9633
+    image: ghcr.io/jackharrhy/andrew-gosse-site:latest
     restart: unless-stopped
     networks: [web]
     environment:
