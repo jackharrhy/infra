@@ -1,0 +1,211 @@
+updater:
+  enabled: false
+  period: 900
+  announce-missing-parts: true
+  auto-update-config: false
+  updated:
+  - '&8[&2PAT &7| &2Bukkit&8] &aYou are using the newest version! ^^'
+  outdated:
+  - '&8[&4PAT &7| &4Bukkit&8] &cThere is a new version available! (%newest_version%)'
+  - '&8[&4PAT &7| &4Bukkit&8] &cYou are still using the %current_version%.'
+  - '&8[&4PAT &7| &4Bukkit&8] &cGet the newest version here:'
+  - '&8[&4PAT &7| &4Bukkit&8] &ehttps://www.rayzs.de/products/proantitab/page'
+handle-through-proxy:
+  enabled: false
+  token: insert-token-of-proxy-here
+  allow-p2b-actions: false
+  load-from-env:
+    enabled: false
+    name: PAT_TOKEN
+turn-blacklist-to-whitelist: true
+base-command-case-sensitive: false
+allow-group-overruling: false
+update-groups-per-world: false
+auto-forward-luckperms-changes: false
+custom-protocol-ping:
+  enabled: false
+  always-show: false
+  extend-online-count: 1
+  use-as-maxplayers: false
+  hide-players: false
+  protocol: '&f&lProAntiTab &7(&a%online%&7/&c%max%&7)'
+  custom-playerlist:
+    enabled: true
+    list:
+    - '&8> &7Online players: &a%online%&7/&2%max%'
+    - '&8> &7Using &fProAntiTab'
+custom-unknown-command:
+  enabled: true
+  message:
+  - '&cUnknown command.'
+cancel-blocked-commands:
+  enabled: true
+  base-command-message:
+  - '&cUnknown command.'
+  sub-command-message:
+  - '&cUnknown command.'
+custom-plugins:
+  enabled: false
+  always-tab-completable: false
+  commands:
+  - pl
+  - plugins
+  - bukkit:pl
+  - bukkit:plugins
+  message:
+  - '&fPlugins (0):'
+custom-version:
+  enabled: false
+  always-tab-completable: false
+  commands:
+  - icanhasbukkit
+  - about
+  - version
+  - ver
+  - bukkit:about
+  - bukkit:version
+  - bukkit:ver
+  message:
+  - '&fThis server is running CraftBukkit version git-NasaSpigot-294 (MC: X)'
+block-namespace-commands:
+  enabled: true
+  always-block-command: true
+auto-lowercase-commands:
+  enabled: false
+patch-exploits:
+  enabled: true
+  alert-message: '%prefix% &4%player% &ctried to crash/lag the server.'
+  kick-message: '&cFailed to read packet! Please reconnect.'
+injection-failed:
+  kick-on-failure: true
+  suppress-exceptions: false
+  kick-message: '&cInjection process failed! Please reconnect.'
+  console-message: '&cInjection process failed! (%player%)'
+custom-server-brand:
+  enabled: false
+  repeat-delay: 3
+  brands:
+  - '&f&lP&froAntiTab |'
+  - '&fP&lr&foAntiTab /'
+  - '&fPr&lo&fAntiTab -'
+  - '&fPro&lA&fntiTab |'
+  - '&fProA&ln&ftiTab \'
+  - '&fProAn&lt&fiTab |'
+  - '&fProAnt&li&fTab /'
+  - '&fProAnti&lT&fab -'
+  - '&fProAnti&lT&fab \'
+  - '&fProAntiT&la&fb |'
+  - '&fProAntiTa&lb&f /'
+  - '&fProAntiTab -'
+  - '&fProAntiTab \'
+prefix: '&8[&4ProAntiTab&8]'
+only-for-proxy: '&cThis command works on Bungeecord/Velocity servers only!'
+no-permissions: '&cYou are not allowed to execute this command! Missing permission:
+  &4%permission%'
+command-failed: '&cFailed to execute this command! Use "/pat" to see all available
+  commands.'
+update-permissions:
+  all-players: '&aUpdated permissions!'
+  specific-player: '&aUpdated %target%''s permissions!'
+  player-not-online: '&c%target% is not online!'
+post-debug:
+  success: '&aSuccessfully uploaded debug logs: &e%link% &8(<click:open_url:%link%><gray>CLICK</click>&8)'
+  failed: '&cFailed to upload debug logs!'
+reload:
+  loading: '&eReloading all configuration files...'
+  done: '&aSuccessfully reloaded all configuration files!'
+perms-check:
+  message: '&7All of &e%player%''s &7PAT-related permission: &e%permissions%'
+  player-is-missing: '&cPlease specify the player whose permission you want to check.'
+  player-not-online: '&c%player% is not online!'
+extract:
+  usage: '&7Usage: &f/pat extract (plugin) <option> &7or &f(group) <option>'
+  plugin-not-found: '&cPlugin %plugin% not found!'
+  success: '&aSuccessfully extracted &e%amount% &anew commands from %plugin%!'
+convert:
+  converter-not-found: '&cConverter or necessary files could not be found!'
+  success: '&aSuccessfully converted &e%converter% &ainto the PAT storage.yml!'
+help:
+- '&7Available commands are: &f/%label%&7... &8[&fBUKKIT&8]'
+- '&7Format: &8<optional> (required)'
+- '&f  reload &7to reload the plugin'
+- '&f  notify &7to get alerted'
+- '&f  info &7to get a few information'
+- '&f  postdebug &7to post the PAT logs'
+- '&f  update <player> &7to update player(s) permissions'
+- '&f  perms <player> &7to check a player''s permissions'
+- '&f  extract (plugin) &7to extract all plugin commands'
+- '&f  convert (plugin) &7converts into a PAT storage.yml'
+- '&f  add/rem (command) &8<group> &7to manage the list'
+- '&f  clear &8<group> &7to clear the list'
+- '&f  creategroup (group) &7to create a group'
+- '&f  deletegroup (group) &7to delete a group'
+- '&f  setpriority (group) (priority) &7to set the priority'
+- '&f  list &8(group) &7to see all listed commands'
+- '&f  listgroups &7List all groups'
+- '&f  listpriorities &7to list all group priorities'
+info:
+  version:
+    updated: '&aUpdated'
+    outdated: '&cOutdated (%newest_version%)'
+  proxy-sync:
+    time: '&e%time%'
+    waiting: '&cWaiting to establish connection...'
+    disabled: '&cDisabled!'
+  message:
+  - '&7Necessary information about &fPAT&8:'
+  - '&7  Version: &e%current_version%'
+  - '&7  Status: %version_status%'
+  - '&7  Last sync with proxy: %sync_time%'
+  - '&7  Last received alive packet: %last_alive_response%'
+  - '&7  Proxy sync-token: &e%token%'
+  - '&7  Proxy-received server name: &e%sync_server_name%'
+notification:
+  enabled: '&aEnabled notifications'
+  disabled: '&cDisabled notifications'
+  alert:
+  - '&8[&4ALERT&8] &c%player% &8(&7world: &e%world%&8) &ctried to execute the following
+    blocked command: &4%command%'
+blacklist:
+  clear: '&aList has been cleared!'
+  clear-confirmation: '&4Warning! &7This command will &cclear the entire list&7! &7Repeat
+    the &esame command &7to confirm this action.'
+  list:
+    message: '&7Listed commands (&f%size%&7)&8: &f%commands%'
+    splitter: '&7, &f'
+  add:
+    success: '&aSuccessfully added %command% to the list!'
+    failed: '&c%command% is already in the list!'
+  remove:
+    success: '&aSuccessfully removed %command% from the list!'
+    failed: '&c%command% is not listed!'
+group:
+  create: '&aGroup %group% has been created!'
+  already-exist: '&cGroup %group% already exists!'
+  does-not-exist: '&cGroup %group% does not exist!'
+  delete: '&cGroup %group% has been deleted!'
+  delete-confirmation: '&4Warning! &7This command will &cdelete the group with the
+    entire list&7 of this group! &7Repeat the &esame command &7to confirm this action.'
+  clear: '&aList of group %group% has been cleared!'
+  clear-confirmation: '&4Warning! &7This command will &cclear the entire list&7 of
+    this group! &7Repeat the &esame command &7to confirm this action.'
+  priority:
+    success: '&aSuccessfully set the priority of group &e%group% &ato &e%priority%&a!'
+    failed: '&cInvalid priority! Please choose a number which is greater than 0.'
+  list:
+    message: '&7Listed commands of group %group% (&f%size%&7)&8: &f%commands%'
+    splitter: '&7, &f'
+  list-groups:
+    message: '&7All groups (&f%size%&7)&8: &f%groups%'
+    splitter: '&7, '
+    command: '&f%group%'
+  list-priorities:
+    message: '&7List of all group priorities (&f%size%&7)&8: \n&f%groups%'
+    splitter: \n
+    group: '&8- &e%priority%&8: &e%group%'
+  add:
+    success: '&aSuccessfully added %command% to the list of group %group%!'
+    failed: '&c%command% is already in the list of group %group%!'
+  remove:
+    success: '&aSuccessfully removed %command% from the list of group %group%!'
+    failed: '&c%command% is not listed in the group %group%!'

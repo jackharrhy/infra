@@ -1,0 +1,1 @@
+Baits intentionally disabled. Keep this directory: EMF generates bundled defaults only when it is absent.

@@ -1,0 +1,35 @@
+http:
+  routers:
+    cheesetown:
+      entryPoints: [websecure]
+      rule: Host(`cheesetown.rocks`)
+      service: cheesetown-static
+      tls:
+        certResolver: newporthttp
+        domains:
+          - main: cheesetown.rocks
+    cheesetown-map:
+      entryPoints: [websecure]
+      rule: Host(`cheesetown.rocks`) && (Path(`/map`) || PathPrefix(`/map/`))
+      middlewares: [cheesetown-map-slash, cheesetown-map-prefix]
+      service: cheesetown-map
+      tls:
+        certResolver: newporthttp
+  middlewares:
+    cheesetown-map-slash:
+      redirectRegex:
+        regex: '^(https?://[^/]+/map)(\?.*)?$'
+        replacement: '${1}/${2}'
+        permanent: true
+    cheesetown-map-prefix:
+      stripPrefix:
+        prefixes: [/map]
+  services:
+    cheesetown-static:
+      loadBalancer:
+        servers:
+          - url: http://127.0.0.1:8089
+    cheesetown-map:
+      loadBalancer:
+        servers:
+          - url: http://127.0.0.1:8100

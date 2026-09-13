@@ -1,0 +1,13 @@
+# Exact Modrinth version IDs; update deliberately after testing.
+bluemap:zjZDXCw6
+simple-voice-chat:IhqyykOv
+gsit:nZM8fxpG
+teaks-tweaks:ReH3FreP
+customdiscs-plugin:8p8QKPwN
+packetevents:h0ncTpUP
+imageframe:nt0GWT1y
+evenmorefish:KEn7lPL0
+discordsrv:ATlquwiT
+luckperms:b0mk8uS6
+interactionvisualizer:b38L2K4z
+proantitab:Ciqk8b0A

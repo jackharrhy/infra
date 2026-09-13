@@ -1,0 +1,15 @@
+id: mainCompetition
+disabled: false
+type: LARGEST_FISH
+duration: 10
+minimum-players: 2
+times:
+- '18:00'
+blacklisted-days: []
+bossbar-colour: BLUE
+bossbar-prefix: '<bold><aqua>Fishing Contest: '
+rewards:
+  '1':
+  - MESSAGE:<green>Congratulations on winning the fishing contest!
+  participation:
+  - MESSAGE:<yellow>Thanks for taking part in the fishing contest!

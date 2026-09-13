@@ -1,0 +1,81 @@
+hash-format = "sha256"
+
+[[files]]
+file = "mods/appleskin.pw.toml"
+hash = "dbb95bd2f35ea25e5f6a5a3c8f418be58b2d8308893fe454bfc1526567ef6325"
+metafile = true
+
+[[files]]
+file = "mods/cloth-config.pw.toml"
+hash = "17d315696055b60ff50039291d76703120b7200dcf11aa43485c52f0573aab19"
+metafile = true
+
+[[files]]
+file = "mods/entityculling.pw.toml"
+hash = "4c3feda017421160161a3e01fada2f3bd76228963b766da7ccc4b7e1a159cdc5"
+metafile = true
+
+[[files]]
+file = "mods/fabric-api.pw.toml"
+hash = "f0120a4f6286c8b0206cac4aafa13ce43112310398b9f8bcad92017ae29f09db"
+metafile = true
+
+[[files]]
+file = "mods/fabric-language-kotlin.pw.toml"
+hash = "c830634e02767841781b898b74452deff344ad63ca52c03a0394d3ba045e1abc"
+metafile = true
+
+[[files]]
+file = "mods/immediatelyfast.pw.toml"
+hash = "e7f6cf761a87f86ec065ea79fde5c0ede6c507a6b37e03633f9efbd95428d427"
+metafile = true
+
+[[files]]
+file = "mods/iris.pw.toml"
+hash = "84a3cef87679c0d21dceb4641167dc0368b9a3593698f6a3632485e9b3a8d5da"
+metafile = true
+
+[[files]]
+file = "mods/modmenu.pw.toml"
+hash = "a25c553f90eb477b697e95488591d72f61ed10ecc62f3f5715693e27376b6bc3"
+metafile = true
+
+[[files]]
+file = "mods/mouse-tweaks.pw.toml"
+hash = "2c47ee22d41ad31586a73baf7f436d9a54ea1eb91d95b7684a9b46793363375c"
+metafile = true
+
+[[files]]
+file = "mods/placeholder-api.pw.toml"
+hash = "62d51e5faa7530ff3eccac2210513dd848f2208ab6c32273772b28f2442f8359"
+metafile = true
+
+[[files]]
+file = "mods/shulkerboxtooltip.pw.toml"
+hash = "ff06cd181423618909cf2b665dbecf5a16625c19fce28c93ba7b926109e28bbc"
+metafile = true
+
+[[files]]
+file = "mods/simple-voice-chat.pw.toml"
+hash = "0ef54a1e91fd2dac1c92679134b87f8cf1b79fe6e6d51523edb7fc4893327eb5"
+metafile = true
+
+[[files]]
+file = "mods/sodium.pw.toml"
+hash = "f06c0b9150da9877b99cb265d037c067e509340d9bf347e02cef2043c110e963"
+metafile = true
+
+[[files]]
+file = "mods/sound-physics-remastered.pw.toml"
+hash = "60ff02bec83aad68f8c89017e466f447ea4b1bedb2f3261039e7f911e0ff0a9f"
+metafile = true
+
+[[files]]
+file = "mods/yacl.pw.toml"
+hash = "6368ca4c03dfb9c5ff0ae4586b0c81e3a60ceda1795e1c99f758d7a3eb7986c5"
+metafile = true
+
+[[files]]
+file = "mods/zoomify.pw.toml"
+hash = "b9f1456c17e439d00f2a0a3eda6cbc64fc29127e65c2937473db5fab5db245d4"
+metafile = true

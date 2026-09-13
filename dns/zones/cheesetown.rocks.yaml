@@ -1,0 +1,11 @@
+---
+? ''
+: - ttl: 300
+    type: A
+    value: 173.35.51.79
+  - ttl: 1800
+    type: NS
+    values:
+    - ns1.digitalocean.com.
+    - ns2.digitalocean.com.
+    - ns3.digitalocean.com.

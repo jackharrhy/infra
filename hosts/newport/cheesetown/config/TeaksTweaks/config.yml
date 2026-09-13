@@ -1,0 +1,483 @@
+settings:
+  alert-on-new-version: false
+  disable-update-checker: true
+  mechanics-command: false
+  send-log-in-paste: false
+  server-language: en_US
+packs:
+  afk-display:
+    enabled: false
+    display-badge: true
+    badge: <gray>[AFK]
+    name-color: gray
+    afk-after: 5
+    kick-after: -1
+    kick-message: You have been kicked for AFK!
+    allow-afk-command: true
+    message:
+      display-to-self: true
+      display-to-everyone: false
+      display-to-console: true
+  always-active-beacons:
+    enabled: false
+  anti-creeper-grief:
+    enabled: false
+    do-block-damage: false
+    do-entity-damage: false
+  anti-enderman-grief:
+    enabled: false
+  anti-ghast-grief:
+    enabled: false
+  armored-elytra:
+    enabled: false
+  back:
+    enabled: false
+    teleport-cooldown: 0
+    teleport-delay: 0
+  back-to-bed:
+    enabled: false
+    to-spawn: true
+    world: world
+    teleport-cooldown: 0
+    teleport-delay: 0
+  bat-membranes:
+    enabled: false
+  better-golden-dandelion:
+    enabled: false
+    allow-shrinking: true
+    allow-growing: true
+  cauldron-concrete:
+    enabled: false
+    drops-water-level: true
+  cauldron-copper:
+    enabled: false
+  cauldron-mud:
+    enabled: false
+    drops-water-level: true
+  cauldron-potions:
+    enabled: false
+  chat-colors:
+    enabled: false
+  chunk-loaders:
+    enabled: false
+    show-particles: true
+    cost: NETHER_STAR
+  classic-fishing-loot:
+    enabled: false
+  collectible-blocks:
+    enabled: false
+    always-drop:
+      enabled: false
+      blocks:
+      - ender_chest
+      - glass
+      - tinted_glass
+      - white_stained_glass
+      - light_gray_stained_glass
+      - gray_stained_glass
+      - black_stained_glass
+      - brown_stained_glass
+      - red_stained_glass
+      - orange_stained_glass
+      - yellow_stained_glass
+      - lime_stained_glass
+      - green_stained_glass
+      - cyan_stained_glass
+      - light_blue_stained_glass
+      - blue_stained_glass
+      - purple_stained_glass
+      - magenta_stained_glass
+      - pink_stained_glass
+      - glass_pane
+      - white_stained_glass_pane
+      - light_gray_stained_glass_pane
+      - gray_stained_glass_pane
+      - black_stained_glass_pane
+      - brown_stained_glass_pane
+      - red_stained_glass_pane
+      - orange_stained_glass_pane
+      - yellow_stained_glass_pane
+      - lime_stained_glass_pane
+      - green_stained_glass_pane
+      - cyan_stained_glass_pane
+      - light_blue_stained_glass_pane
+      - blue_stained_glass_pane
+      - purple_stained_glass_pane
+      - magenta_stained_glass_pane
+      - pink_stained_glass_pane
+    silk-touch-drop:
+      enabled: false
+      blocks:
+      - budding_amethyst
+  confetti-creepers:
+    enabled: false
+    confetti-chance: 100
+    entity-damage-reduction: 50
+    do-block-damage: false
+  coords-hud:
+    enabled: false
+    auto-enable: false
+    force-enable: false
+    time-world: world
+    use-player-position: false
+    hud-message: '<gold>XYZ: <white><x> <y> <z>  <gold><direction>      <world_time>'
+  count-mob-deaths:
+    enabled: false
+  custom-nether-portals:
+    enabled: false
+    allow-crying-obsidian: true
+    minimum-portal-size: 6
+    max-portal-width: 23
+    max-portal-height: 23
+  dirt-to-grass:
+    enabled: false
+    wheat-seeds-chance: 0.3
+    melon-seeds-chance: 0.03
+    pumpkin-seeds-chance: 0.03
+    beetroot-seeds-chance: 0.03
+  disposal:
+    enabled: false
+    size: 1
+  double-shulker-shells:
+    enabled: false
+  dragon-drops:
+    enabled: false
+    elytra:
+      drop: true
+      chance: 100
+    dragon-egg:
+      drop: true
+      chance: 100
+  durability-ping:
+    enabled: false
+    ping-at-percent: 10
+    ping-cooldown: 45
+    default-settings:
+      ping-for-hand-items: true
+      ping-for-armor-items: true
+      ping-with-sound: true
+      display: subtitle
+  easier-axolotl-breeding:
+    enabled: false
+    allow-buckets: true
+  easier-mending:
+    enabled: false
+  easier-nametags:
+    enabled: false
+  elevators:
+    enabled: false
+    activator: ENDER_PEARL
+    require-same-type: true
+    play-sound: true
+    elevator-blocks:
+    - WHITE_WOOL
+    - ORANGE_WOOL
+    - MAGENTA_WOOL
+    - LIGHT_BLUE_WOOL
+    - YELLOW_WOOL
+    - LIME_WOOL
+    - PINK_WOOL
+    - GRAY_WOOL
+    - LIGHT_GRAY_WOOL
+    - CYAN_WOOL
+    - PURPLE_WOOL
+    - BLUE_WOOL
+    - BROWN_WOOL
+    - GREEN_WOOL
+    - RED_WOOL
+    - BLACK_WOOL
+  fast-leaf-decay:
+    enabled: false
+    break-delay: 5
+    decay-delay: 2
+    one-by-one: true
+    spawn-particles: true
+    play-sounds: true
+  fixed-item-frames:
+    enabled: false
+    item-to-use: SHEARS
+  graves:
+    enabled: false
+    hold-xp: true
+    keep-all-xp: false
+    locatable: true
+    allow-robbing: false
+    allow-void-graves: true
+    allow-empty-graves: true
+    creative-graves: true
+    creative-drops: true
+    generate-in-lava: true
+    console-info: false
+    level-threshold: 0
+    allow-water-graves: true
+    split-armored-elytra: true
+  harder-end-progression:
+    enabled: false
+    difficulty-level: 1
+    break-chance: 20
+  homes:
+    enabled: false
+    max-homes: 0
+    teleport-cooldown: 0
+  husk-drops-sand:
+    enabled: false
+  infested-villagers:
+    enabled: false
+    min-time: 120
+    max-time: 300
+  insta-mine:
+    enabled: false
+    blocks:
+    - deepslate
+    - deepslate_bricks
+    - cracked_deepslate_bricks
+    - deepslate_tiles
+    - cracked_deepslate_tiles
+    - polished_deepslate
+    - chiseled_deepslate
+  invisible-item-frames:
+    enabled: false
+    item-to-use: BRUSH
+  item-averages:
+    enabled: false
+  kill-boats:
+    enabled: false
+  lapis-lock:
+    enabled: false
+  larger-phantoms:
+    enabled: false
+  lectern-reset:
+    enabled: false
+  mini-blocks:
+    enabled: false
+    per-cut: 8
+  more-mob-heads:
+    enabled: true
+    use-base-heads: false
+  music-disc-engraver:
+    enabled: false
+  nether-portal-coords:
+    enabled: false
+  painting-picker:
+    enabled: false
+    suggest-pack: true
+  player-head-drops:
+    enabled: true
+    display-killer: true
+  quick-commands:
+    enabled: false
+    gamemode: true
+    reply: true
+    feed: true
+    heal: true
+    fly: true
+    enderchest: true
+    craftingtable: true
+    anvil: true
+    cartographytable: true
+    grindstone: true
+    loom: true
+    smithingtable: true
+    stonecutter: true
+  real-time-clock:
+    enabled: false
+  rotation-wrench:
+    enabled: false
+    rotate-redstone: true
+    rotate-terracotta: true
+    suggest-pack: false
+  sawmill:
+    enabled: false
+  silence-mobs:
+    enabled: false
+    allow-minecarts: false
+  slime-cream:
+    enabled: false
+  spawn:
+    enabled: false
+    world: world
+    teleport-cooldown: 0
+    teleport-delay: 0
+  spawning-spheres:
+    enabled: false
+  spectator-alts:
+    enabled: false
+    gamemode: spectator
+    force-gamemode: true
+    max-alts: 1
+    allow-player-teleport: true
+  spectator-conduit-power:
+    enabled: false
+    auto-enable: true
+  spectator-night-vision:
+    enabled: false
+    auto-enable: true
+  stair-chairs:
+    enabled: false
+  storm-channeling:
+    enabled: false
+  sudoku:
+    enabled: false
+  thunder-shrine:
+    enabled: false
+    idle-particles: true
+    summoning:
+      summoning-item: NETHER_STAR
+      strike-lightning: true
+      show-particles: true
+      broadcast-message: true
+  tpa:
+    enabled: false
+  track-raw-statistics:
+    enabled: false
+  track-statistics:
+    enabled: false
+  transferable-pets:
+    enabled: false
+  unlock-all-recipes:
+    enabled: false
+  unsticky-pistons:
+    enabled: false
+  unwax-signs:
+    enabled: false
+  villager-death-messages:
+    enabled: false
+    show-in-chat: true
+  wandering-trader-announcements:
+    enabled: false
+    radius: 64
+  wandering-trades:
+    enabled: true
+    mini-blocks:
+      has-mini-blocks: true
+      amount-of-trades: 4
+      per-trade: 8
+    player-heads:
+      has-player-heads: false
+      amount-of-trades: 3
+      per-trade: 3
+      read-from-whitelist: false
+      players:
+      - BdoubleO100
+      - Cubfan135
+      - Docm77
+      - EthosLab
+      - FalseSymmetry
+      - GeminiTay
+      - GoodTimesWithScar
+      - Grian
+      - Hypnotizd
+      - iJevin
+      - impulseSV
+      - JoeHills
+      - Keralis
+      - MumboJumbo
+      - PearlescentMoon
+      - Rendog
+      - Skizzleman
+      - SmallishBeans
+      - TangoTek
+      - VintageBeef
+      - Welsknight
+      - xBCrafted
+      - Xisumavoid
+      - Zedaph
+      - ZombieCleo
+  workstation-highlights:
+    enabled: false
+  xp-management:
+    enabled: false
+    take-xp-amount: 8
+    return-xp-amount: 7
+    display-amount: true
+    allow-smelting: true
+    sneak-to-bottle-all: true
+crafting-tweaks:
+  back-to-blocks:
+    enabled: false
+  blackstone-cobblestone:
+    enabled: false
+  carpet-to-blocks:
+    enabled: false
+  charcoal-to-black-dye:
+    enabled: false
+  cheaper-armor-trim-templates:
+    enabled: false
+  cheaper-resin-blocks:
+    enabled: false
+  coal-to-black-dye:
+    enabled: false
+  copper-powered-rails:
+    enabled: false
+  craftable-blackstone:
+    enabled: false
+  craftable-calcite:
+    enabled: false
+  craftable-chainmail:
+    enabled: false
+  craftable-copper-golem-statues:
+    enabled: false
+  craftable-coral-blocks-2x2:
+    enabled: false
+  craftable-coral-blocks-3x3:
+    enabled: false
+  craftable-enchanted-golden-apples:
+    enabled: false
+  craftable-gilded-blackstone:
+    enabled: false
+  craftable-gravel:
+    enabled: false
+  craftable-horse-armor:
+    enabled: false
+  craftable-small-dripleaf:
+    enabled: false
+  craftable-spore-blossoms:
+    enabled: false
+  craftable-tuff:
+    enabled: false
+  double-slabs:
+    enabled: false
+  dropper-to-dispenser:
+    enabled: false
+  log-chests:
+    enabled: false
+  more-bark:
+    enabled: false
+  more-bricks:
+    enabled: false
+  more-copper-trapdoors:
+    enabled: false
+  more-iron-trapdoors:
+    enabled: false
+  more-packed-mud:
+    enabled: false
+  more-sherds:
+    enabled: false
+  more-stairs:
+    enabled: false
+  more-trapdoors:
+    enabled: false
+  powder-to-glass:
+    enabled: false
+  rotten-flesh-to-leather:
+    enabled: false
+  sandstone-dyeing:
+    enabled: false
+  smeltable-raw-ore-blocks:
+    enabled: false
+  straight-to-shapeless:
+    enabled: false
+  unpackable-ice:
+    enabled: false
+  unpackable-nether-wart:
+    enabled: false
+  unpackable-quartz-blocks:
+    enabled: false
+  unpackable-wool:
+    enabled: false
+  universal-dyeing:
+    enabled: false
+config:
+  created-version: 2.1.4
+  version: 2.1.4
+  dev-mode: false

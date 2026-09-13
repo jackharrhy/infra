@@ -1,0 +1,139 @@
+enabled: true
+debug: false
+locale: en
+fishing:
+  give-straight-to-inventory: false
+  resume-competition-on-restart: false
+  hold-competition-if-active: true
+  catch-enabled: true
+  catch-only-in-competition: false
+  require-custom-rod: false
+  only-fish: false
+  hunt-enabled: false
+  hunt-only-in-competition: false
+  hunt-ignore-spawner-fish: true
+exploits:
+  afk-fishing:
+    enabled: false
+    max-caught: 10
+    range: 3
+competition-backup:
+  enabled: false
+  interval: 5
+respect-vanished: true
+database:
+  enabled: false
+  disable-verbose: true
+  type: sqlite
+  address: localhost
+  database: evenmorefish
+  table-prefix: emf_
+  username: emf
+  password: ''
+  advanced:
+    disable-jooq-startup-comments: true
+    jooq-execute-logging: false
+    jooq-render-formatted: false
+    save-interval:
+      unit: SECONDS
+      user-fish-stats: 5
+      competition: 5
+random-durability: true
+economy:
+  vault:
+    enabled: false
+    multiplier: 1.0
+    display: '{amount}'
+  playerpoints:
+    enabled: false
+    multiplier: 1.0
+    display: '{amount} Player Point(s)'
+  griefprevention:
+    enabled: false
+    multiplier: 1.0
+    display: '{amount} Claim Block(s)'
+barstyle: NOTCHED_10
+requires-fishing-permission: false
+item-protection:
+  prevent-crafting: true
+  prevent-consume: true
+  prevent-furnace-burn: true
+  prevent-cooking: true
+  prevent-placing: true
+sell-gui:
+  sell-over-drop: false
+allowed-regions: []
+allowed-worlds: []
+region-boosts:
+  exampleFishingRegion:
+    Common: 0.5
+    Rare: 1.0
+    Legendary: 15.0
+disable-mcmmo-loot: false
+disable-auraskills-loot: false
+protect-baited-rods: true
+bait:
+  boost: 1.5
+  competition-disable: true
+  add-to-lore: true
+  catch-percentage: 0
+  baits-per-rod: 7
+  show-unused-slots: true
+items:
+  addons:
+    lore-behavior: REPLACE
+    display-behavior: REPLACE
+requirements:
+  nearby-players:
+    range: 20
+command:
+  admin-shortcut:
+    enabled: false
+    name: emfa
+  main: emf
+  aliases:
+  - evenmorefish
+  subcommands:
+    admin: admin
+    next: next
+    toggle: toggle
+    gui: gui
+    help: help
+    top: top
+    shop: shop
+    sellall: sellall
+    applybaits: applybaits
+    journal: journal
+  old-base-command-behavior: false
+biome-sets:
+  oceans:
+  - COLD_OCEAN
+  - DEEP_COLD_OCEAN
+  - DEEP_LUKEWARM_OCEAN
+  - DEEP_OCEAN
+  - LUKEWARM_OCEAN
+  - OCEAN
+  - WARM_OCEAN
+dimension-fishing:
+  lava:
+    enabled: false
+    allowed-worlds: []
+    permission: null
+    requirements: []
+    swallow-sound: BLOCK_LAVA_EXTINGUISH
+    bite-sound: ENTITY_FISHING_BOBBER_SPLASH,0.25,0.5
+    lure-particles:
+    - particle: LAVA
+      amount: 3
+  void:
+    enabled: false
+    allowed-worlds: []
+    permission: null
+    requirements: []
+    swallow-sound: ENTITY_ENDERMAN_TELEPORT,0.25,0.1
+    bite-sound: ENTITY_FOX_BITE,0.25,0.1
+    lure-particles:
+    - particle: DUST
+      amount: 3
+      color: '#FF55FF'
+version: 11

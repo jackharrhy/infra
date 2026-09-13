@@ -1,0 +1,12 @@
+global:
+  commands:
+  - msg
+  - tell
+  - w
+  - whisper
+  - reply
+  - r
+  - sit
+  - sittoggle
+  - iv toggle
+groups: {}

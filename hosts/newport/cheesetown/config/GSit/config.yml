@@ -1,0 +1,53 @@
+Lang:
+  lang: en_us
+  client-lang: true
+Options:
+  check-for-update: false
+  get-up-damage: false
+  get-up-sneak: true
+  get-up-return: false
+  get-up-break: true
+  allow-unsafe: false
+  same-block-rest: false
+  center-block: true
+  custom-message: true
+  Sit:
+    SitMaterials:
+    - '#stairs'
+    - '#slabs'
+    - '#carpets'
+    - '#wool_carpets'
+    - moss_carpet
+    - pale_moss_carpet
+    - snow
+    bottom-part-only: true
+    empty-hand-only: true
+    max-distance: 3.0
+    default-sit-mode: true
+  PlayerSit:
+    allow-sit: false
+    allow-sit-npc: false
+    max-stack: 0
+    sneak-ejects: true
+    bottom-return: false
+    empty-hand-only: true
+    max-distance: 0.0
+    default-sit-mode: false
+  Pose:
+    interact: false
+    lay-rest: false
+    lay-snoring-sounds: false
+    lay-snoring-night-only: true
+    lay-night-skip: false
+  Crawl:
+    get-up-sneak: true
+    double-sneak: false
+    default-crawl-mode: false
+  trusted-region-only: false
+  WorldBlacklist: []
+  WorldWhitelist: []
+  MaterialBlacklist: []
+  CommandBlacklist:
+  - skin
+  - nick
+  FeatureFlags: []

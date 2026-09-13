@@ -1,0 +1,11 @@
+uuid: aadc77ce-00ae-48dc-8f9e-d1be5ca95a19
+name: cheesemany
+primary-group: default
+permissions:
+- proantitab.bypass
+- proantitab.namespace
+- proantitab.use
+- essentials.setspawn
+- essentials.essentials
+parents:
+- default

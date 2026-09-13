@@ -1,0 +1,1 @@
+Custom rods intentionally disabled. Vanilla fishing rods remain usable. Keep this directory to prevent default generation.

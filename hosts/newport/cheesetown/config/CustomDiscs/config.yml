@@ -1,0 +1,27 @@
+max-download-size: 10
+filename-maximum-length: 80
+music-disc-volume: 1
+subdirectory-depth: none
+default-lang: en
+debugMode: false
+music-disc-enable: true
+music-disc-playing-enable: true
+music-disc-distance: 16
+music-disc-max-distance: 32
+custom-horn-enable: false
+custom-horn-playing-enable: true
+custom-horn-distance: 16
+custom-horn-max-distance: 32
+default-horn-instrument: ponder_goat_horn
+horn-cooldown: 200
+horn-max-cooldown: 6000
+custom-head-enable: false
+custom-head-playing-enable: true
+custom-head-distance: 16
+custom-head-max-distance: 32
+custom-model-data:
+  enabled: false
+update-checker:
+  enabled: false
+  channel: release
+config-version: 3

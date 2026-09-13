@@ -1,0 +1,131 @@
+ConfigVersion: 1.30.5
+BotToken: ''
+Channels: {}
+DiscordConsoleChannelId: ''
+DiscordInviteLink: ''
+Experiment_JdbcAccountLinkBackend: ''
+Experiment_JdbcTablePrefix: discordsrv
+Experiment_JdbcUsername: ''
+Experiment_JdbcPassword: ''
+Experiment_WebhookChatMessageDelivery: false
+Experiment_WebhookChatMessageUsernameFormat: '%displayname%'
+Experiment_WebhookChatMessageFormat: '%message%'
+Experiment_WebhookChatMessageUsernameFromDiscord: false
+Experiment_WebhookChatMessageAvatarFromDiscord: false
+Experiment_WebhookChatMessageUsernameFilters: {}
+AvatarUrl: ''
+Experiment_MCDiscordReserializer_ToDiscord: false
+Experiment_MCDiscordReserializer_ToMinecraft: false
+Experiment_MCDiscordReserializer_InBroadcast: false
+CancelConsoleCommandIfLoggingFailed: true
+ForcedLanguage: none
+ForceTLSv12: true
+NoopHostnameVerifier: false
+MaximumAttemptsForSystemDNSBeforeUsingFallbackDNS: 3
+TimestampFormat: EEE, d. MMM yyyy HH:mm:ss z
+DateFormat: yyyy-MM-dd
+Timezone: default
+MinecraftMentionSound: true
+DisabledPluginHooks: []
+VentureChatBungee: false
+EnablePresenceInformation: false
+UseModernPaperChatEvent: false
+DiscordGameStatus:
+- playing Minecraft
+DiscordOnlineStatus: ONLINE
+StatusUpdateRateInMinutes: 2
+DiscordChatChannelDiscordToMinecraft: true
+DiscordChatChannelMinecraftToDiscord: true
+DiscordChatChannelTruncateLength: 256
+DiscordChatChannelTranslateMentions: true
+DiscordChatChannelAllowedMentions:
+- user
+- channel
+- emote
+DiscordChatChannelEmojiBehavior: name
+DiscordChatChannelEmoteBehavior: name
+DiscordChatChannelPrefixRequiredToProcessMessage: ''
+DiscordChatChannelPrefixActsAsBlacklist: false
+DiscordChatChannelRolesAllowedToUseColorCodesInChat:
+- Developer
+- Owner
+- Admin
+- Moderator
+DiscordChatChannelBroadcastDiscordMessagesToConsole: true
+DiscordChatChannelRequireLinkedAccount: false
+DiscordChatChannelBlockBots: false
+DiscordChatChannelBlockWebhooks: true
+DiscordChatChannelBlockedIds:
+- '000000000000000000'
+- '000000000000000000'
+- '000000000000000000'
+DiscordChatChannelBlockedRolesAsWhitelist: false
+DiscordChatChannelBlockedRolesIds:
+- '000000000000000000'
+- '000000000000000000'
+- '000000000000000000'
+DiscordChatChannelRolesSelectionAsWhitelist: false
+DiscordChatChannelRolesSelection:
+- Don't show me!
+- Misc role
+DiscordChatChannelRoleAliases:
+  Developer: Dev
+DiscordConsoleChannelLogRefreshRateInSeconds: 5
+DiscordConsoleChannelUsageLog: Console-%date%.log
+DiscordConsoleChannelBlacklistActsAsWhitelist: true
+DiscordConsoleChannelBlacklistedCommands: []
+DiscordConsoleChannelFilters:
+  .*(?i)async chat thread.*: ''
+  .*There are \d+ (?:of a max of|out of maximum) \d+ players online.*: ''
+DiscordConsoleChannelLevels:
+- info
+- warn
+- error
+DiscordConsoleChannelUseCodeBlocks: true
+DiscordConsoleChannelBlockBots: true
+DiscordChatChannelConsoleCommandEnabled: false
+DiscordChatChannelConsoleCommandNotifyErrors: true
+DiscordChatChannelConsoleCommandPrefix: '!c'
+DiscordChatChannelConsoleCommandRolesAllowed:
+- Owner
+- Developer
+DiscordChatChannelConsoleCommandWhitelist:
+- say
+- lag
+- tps
+DiscordChatChannelConsoleCommandWhitelistBypassRoles: []
+DiscordChatChannelConsoleCommandWhitelistActsAsBlacklist: false
+DiscordChatChannelConsoleCommandExpiration: 0
+DiscordChatChannelConsoleCommandExpirationDeleteRequest: true
+DiscordChatChannelListCommandEnabled: true
+DiscordChatChannelListCommandMessage: playerlist
+DiscordChatChannelListCommandExpiration: 10
+DiscordChatChannelListCommandExpirationDeleteRequest: true
+DiscordChatChannelGameFilters: {}
+DiscordChatChannelDiscordFilters:
+  .*Online players \(.*: ''
+  .*\*\*No online players\*\*.*: ''
+ChannelTopicUpdaterChannelTopicsAtShutdownEnabled: true
+ChannelTopicUpdaterRateInMinutes: 10
+ChannelUpdater: []
+DiscordCannedResponses: {}
+MinecraftDiscordAccountLinkedConsoleCommands:
+- ''
+- ''
+- ''
+MinecraftDiscordAccountUnlinkedConsoleCommands:
+- ''
+- ''
+- ''
+MinecraftDiscordAccountLinkedRoleNameToAddUserTo: Linked
+MinecraftDiscordAccountLinkedAllowRelinkBySendingANewCode: false
+MinecraftDiscordAccountLinkedUsePM: true
+MinecraftDiscordAccountLinkedMessageDeleteSeconds: 0
+ServerWatchdogEnabled: false
+ServerWatchdogTimeout: 30
+ServerWatchdogMessageCount: 3
+ProxyHost: ''
+ProxyPort: 1234
+ProxyUser: ''
+ProxyPassword: ''
+Debug: []

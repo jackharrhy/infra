@@ -1,0 +1,9 @@
+# Direct router ingress is for cheesetown only. Existing LAN/Tailscale
+# reverse-proxy traffic to other HTTP hostnames retains its current routes.
+http:
+  routers:
+    direct-wan-guard:
+      entryPoints: [web]
+      rule: '!Host(`cheesetown.rocks`) && !(ClientIP(`127.0.0.0/8`) || ClientIP(`10.0.0.0/8`) || ClientIP(`172.16.0.0/12`) || ClientIP(`192.168.0.0/16`) || ClientIP(`100.64.0.0/10`) || ClientIP(`::1/128`) || ClientIP(`fc00::/7`))'
+      priority: 1000000
+      service: noop@internal

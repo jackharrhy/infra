@@ -1,0 +1,51 @@
+Settings:
+  Language: en_us
+  DateFormat: dd/MM/yyyy HH:mm:ss zzz
+  MapItemFormat: '&f{Name} &7({X}, {Y})'
+  RequireEmptyMaps: true
+  MaxSize: 16
+  RestrictImageUrl:
+    Enabled: true
+    Whitelist:
+    - https://i.imgur.com/
+    - https://cdn.discordapp.com/
+    - https://media.discordapp.net/
+    - https://textures.minecraft.net/
+  MaxImageFileSize: 5242880
+  MaxProcessingTime: 15
+  ParallelProcessingLimit: 1
+  PlayerCreationLimit:
+    default: 5
+  MapMarkerLimit: 5
+  MapPacketSendingRateLimit: 10
+  ExemptMapIdsFromDeletion:
+  - '-1'
+  MapRenderersContextual: false
+  HandleAnimatedMapsOnMainThread: false
+  SendAnimatedMapsOnMainThread: false
+  CacheControlMode: MANUAL_PERSISTENT
+  TryDeleteBlankMapFiles: false
+  CombinedByDefault: false
+UploadService:
+  Enabled: false
+  DisplayURL: http://change.this.to.your.server.ip.in.the.config
+  WebServer:
+    Host: 127.0.0.1
+    Port: 8517
+ImageFrameClient:
+  Enabled: false
+InvisibleFrame:
+  MaxConversionsPerSplash: 0
+  GlowEmptyFrames: false
+Storage:
+  Type: file
+  Options:
+    JdbcUrl: jdbc:mysql://localhost:3306/imageframe
+    Username: imageframe
+    Password: ''
+    ActivePollInterval: 5
+Hooks:
+  ViaVersion:
+    DisableSmoothAnimationForLegacyPlayers: false
+DebugLogging: false
+Updater: false

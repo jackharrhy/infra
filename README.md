@@ -12,7 +12,7 @@ diagram: https://jackharrhy.github.io/infra/infra.svg
 - `docs/`: generated D2/SVG diagram and old planning notes
 - `hosts/mug/`: DigitalOcean host compose stack
 - `hosts/newport/`: home host compose stack
-- `hosts/newport/minecraft/`: Minecraft stack and backups
+- `hosts/newport/cheesetown/`: cheesetown Minecraft stack
 - `scripts/`: small helper scripts
 - `cli.py`: the `infra` CLI
 - `infra.yml`: host metadata and diagram hints
@@ -83,19 +83,19 @@ infra nas nfs revoke SHARE CLIENT_PATTERN --yes
 
 ## Minecraft
 
-Minecraft lives in its own compose project:
+cheesetown lives in its own Compose project:
+
+On a fresh host, provision `.runtime-secrets/rcon-password` inside that directory
+with a random password and mode `600` before starting Compose.
 
 ```bash
-cd hosts/newport/minecraft
-../../../scripts/render-secrets.sh newport
-docker compose pull
-docker compose up -d
+cd hosts/newport/cheesetown
+docker compose up -d --wait --wait-timeout 180
 ```
 
-Runtime data and backups stay out of git:
-
-- `hosts/newport/minecraft/data/`
-- `hosts/newport/minecraft/backups/`
+See the [optional client pack](hosts/newport/cheesetown/client-pack/README.md).
+Persistent data is under `/mnt/terrabud/docker-data/newport/cheesetown/`; retired server data
+is under `/mnt/terrabud/docker-data/newport/retired-minecraft/`, outside infra.
 
 ## Remote hosts
 

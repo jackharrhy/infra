@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#faf8f2">
+  <title>cheesetown</title>
+  <meta name="description" content="a minecraft server">
+  <meta property="og:title" content="cheesetown">
+  <meta property="og:description" content="a minecraft server">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://cheesetown.rocks/">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🧀%3C/text%3E%3C/svg%3E">
+  <style>
+    :root { color-scheme:light; background:#faf8f2; color:#625d50; font-family:system-ui,sans-serif; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100svh; display:grid; place-items:center; padding:8px; }
+    main { display:grid; justify-items:center; gap:24px; }
+    .cheese { font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif; font-size:clamp(150px,28vw,240px); line-height:1.15; user-select:none; }
+    nav { display:flex; gap:32px; }
+    .server { display:flex; align-items:center; gap:16px; padding:8px 12px 8px 20px; border:1px solid #d9d2c3; border-radius:10px; font-size:18px; }
+    .ip-label { user-select:none; -webkit-user-select:none; }
+    .copy { display:grid; place-items:center; width:44px; height:44px; padding:0; border:0; border-radius:4px; background:transparent; color:inherit; cursor:pointer; user-select:none; }
+    .copy:hover { color:#211f19; }
+    .copy > * { grid-area:1 / 1; transition:opacity 180ms ease,transform 260ms cubic-bezier(.2,.8,.2,1); }
+    .copy-icon { width:22px; height:22px; }
+    .copy-cheese { font-size:27px; line-height:1; opacity:0; transform:scale(.5) rotate(-25deg); }
+    .copy.is-copied .copy-icon { opacity:0; transform:scale(.5) rotate(25deg); }
+    .copy.is-copied .copy-cheese { opacity:1; transform:scale(1) rotate(0); }
+    .copy-status { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+    @media (prefers-reduced-motion:reduce) { .copy > * { transition:none; } }
+    .setup { max-width:38ch; margin:0; font-size:13px; line-height:1.8; text-align:center; text-wrap:pretty; }
+    a { display:grid; place-items:center; min-height:44px; color:inherit; font-size:14px; letter-spacing:.02em; text-decoration-color:#c9c1ae; text-underline-offset:6px; }
+    a:hover { color:#211f19; text-decoration-color:currentColor; }
+    a:focus-visible,button:focus-visible { outline:2px solid #89733d; outline-offset:6px; border-radius:2px; }
+  </style>
+</head>
+<body>
+  <main aria-label="cheesetown">
+    <div class="cheese" role="img" aria-label="Cheese">🧀</div>
+    <div class="server">
+      <div><span class="ip-label">IP: </span><span class="address">cheesetown.rocks</span></div>
+      <button class="copy" type="button" aria-label="Copy server IP" title="Copy server IP">
+        <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg>
+        <span class="copy-cheese" aria-hidden="true">🧀</span>
+      </button>
+    </div>
+    <p class="copy-status" role="status"></p>
+    <nav aria-label="Server links" id="downloads">
+      <a href="prismlauncher://import?url=https%3A%2F%2Fcheesetown.rocks%2Fdownloads%2FCheesepack%2520v1.zip">open in Prism</a>
+      <a href="/downloads/cheesepack-v1.zip" download="Cheesepack v1.zip" aria-label="Download auto-updating cheesepack">download ZIP</a>
+      <a href="/map/">map</a>
+    </nav>
+    <p class="setup">Open in Prism, or import the ZIP in Prism Launcher / MultiMC. Select Java 25, then launch. Packwiz checks for mod updates before each launch.</p>
+  </main>
+  <script>
+    const copy = document.querySelector('.copy');
+    const status = document.querySelector('.copy-status');
+    let reset;
+    copy.addEventListener('click', async () => {
+      clearTimeout(reset);
+      status.textContent = '';
+      try {
+        await navigator.clipboard.writeText(document.querySelector('.address').textContent);
+        copy.classList.add('is-copied');
+        copy.setAttribute('aria-label', 'IP copied');
+        copy.title = 'IP copied';
+        status.textContent = 'IP copied.';
+      } catch {
+        copy.classList.remove('is-copied');
+        copy.setAttribute('aria-label', 'Copy failed. Select the address to copy manually.');
+        copy.title = 'Copy failed. Select the address to copy manually.';
+        status.textContent = 'Could not copy. Select cheesetown.rocks to copy it manually.';
+      }
+      reset = setTimeout(() => {
+        copy.classList.remove('is-copied');
+        copy.setAttribute('aria-label', 'Copy server IP');
+        copy.title = 'Copy server IP';
+        status.textContent = '';
+      }, 3000);
+    });
+  </script>
+</body>
+</html>
