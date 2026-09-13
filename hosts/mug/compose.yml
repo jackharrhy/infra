@@ -216,7 +216,7 @@ services:
       - "traefik.http.routers.burger.tls.domains[0].sans=*.burger.beauty"
 
   andrewsite_remix:
-    image: ghcr.io/jackharrhy/andrew-gosse-site@sha256:c4b81d11d44936e646e36b8acb5056a7316f1ccb0994ec562ed6b413e34f0787
+    image: ghcr.io/jackharrhy/andrew-gosse-site@sha256:19a93c183bf254e7637aea2b31fe801e3e7b7f5b3beda572a4ffaa06750b9633
     restart: unless-stopped
     networks: [web]
     environment:
@@ -234,6 +234,14 @@ services:
       - "traefik.http.routers.andrewsiteremix.tls.certresolver=mugresolver"
       - "traefik.http.routers.andrewsiteremix.tls.domains[0].main=andrewgossecomposer.com"
       - "traefik.http.routers.andrewsiteremix.tls.domains[0].sans=*.andrewgossecomposer.com"
+      - "traefik.http.routers.andrewsiteremix-www.rule=Host(`www.andrewgossecomposer.com`)"
+      - "traefik.http.routers.andrewsiteremix-www.entrypoints=websecure"
+      - "traefik.http.routers.andrewsiteremix-www.tls=true"
+      - "traefik.http.routers.andrewsiteremix-www.service=andrewsiteremix"
+      - "traefik.http.routers.andrewsiteremix-www.middlewares=andrewsite-canonical-host"
+      - "traefik.http.middlewares.andrewsite-canonical-host.redirectregex.regex=^https://www[.]andrewgossecomposer[.]com/(.*)"
+      - "traefik.http.middlewares.andrewsite-canonical-host.redirectregex.replacement=https://andrewgossecomposer.com/$${1}"
+      - "traefik.http.middlewares.andrewsite-canonical-host.redirectregex.permanent=true"
 
   andrewsite_media:
     image: nginx:alpine
