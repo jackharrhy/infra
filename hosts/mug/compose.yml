@@ -215,7 +215,43 @@ services:
       - "traefik.http.routers.burger.tls.domains[0].main=burger.beauty"
       - "traefik.http.routers.burger.tls.domains[0].sans=*.burger.beauty"
 
+  andrewsite_remix:
+    image: ghcr.io/jackharrhy/andrew-gosse-site@sha256:c0da7d16f35e515dcfffe8236f507be993e6c2d903c71e128998d0d01e5035ec
+    restart: unless-stopped
+    networks: [web]
+    environment:
+      - APP_ORIGIN=https://andrewgossecomposer.com
+    volumes:
+      - ./volumes/andrewsite_tea_data:/app/data
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+      - "traefik.docker.network=mug_web"
+      - "traefik.enable=true"
+      - "traefik.http.services.andrewsiteremix.loadbalancer.server.port=4331"
+      - "traefik.http.routers.andrewsiteremix.rule=Host(`andrewgossecomposer.com`)"
+      - "traefik.http.routers.andrewsiteremix.entrypoints=websecure"
+      - "traefik.http.routers.andrewsiteremix.tls.certresolver=mugresolver"
+      - "traefik.http.routers.andrewsiteremix.tls.domains[0].main=andrewgossecomposer.com"
+      - "traefik.http.routers.andrewsiteremix.tls.domains[0].sans=*.andrewgossecomposer.com"
+
+  andrewsite_media:
+    image: nginx:alpine
+    restart: unless-stopped
+    networks: [web]
+    volumes:
+      - ./andrewsite/media.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./volumes/andrewsite_strapi_uploads:/srv/uploads:ro
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+      - "traefik.docker.network=mug_web"
+      - "traefik.enable=true"
+      - "traefik.http.services.andrewsitemedia.loadbalancer.server.port=80"
+      - "traefik.http.routers.andrewsitemedia.rule=Host(`api.andrewgossecomposer.com`)"
+      - "traefik.http.routers.andrewsitemedia.entrypoints=websecure"
+      - "traefik.http.routers.andrewsitemedia.tls.certresolver=mugresolver"
+
   andrewsite_astro:
+    profiles: [legacy-andrew]
     image: ghcr.io/jackharrhy/andrew-gosse-site-astro:main
     restart: unless-stopped
     networks: [web, andrewsite]
@@ -223,6 +259,7 @@ services:
       - STRAPI_URL=http://andrewsite_strapi:1337
       - EXTERNAL_STRAPI_URL=https://api.andrewgossecomposer.com
     labels:
+      - "com.centurylinklabs.watchtower.enable=false"
       - "traefik.docker.network=mug_web"
       - "traefik.enable=true"
       - "traefik.http.services.andrewsiteastro.loadbalancer.server.port=4321"
@@ -233,6 +270,7 @@ services:
       - "traefik.http.routers.andrewsiteastro.tls.domains[0].sans=*.andrewgossecomposer.com"
 
   andrewsite_strapi:
+    profiles: [legacy-andrew]
     image: ghcr.io/jackharrhy/andrew-gosse-site-strapi:main
     restart: unless-stopped
     networks: [web, andrewsite]
@@ -244,6 +282,7 @@ services:
       - ./volumes/andrewsite_strapi_data:/opt/app/data
       - ./volumes/andrewsite_strapi_uploads:/opt/app/public/uploads
     labels:
+      - "com.centurylinklabs.watchtower.enable=false"
       - "traefik.docker.network=mug_web"
       - "traefik.enable=true"
       - "traefik.http.services.andrewsitestrapi.loadbalancer.server.port=1337"
