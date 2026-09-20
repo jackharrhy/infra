@@ -15,7 +15,37 @@ http:
       service: cheesetown-map
       tls:
         certResolver: newporthttp
+    cheesetown-item-sorter:
+      entryPoints: [websecure]
+      rule: Host(`cheesetown.rocks`) && (Path(`/item-sorter`) || PathPrefix(`/item-sorter/`))
+      middlewares: [cheesetown-item-sorter-slash, cheesetown-item-sorter-prefix]
+      service: cheesetown-item-sorter
+      tls:
+        certResolver: newporthttp
+    cheesetown-storefront:
+      entryPoints: [websecure]
+      rule: Host(`cheesetown.rocks`) && (Path(`/storefront`) || PathPrefix(`/storefront/`))
+      middlewares: [cheesetown-storefront-slash, cheesetown-storefront-prefix]
+      service: cheesetown-storefront
+      tls:
+        certResolver: newporthttp
   middlewares:
+    cheesetown-storefront-slash:
+      redirectRegex:
+        regex: '^(https?://[^/]+/storefront)(\?.*)?$'
+        replacement: '${1}/${2}'
+        permanent: true
+    cheesetown-storefront-prefix:
+      stripPrefix:
+        prefixes: [/storefront]
+    cheesetown-item-sorter-slash:
+      redirectRegex:
+        regex: '^(https?://[^/]+/item-sorter)(\?.*)?$'
+        replacement: '${1}/${2}'
+        permanent: true
+    cheesetown-item-sorter-prefix:
+      stripPrefix:
+        prefixes: [/item-sorter]
     cheesetown-map-slash:
       redirectRegex:
         regex: '^(https?://[^/]+/map)(\?.*)?$'
@@ -33,3 +63,11 @@ http:
       loadBalancer:
         servers:
           - url: http://127.0.0.1:8100
+    cheesetown-item-sorter:
+      loadBalancer:
+        servers:
+          - url: http://127.0.0.1:7001
+    cheesetown-storefront:
+      loadBalancer:
+        servers:
+          - url: http://127.0.0.1:8090

@@ -19,19 +19,9 @@ diagram: https://jackharrhy.github.io/infra/infra.svg
 
 ## CLI
 
-Install the shortcut:
-
 ```bash
 uv run cli.py install
 ```
-
-Or run it directly:
-
-```bash
-uv run cli.py --help
-```
-
-Useful commands:
 
 ```bash
 infra status
@@ -83,26 +73,4 @@ infra nas nfs revoke SHARE CLIENT_PATTERN --yes
 
 ## Minecraft
 
-cheesetown lives in its own Compose project:
-
-On a fresh host, provision `.runtime-secrets/rcon-password` inside that directory
-with a random password and mode `600` before starting Compose.
-
-```bash
-cd hosts/newport/cheesetown
-docker compose up -d --wait --wait-timeout 180
-```
-
-See the [optional client pack](hosts/newport/cheesetown/client-pack/README.md).
-Persistent data is under `/mnt/terrabud/docker-data/newport/cheesetown/`; retired server data
-is under `/mnt/terrabud/docker-data/newport/retired-minecraft/`, outside infra.
-
-## Remote hosts
-
-SSH targets and compose paths live in `infra.yml`.
-
-```bash
-infra status
-infra update mug
-infra refresh mug
-```
+cheesetown lives in its own Compose project

@@ -1,6 +1,6 @@
 verboseLogging: false
 port: 7001
-URL: "http://10.0.0.80:7001/"
+URL: "https://cheesetown.rocks/item-sorter/"
 postConfigResponse: postHopperConfig
 initialPageResponse: HopperConfig
 editPageResponse: editHopperConfig
