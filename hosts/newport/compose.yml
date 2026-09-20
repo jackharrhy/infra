@@ -459,7 +459,7 @@ services:
       - ./volumes/incydecy:/app/data
 
   steve:
-    image: ghcr.io/jackharrhy/letters-to-steve:sha-512571fc56d496c02cc7eee93d44956168bacf79
+    image: ghcr.io/jackharrhy/letters-to-steve:latest
     restart: unless-stopped
     networks: [web]
     env_file:
