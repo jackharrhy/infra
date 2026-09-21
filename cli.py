@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import shlex
 import shutil
 import socket
 import subprocess
@@ -702,8 +703,13 @@ def update(host: str | None):
 
 @cli.command()
 @click.argument("host", required=False)
-def refresh(host: str | None):
+@click.option("--service", "services", multiple=True, help="Refresh only these services; retain rollback images.")
+def refresh(host: str | None, services: tuple[str, ...]):
     """Pull images, recreate containers, and prune on remote host(s)."""
+    if services and not host:
+        raise click.UsageError("--service requires a host")
+    if any(not re.fullmatch(r"[a-zA-Z0-9][a-zA-Z0-9_.-]*", service) for service in services):
+        raise click.UsageError("Invalid Compose service name")
     config = load_infra_config()
     deploy_hosts = get_deploy_hosts(config)
 
@@ -718,34 +724,29 @@ def refresh(host: str | None):
             sys.exit(1)
         targets = {host: deploy_hosts[host]}
 
+    failed = False
     for name, info in targets.items():
         click.echo(f"── {name} ({info['ssh']}) ──")
-        cmd = (
-            f"cd {info['compose_path']}"
-            f" && docker compose pull"
-            f" && docker compose up -d"
-            f" && docker image prune -a -f"
-        )
+        commands = [
+            ["docker", "compose", "pull", *services],
+            ["docker", "compose", "up", "-d", *(["--no-deps"] if services else []), *services],
+        ]
+        if not services:
+            commands.append(["docker", "image", "prune", "-a", "-f"])
+        cmd = f"cd {info['compose_path']} && " + " && ".join(shlex.join(command) for command in commands)
         exit_code = run_host_command(
             info["ssh"],
             cmd,
-            [
-                ["docker", "compose", "pull"],
-                ["docker", "compose", "up", "-d"],
-                [
-                    "docker",
-                    "image",
-                    "prune",
-                    "-a",
-                    "-f",
-                ],
-            ],
+            commands,
             cwd=Path(info["compose_path"]).expanduser(),
             stream=True,
         )
         if exit_code != 0:
+            failed = True
             click.echo(click.style(f"  Failed (exit {exit_code})", fg="red"))
         click.echo()
+    if failed:
+        sys.exit(1)
 
 
 @cli.command()

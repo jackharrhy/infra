@@ -28,12 +28,18 @@ infra status
 infra status newport
 infra update newport
 infra refresh newport
+infra refresh mug --service radio-celld
 infra diagram
 infra diagram --format png
 infra diagram --no-render
 ```
 
 `infra diagram` reads the compose files plus `infra.yml`, writes `docs/infra.d2`, and renders `docs/infra.svg` if `d2` is installed.
+
+Use repeatable `refresh HOST --service NAME` options for a scoped application rollout. This
+pulls and starts only the named services without starting dependencies or pruning rollback
+images. A full-host refresh retains its existing image-pruning behavior. Storage-format
+upgrades still require stopping writers and taking a consistent backup before refresh.
 
 ## Secrets
 

@@ -93,6 +93,46 @@ class IsLocalSshTargetTests(unittest.TestCase):
             stream=True,
         )
 
+    @patch("cli.run_host_command", return_value=0)
+    @patch("cli.get_deploy_hosts")
+    @patch("cli.load_infra_config", return_value={})
+    def test_scoped_refresh_keeps_other_services_and_rollback_images(
+        self, _load_config, get_hosts, run_host
+    ):
+        get_hosts.return_value = {"mug": {
+            "ssh": "jack@mug", "compose_path": "~/infra/hosts/mug",
+        }}
+        result = CliRunner().invoke(cli.cli, [
+            "refresh", "mug", "--service", "radio-celld",
+        ])
+        self.assertEqual(0, result.exit_code, result.output)
+        run_host.assert_called_once_with(
+            "jack@mug",
+            "cd ~/infra/hosts/mug && docker compose pull radio-celld"
+            " && docker compose up -d --no-deps radio-celld",
+            [
+                ["docker", "compose", "pull", "radio-celld"],
+                ["docker", "compose", "up", "-d", "--no-deps", "radio-celld"],
+            ],
+            cwd=Path("~/infra/hosts/mug").expanduser(), stream=True,
+        )
+
+    def test_scoped_refresh_rejects_missing_host_and_invalid_service(self):
+        for args in (["--service", "radio-celld"], ["mug", "--service", "--all"]):
+            with self.subTest(args=args):
+                result = CliRunner().invoke(cli.cli, ["refresh", *args])
+                self.assertEqual(2, result.exit_code)
+
+    @patch("cli.run_host_command", return_value=1)
+    @patch("cli.get_deploy_hosts")
+    @patch("cli.load_infra_config", return_value={})
+    def test_refresh_returns_failure_when_deployment_fails(self, _config, hosts, _run):
+        hosts.return_value = {"mug": {
+            "ssh": "jack@mug", "compose_path": "~/infra/hosts/mug",
+        }}
+        result = CliRunner().invoke(cli.cli, ["refresh", "mug", "--service", "radio-celld"])
+        self.assertEqual(1, result.exit_code)
+
 
 if __name__ == "__main__":
     unittest.main()
