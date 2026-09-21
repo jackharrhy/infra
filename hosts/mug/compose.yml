@@ -418,7 +418,3 @@ services:
 networks:
   andrewsite:
   web:
-
-volumes:
-  radio_state:
-  radio_uploads:
