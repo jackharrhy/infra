@@ -259,6 +259,20 @@ services:
       - "traefik.http.routers.andrewsitemedia.entrypoints=websecure"
       - "traefik.http.routers.andrewsitemedia.tls.certresolver=mugresolver"
 
+  teacms:
+    image: ghcr.io/jackharrhy/teacms:main
+    restart: unless-stopped
+    networks: [web]
+    environment:
+      TEA_OPERATOR_ORIGIN: https://teacms.jackharrhy.dev
+    volumes:
+      - ./volumes/teacms:/app/data
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+      - "traefik.docker.network=mug_web"
+      - "traefik.enable=true"
+      - "traefik.http.services.teacms.loadbalancer.server.port=4351"
+
   andrewsite_astro:
     profiles: [legacy-andrew]
     image: ghcr.io/jackharrhy/andrew-gosse-site-astro:main

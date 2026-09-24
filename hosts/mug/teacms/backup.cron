@@ -1,0 +1,3 @@
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+27 4 * * * jack /bin/bash /home/jack/infra/hosts/mug/teacms/backup.sh 2>&1 | /usr/bin/logger -t teacms-backup

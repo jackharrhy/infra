@@ -1,0 +1,20 @@
+http:
+  routers:
+    teacms-andrew:
+      rule: Host(`andrew.jackharrhy.dev`)
+      entryPoints: [websecure]
+      service: teacms@docker
+      tls:
+        certResolver: mugresolver
+    teacms-luke:
+      rule: Host(`luke.jackharrhy.dev`)
+      entryPoints: [websecure]
+      service: teacms@docker
+      tls:
+        certResolver: mugresolver
+    teacms-operator:
+      rule: Host(`teacms.jackharrhy.dev`)
+      entryPoints: [websecure]
+      service: teacms@docker
+      tls:
+        certResolver: mugresolver
