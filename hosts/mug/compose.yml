@@ -267,6 +267,16 @@ services:
       TEA_OPERATOR_ORIGIN: https://teacms.jackharrhy.dev
     volumes:
       - ./volumes/teacms:/app/data
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "require('node:http').get({host:'127.0.0.1',port:4351,path:'/healthz',headers:{Host:'andrew.jackharrhy.dev'}},r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
     labels:
       - "com.centurylinklabs.watchtower.enable=false"
       - "traefik.docker.network=mug_web"
