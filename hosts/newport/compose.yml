@@ -151,6 +151,7 @@ services:
     environment:
       - PORT=8789
       - WORLDVIEW_URL=https://worldview.harrhy.xyz
+      - WORLDVIEW_ADDITIONAL_PUBLIC_ORIGINS=https://newport.hedgehog-python.ts.net:8444,https://newport.hedgehog-python.ts.net:8457
       - FOURM_URL=https://4orm.harrhy.xyz
       - FOURM_CLIENT_ID=worldview
       - ARTBIN_URL=https://artbin.jackharrhy.dev
