@@ -1,5 +1,22 @@
 http:
   routers:
+    ref-via-newport:
+      rule: "Host(`ref.jackharrhy.dev`)"
+      entryPoints: [websecure]
+      service: newport-origin
+      middlewares: [ref-strip-cloudflare-ip]
+      tls:
+        certResolver: mugresolver
+
+    ref-login-via-newport:
+      rule: "Host(`ref.jackharrhy.dev`) && Path(`/login`) && Method(`POST`)"
+      priority: 100
+      entryPoints: [websecure]
+      service: newport-origin
+      middlewares: [ref-login-rate, ref-login-body, ref-strip-cloudflare-ip]
+      tls:
+        certResolver: mugresolver
+
     cado-via-newport:
       rule: "Host(`cado.jackharrhy.dev`)"
       entryPoints: [websecure]
@@ -137,6 +154,21 @@ http:
         # softspark.dev is on Cloudflare, not DigitalOcean, use HTTP-01 instead.
         certResolver: mughttp
 
+
+  middlewares:
+    ref-login-rate:
+      rateLimit:
+        average: 6
+        period: 1m
+        burst: 6
+    ref-login-body:
+      buffering:
+        maxRequestBodyBytes: 4096
+        memRequestBodyBytes: 4096
+    ref-strip-cloudflare-ip:
+      headers:
+        customRequestHeaders:
+          CF-Connecting-IP: ""
 
   services:
     newport-origin:

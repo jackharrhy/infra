@@ -309,8 +309,9 @@ services:
   ref-celld:
     image: ghcr.io/jackharrhy/ref:latest
     restart: unless-stopped
+    networks: [web]
     ports:
-      - "127.0.0.1:8787:8080"
+      - "127.0.0.1:8794:8080"
     environment:
       - CELLD_VARS_FILE=/run/secrets/ref.env
       - CELLD_TRUST_FORWARDED_HEADERS=1
@@ -323,6 +324,11 @@ services:
     stop_grace_period: 90s
     labels:
       - "com.centurylinklabs.watchtower.enable=false"
+      - "traefik.docker.network=newport_web"
+      - "traefik.enable=true"
+      - "traefik.http.services.ref-celld.loadbalancer.server.port=8080"
+      - "traefik.http.routers.ref-celld.rule=Host(`ref.jackharrhy.dev`)"
+      - "traefik.http.routers.ref-celld.entrypoints=web"
 
   # Karakeep is the web-capture inbox. Its SQLite DB and downloaded assets are
   # kept separate; the retired Monbooru gallery + metadata are archived under
