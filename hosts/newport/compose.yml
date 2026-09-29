@@ -329,6 +329,10 @@ services:
       - "traefik.http.services.ref-celld.loadbalancer.server.port=8080"
       - "traefik.http.routers.ref-celld.rule=Host(`ref.jackharrhy.dev`)"
       - "traefik.http.routers.ref-celld.entrypoints=web"
+      # Mug terminates TLS; Celld needs the browser origin for WebSocket checks.
+      - "traefik.http.routers.ref-celld.middlewares=ref-public-origin"
+      - "traefik.http.middlewares.ref-public-origin.headers.customrequestheaders.X-Forwarded-Host=ref.jackharrhy.dev"
+      - "traefik.http.middlewares.ref-public-origin.headers.customrequestheaders.X-Forwarded-Proto=https"
 
   # Karakeep is the web-capture inbox. Its SQLite DB and downloaded assets are
   # kept separate; the retired Monbooru gallery + metadata are archived under
