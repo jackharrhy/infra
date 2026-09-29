@@ -306,6 +306,24 @@ services:
       - "traefik.http.middlewares.worldview-rooms-body-limit.buffering.maxRequestBodyBytes=8388608"
       - "traefik.http.middlewares.worldview-rooms-body-limit.buffering.memRequestBodyBytes=1048576"
 
+  ref-celld:
+    image: ghcr.io/jackharrhy/ref:latest
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8787:8080"
+    environment:
+      - CELLD_VARS_FILE=/run/secrets/ref.env
+      - CELLD_TRUST_FORWARDED_HEADERS=1
+    volumes:
+      - /mnt/terrabud/docker-data/newport/ref_celld:/app/.celld
+      - ./.runtime-secrets/ref.env:/run/secrets/ref.env:ro
+    pids_limit: 128
+    mem_limit: 512m
+    cpus: 1
+    stop_grace_period: 90s
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+
   # Karakeep is the web-capture inbox. Its SQLite DB and downloaded assets are
   # kept separate; the retired Monbooru gallery + metadata are archived under
   # /mnt/terrabud/docker-data/newport/monbooru-archive-20260904.
