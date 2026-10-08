@@ -4,8 +4,9 @@
 `maps-gower-compiler` in `../compose.yml` are the Tea replacement for
 Worldview. The UI and collaboration Workers run on separate local Celld
 instances. The hosted service and native compilers are private Node containers.
-Mug routes `maps.jackharrhy.dev` to Newport. The original
-`worldview.harrhy.xyz` deployment remains separate until the final cutover.
+Mug routes `maps.jackharrhy.dev` and `worldview.harrhy.xyz` to Newport.
+Both hostnames now serve Tea Maps. Keep the old hostname available so users can
+open browser-local projects there and export them for import at the new origin.
 
 The UI state is under `/mnt/terrabud/docker-data/newport/maps_ui_celld`.
 Hosted projects and blobs are under `maps_service_tea`, and collaboration cells
@@ -21,16 +22,29 @@ generated for 4orm's `tea-maps-service` and `tea-maps-server` clients. Render
 both with `./scripts/render-secrets.sh newport` from the infra root. The public
 `tea-maps` client redirects to
 `https://maps.jackharrhy.dev/auth/callback`.
+Fourm PR 33 registers the three Maps clients. Newport currently runs the
+locally built `local/4orm:tea-maps-oauth-20261008` image, which combines that
+change with Newport Shell's existing local changes. Its image archive is in
+`/mnt/terrabud/backup/tea-maps-2026-10-08/fourm-maps-oauth-image.tar`; keep
+the live Compose image pin until those Shell changes are published too.
 
 The four Tea Maps images are pinned to digests published from Tea commit
-`17429487b2c5dc82bf59d3ce45df462d4064e39a`. Rehearse against copies of
-the two Worldview stores, and compare hosted rows, blobs, and every map cell.
-For final transfer, stop writes to Worldview, take SQLite backups including its
-live WAL, copy blobs and the whole Celld store, rename the copied
-`worldview.db` to `maps.db`, and rerun both comparisons. Keep the original
-images and frozen stores for rollback. The copied browser-local IndexedDB
-cannot cross origins; retain the old hostname long enough for users to export
-and import it there.
+`17429487b2c5dc82bf59d3ce45df462d4064e39a`. On 2026-10-08, the final
+frozen copy passed integrity checks and byte-level comparisons: 3 users,
+3 projects, 7 maps, 37 resource mounts, 25 builds, and 99 blobs. All seven
+collaboration snapshots matched; there were no checkpoints. Reports and the
+frozen source stores are under
+`/mnt/terrabud/backup/tea-maps-2026-10-08/final-frozen` on Newport. The
+original Worldview stores and archived images remain for rollback. Browser
+IndexedDB stays tied to its original hostname.
+
+For rollback, stop the three stateful Maps containers before touching their
+stores. The previous Worldview Compose services are available from the parent
+infra revision; its two original data directories remain untouched. Restore
+the saved Mug `newport-origin.yml.before-tea-maps` if the new hostname must be
+removed. Start Worldview from the previous Compose revision and check the old
+hostname before allowing writes. Do not copy the Tea stores back into the
+original Worldview stores after they have accepted writes.
 
 Use scoped refreshes for these services. Do not refresh all of Newport to
 perform a Maps rollout. Native compiler executables are mounted read only
