@@ -131,8 +131,8 @@ http:
       tls:
         certResolver: mugresolver
 
-    marky-via-newport:
-      rule: "Host(`marky.jackharrhy.dev`)"
+    md-via-newport:
+      rule: "Host(`md.jackharrhy.dev`)"
       entryPoints: [websecure]
       service: newport-origin
       tls:
