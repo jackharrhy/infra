@@ -301,7 +301,7 @@ services:
       - "traefik.http.middlewares.ref-public-origin.headers.customrequestheaders.X-Forwarded-Proto=https"
 
   marky:
-    image: ghcr.io/jackharrhy/tea-marky:latest
+    image: ghcr.io/jackharrhy/tea-marky@sha256:af6b1c604cf0beaa523d2b3ba0c60a84ee001123e76d65a29b5baaea91857bc6
     restart: unless-stopped
     networks: [web]
     env_file:
@@ -321,6 +321,7 @@ services:
       - "traefik.http.services.marky.loadbalancer.server.port=44100"
       - "traefik.http.routers.marky.rule=Host(`md.jackharrhy.dev`)"
       - "traefik.http.routers.marky.entrypoints=web"
+      - "com.centurylinklabs.watchtower.enable=false"
 
   # Karakeep is the web-capture inbox. Its SQLite DB and downloaded assets are
   # kept separate; the retired Monbooru gallery + metadata are archived under
