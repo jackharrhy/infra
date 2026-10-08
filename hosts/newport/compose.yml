@@ -140,72 +140,98 @@ services:
       - "traefik.http.routers.artbin.rule=Host(`artbin.jackharrhy.dev`)"
       - "traefik.http.routers.artbin.entrypoints=web"
 
-  worldview:
-    image: ghcr.io/jackharrhy/worldview:latest
-    init: true
-    user: "1000:1000"
+  maps-ui:
+    image: ghcr.io/jackharrhy/tea-maps@sha256:01a911c852a0cd34ae3e7e2b42317cc7e16b53658563d37150798dd024b015a2
     restart: unless-stopped
-    networks: [web, worldview_backend]
-    env_file:
-      - ./.runtime-secrets/worldview.env
+    networks: [web, maps_backend]
     environment:
-      - PORT=8789
-      - WORLDVIEW_URL=https://worldview.harrhy.xyz
-      - WORLDVIEW_ADDITIONAL_PUBLIC_ORIGINS=https://newport.hedgehog-python.ts.net:8444,https://newport.hedgehog-python.ts.net:8457
-      - FOURM_URL=https://4orm.harrhy.xyz
-      - FOURM_CLIENT_ID=worldview
-      - WORLDVIEW_4ORM_INTROSPECTION_CLIENT_ID=worldview-server
-      - ARTBIN_URL=https://artbin.jackharrhy.dev
-      - FOURM_SERVICE_CLIENT_ID=worldview-service
-      # FOURM_SERVICE_CLIENT_SECRET, WORLDVIEW_4ORM_INTROSPECTION_SECRET,
-      # and WORLDVIEW_REALTIME_TICKET_SECRET come from worldview.env.
-      - WORLDVIEW_MAP_SERVICE_URL=http://worldview-celld:8080
-      - WORLDVIEW_QUAKE_COMPILER_URL=http://worldview-compiler:8788
-      - WORLDVIEW_GOWER_COMPILER_URL=http://worldview-gower-compiler:8788
+      - CELLD_VAR_MAPS_SERVICE_ORIGIN=http://maps-service:8792
+      - CELLD_VAR_MAPS_COLLABORATION_ORIGIN=http://maps-collaboration:44100
+      - CELLD_TRUST_FORWARDED_HEADERS=1
     volumes:
-      - /mnt/terrabud/docker-data/newport/worldview_data:/data
-    cap_drop: [ALL]
-    security_opt:
-      - no-new-privileges:true
-    pids_limit: 128
-    mem_limit: 2g
-    cpus: 2
-    ulimits:
-      nofile:
-        soft: 512
-        hard: 512
+      - /mnt/terrabud/docker-data/newport/maps_ui_celld:/app/.celld
     ports:
-      - "127.0.0.1:8789:8789"
+      - "127.0.0.1:8790:8790"
+    pids_limit: 128
+    mem_limit: 1g
+    cpus: 2
+    stop_grace_period: 90s
     labels:
       - "com.centurylinklabs.watchtower.enable=false"
       - "traefik.docker.network=newport_web"
       - "traefik.enable=true"
-      - "traefik.http.services.worldview.loadbalancer.server.port=8789"
-      - "traefik.http.routers.worldview.rule=Host(`worldview.harrhy.xyz`)"
-      - "traefik.http.routers.worldview.entrypoints=web"
-      - "traefik.http.routers.worldview.middlewares=worldview-rate-limit"
-      - "traefik.http.middlewares.worldview-rate-limit.ratelimit.average=20"
-      - "traefik.http.middlewares.worldview-rate-limit.ratelimit.period=1s"
-      - "traefik.http.middlewares.worldview-rate-limit.ratelimit.burst=40"
+      - "traefik.http.services.maps-ui.loadbalancer.server.port=8790"
+      - "traefik.http.routers.maps-ui.rule=Host(`maps.jackharrhy.dev`)"
+      - "traefik.http.routers.maps-ui.entrypoints=web"
+      - "traefik.http.routers.maps-ui.middlewares=maps-public-origin"
+      - "traefik.http.middlewares.maps-public-origin.headers.customrequestheaders.X-Forwarded-Host=maps.jackharrhy.dev"
+      - "traefik.http.middlewares.maps-public-origin.headers.customrequestheaders.X-Forwarded-Proto=https"
+      - "traefik.http.routers.maps-ui-legacy.rule=Host(`worldview.harrhy.xyz`)"
+      - "traefik.http.routers.maps-ui-legacy.entrypoints=web"
+      - "traefik.http.routers.maps-ui-legacy.middlewares=maps-legacy-origin"
+      - "traefik.http.middlewares.maps-legacy-origin.headers.customrequestheaders.X-Forwarded-Host=worldview.harrhy.xyz"
+      - "traefik.http.middlewares.maps-legacy-origin.headers.customrequestheaders.X-Forwarded-Proto=https"
 
-  worldview-compiler:
-    image: ghcr.io/jackharrhy/worldview:latest
+  maps-service:
+    image: ghcr.io/jackharrhy/tea-maps-service@sha256:4a2ef1d0eee363df1e50cc07ee1ffe9845627c4286c4f0ff8a58064bb6b47c2a
     restart: unless-stopped
-    command: ["node", "apps/compiler-service/dist/server.js"]
-    networks: [worldview_backend]
+    networks: [web, maps_backend]
+    env_file:
+      - ./.runtime-secrets/maps-ticket.env
+      - ./.runtime-secrets/maps-service.env
+    environment:
+      - TEA_MAPS_URL=https://maps.jackharrhy.dev
+      - TEA_MAPS_ADDITIONAL_PUBLIC_ORIGINS=https://worldview.harrhy.xyz
+      - TEA_MAPS_COLLABORATION_URL=http://maps-collaboration:44100
+      - FOURM_URL=https://4orm.harrhy.xyz
+      - FOURM_CLIENT_ID=tea-maps
+      - TEA_MAPS_FOURM_INTROSPECTION_CLIENT_ID=tea-maps-server
+      - TEA_MAPS_MCP_SCOPE=maps:admin
+      - TEA_MAPS_ARTBIN_URL=https://artbin.jackharrhy.dev
+      - TEA_MAPS_ARTBIN_CLIENT_ID=tea-maps-service
+      - TEA_MAPS_QUAKE_COMPILER_URL=http://maps-compiler:8788
+      - TEA_MAPS_GOWER_COMPILER_URL=http://maps-gower-compiler:8788
+    volumes:
+      - /mnt/terrabud/docker-data/newport/maps_service_tea:/app/data
+    pids_limit: 128
+    mem_limit: 2g
+    cpus: 2
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+
+  maps-collaboration:
+    image: ghcr.io/jackharrhy/tea-maps-collaboration@sha256:5c15165d6961e7d4c793715ca1d52c7f47232e961afdb6f0cda3e0767734307c
+    restart: unless-stopped
+    networks: [maps_backend]
+    environment:
+      - TEA_MAPS_CELLD_DEPLOY_CONFIG=wrangler.celld-cutover.jsonc
+      - CELLD_VARS_FILE=/run/secrets/maps-ticket.env
+    volumes:
+      - /mnt/terrabud/docker-data/newport/maps_collaboration_tea:/app/.celld
+      - ./.runtime-secrets/maps-ticket.env:/run/secrets/maps-ticket.env:ro
+    pids_limit: 128
+    mem_limit: 1g
+    cpus: 1
+    stop_grace_period: 90s
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+
+  maps-compiler:
+    image: ghcr.io/jackharrhy/tea-maps-compiler@sha256:09418908856e1c9006017b219ddd89085efc9d02703a86b810f81c3b7dd079a5
+    restart: unless-stopped
+    networks: [maps_backend]
     read_only: true
     tmpfs:
       - /tmp:size=512m,mode=1777
     environment:
-      - WORLDVIEW_COMPILER_HOST=0.0.0.0
-      - WORLDVIEW_COMPILER_PORT=8788
-      - WORLDVIEW_COMPILER_MAX_CONCURRENT=1
-      - WORLDVIEW_COMPILER_THREADS=2
-      - WORLDVIEW_COMPILER_TIMEOUT_MS=60000
-      - WORLDVIEW_COMPILER_MAX_REQUEST_BYTES=188743680
-      - WORLDVIEW_COMPILER_MAX_MAP_BYTES=2097152
-      - WORLDVIEW_COMPILER_MAX_ASSET_BASE64_BYTES=180355072
-      - WORLDVIEW_COMPILER_MAX_ARTIFACT_BYTES=67108864
+      - TEA_MAPS_COMPILER_ORIGINS=https://maps.jackharrhy.dev,https://worldview.harrhy.xyz
+      - TEA_MAPS_COMPILER_MAX_CONCURRENT=1
+      - TEA_MAPS_COMPILER_THREADS=2
+      - TEA_MAPS_COMPILER_TIMEOUT_MS=60000
+      - TEA_MAPS_COMPILER_MAX_REQUEST_BYTES=188743680
+      - TEA_MAPS_COMPILER_MAX_MAP_BYTES=2097152
+      - TEA_MAPS_COMPILER_MAX_ASSET_BASE64_BYTES=180355072
+      - TEA_MAPS_COMPILER_MAX_ARTIFACT_BYTES=67108864
       - ERICW_QBSP=/opt/ericw-tools/qbsp
       - ERICW_VIS=/opt/ericw-tools/vis
       - ERICW_LIGHT=/opt/ericw-tools/light
@@ -217,39 +243,27 @@ services:
     pids_limit: 128
     mem_limit: 2g
     cpus: 2
-    ulimits:
-      nofile:
-        soft: 256
-        hard: 256
-    healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8788/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
-      interval: 10s
-      timeout: 3s
-      retries: 6
-      start_period: 5s
     labels:
       - "com.centurylinklabs.watchtower.enable=false"
 
-  worldview-gower-compiler:
-    image: ghcr.io/jackharrhy/worldview:latest
+  maps-gower-compiler:
+    image: ghcr.io/jackharrhy/tea-maps-compiler@sha256:09418908856e1c9006017b219ddd89085efc9d02703a86b810f81c3b7dd079a5
     restart: unless-stopped
-    command: ["node", "apps/compiler-service/dist/server.js"]
-    networks: [worldview_backend]
+    networks: [maps_backend]
     read_only: true
     tmpfs:
       - /tmp:size=512m,mode=1777
     environment:
-      - WORLDVIEW_COMPILER_HOST=0.0.0.0
-      - WORLDVIEW_COMPILER_PORT=8788
-      - WORLDVIEW_GAME_PROFILE=gower
-      - WORLDVIEW_COMPILER_MAX_CONCURRENT=1
-      - WORLDVIEW_COMPILER_THREADS=6
-      - WORLDVIEW_COMPILER_TIMEOUT_MS=1800000
-      - WORLDVIEW_COMPILER_MAX_REQUEST_BYTES=188743680
-      - WORLDVIEW_COMPILER_MAX_MAP_BYTES=2097152
-      - WORLDVIEW_COMPILER_MAX_ASSETS=64
-      - WORLDVIEW_COMPILER_MAX_ASSET_BASE64_BYTES=180355072
-      - WORLDVIEW_COMPILER_MAX_ARTIFACT_BYTES=67108864
+      - TEA_MAPS_GAME_PROFILE=gower
+      - TEA_MAPS_COMPILER_ORIGINS=https://maps.jackharrhy.dev,https://worldview.harrhy.xyz
+      - TEA_MAPS_COMPILER_MAX_CONCURRENT=1
+      - TEA_MAPS_COMPILER_THREADS=6
+      - TEA_MAPS_COMPILER_TIMEOUT_MS=1800000
+      - TEA_MAPS_COMPILER_MAX_REQUEST_BYTES=188743680
+      - TEA_MAPS_COMPILER_MAX_MAP_BYTES=2097152
+      - TEA_MAPS_COMPILER_MAX_ASSETS=64
+      - TEA_MAPS_COMPILER_MAX_ASSET_BASE64_BYTES=180355072
+      - TEA_MAPS_COMPILER_MAX_ARTIFACT_BYTES=67108864
       - ERICW_QBSP=/opt/ericw-tools/qbsp
       - ERICW_VIS=/opt/ericw-tools/vis
       - ERICW_LIGHT=/opt/ericw-tools/light
@@ -261,50 +275,8 @@ services:
     pids_limit: 128
     mem_limit: 4g
     cpus: 6
-    ulimits:
-      nofile:
-        soft: 256
-        hard: 256
-    healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8788/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
-      interval: 10s
-      timeout: 3s
-      retries: 6
-      start_period: 5s
     labels:
       - "com.centurylinklabs.watchtower.enable=false"
-
-  worldview-celld:
-    image: ghcr.io/jackharrhy/worldview-celld:latest
-    restart: unless-stopped
-    networks: [web]
-    environment:
-      - CELLD_BUCKET=sqlite:///var/lib/celld/object-store/objects.sqlite3
-      - CELLD_DURABILITY=bucket
-      - CELLD_WATCH=/var/lib/celld/state-sqlite
-      - CELLD_VARS_FILE=/run/secrets/worldview.env
-      - CELLD_TRUST_FORWARDED_HEADERS=1
-    volumes:
-      - /mnt/terrabud/docker-data/newport/worldview_celld:/var/lib/celld
-      - ./.runtime-secrets/worldview.env:/run/secrets/worldview.env:ro
-    pids_limit: 128
-    mem_limit: 512m
-    cpus: 1
-    stop_grace_period: 90s
-    labels:
-      - "com.centurylinklabs.watchtower.enable=false"
-      - "traefik.docker.network=newport_web"
-      - "traefik.enable=true"
-      - "traefik.http.services.worldview-celld.loadbalancer.server.port=8080"
-      - "traefik.http.routers.worldview-celld.rule=Host(`worldview.harrhy.xyz`) && PathPrefix(`/sync/maps/`)"
-      - "traefik.http.routers.worldview-celld.entrypoints=web"
-      - "traefik.http.routers.worldview-celld.priority=100"
-      - "traefik.http.routers.worldview-celld.middlewares=worldview-rooms-rate-limit,worldview-rooms-body-limit"
-      - "traefik.http.middlewares.worldview-rooms-rate-limit.ratelimit.average=10"
-      - "traefik.http.middlewares.worldview-rooms-rate-limit.ratelimit.period=1s"
-      - "traefik.http.middlewares.worldview-rooms-rate-limit.ratelimit.burst=20"
-      - "traefik.http.middlewares.worldview-rooms-body-limit.buffering.maxRequestBodyBytes=8388608"
-      - "traefik.http.middlewares.worldview-rooms-body-limit.buffering.memRequestBodyBytes=1048576"
 
   ref-celld:
     image: ghcr.io/jackharrhy/tea-ref@sha256:0f521cf127610021069d6e835d3c1d64a29be4fb67324c77b80de14e3a68bfbd
@@ -565,8 +537,9 @@ services:
 
 networks:
   web:
-  worldview_backend:
+  maps_backend:
     internal: true
+
   karakeep:
     internal: true
   miniflux:
