@@ -141,7 +141,7 @@ services:
       - "traefik.http.routers.artbin.entrypoints=web"
 
   maps-ui:
-    image: ghcr.io/jackharrhy/tea-maps:latest
+    image: ghcr.io/jackharrhy/tea-maps@sha256:01a911c852a0cd34ae3e7e2b42317cc7e16b53658563d37150798dd024b015a2
     restart: unless-stopped
     networks: [web, maps_backend]
     environment:
@@ -168,16 +168,21 @@ services:
       - "traefik.http.middlewares.maps-public-origin.headers.customrequestheaders.X-Forwarded-Proto=https"
 
   maps-service:
-    image: ghcr.io/jackharrhy/tea-maps-service:latest
+    image: ghcr.io/jackharrhy/tea-maps-service@sha256:4a2ef1d0eee363df1e50cc07ee1ffe9845627c4286c4f0ff8a58064bb6b47c2a
     restart: unless-stopped
     networks: [web, maps_backend]
     env_file:
       - ./.runtime-secrets/maps-ticket.env
+      - ./.runtime-secrets/maps-service.env
     environment:
       - TEA_MAPS_URL=https://maps.jackharrhy.dev
       - TEA_MAPS_COLLABORATION_URL=http://maps-collaboration:44100
       - FOURM_URL=https://4orm.harrhy.xyz
       - FOURM_CLIENT_ID=tea-maps
+      - TEA_MAPS_FOURM_INTROSPECTION_CLIENT_ID=tea-maps-server
+      - TEA_MAPS_MCP_SCOPE=maps:admin
+      - TEA_MAPS_ARTBIN_URL=https://artbin.jackharrhy.dev
+      - TEA_MAPS_ARTBIN_CLIENT_ID=tea-maps-service
       - TEA_MAPS_QUAKE_COMPILER_URL=http://maps-compiler:8788
       - TEA_MAPS_GOWER_COMPILER_URL=http://maps-gower-compiler:8788
     volumes:
@@ -189,7 +194,7 @@ services:
       - "com.centurylinklabs.watchtower.enable=false"
 
   maps-collaboration:
-    image: ghcr.io/jackharrhy/tea-maps-collaboration:latest
+    image: ghcr.io/jackharrhy/tea-maps-collaboration@sha256:5c15165d6961e7d4c793715ca1d52c7f47232e961afdb6f0cda3e0767734307c
     restart: unless-stopped
     networks: [maps_backend]
     environment:
@@ -206,7 +211,7 @@ services:
       - "com.centurylinklabs.watchtower.enable=false"
 
   maps-compiler:
-    image: ghcr.io/jackharrhy/tea-maps-compiler:latest
+    image: ghcr.io/jackharrhy/tea-maps-compiler@sha256:09418908856e1c9006017b219ddd89085efc9d02703a86b810f81c3b7dd079a5
     restart: unless-stopped
     networks: [maps_backend]
     read_only: true
@@ -236,7 +241,7 @@ services:
       - "com.centurylinklabs.watchtower.enable=false"
 
   maps-gower-compiler:
-    image: ghcr.io/jackharrhy/tea-maps-compiler:latest
+    image: ghcr.io/jackharrhy/tea-maps-compiler@sha256:09418908856e1c9006017b219ddd89085efc9d02703a86b810f81c3b7dd079a5
     restart: unless-stopped
     networks: [maps_backend]
     read_only: true

@@ -16,16 +16,14 @@ rollback. The collaboration container selects
 identity and map cell namespace. The other Celld store is new.
 
 `maps-ticket.enc.yaml` supplies one random ticket secret to the hosted service
-and collaboration Worker. Render it with `./scripts/render-secrets.sh newport`
-from the infra root. Once 4orm's Tea Maps clients are deployed, generate new
-secrets for `tea-maps-service` and `tea-maps-server` through its admin flow and
-store them in a separate SOPS file for the hosted service. Set the matching
-`TEA_MAPS_ARTBIN_*` and `TEA_MAPS_FOURM_INTROSPECTION_*` variables there.
-The public `tea-maps` client redirects to
+and collaboration Worker. `maps-service.enc.yaml` holds the separate secrets
+generated for 4orm's `tea-maps-service` and `tea-maps-server` clients. Render
+both with `./scripts/render-secrets.sh newport` from the infra root. The public
+`tea-maps` client redirects to
 `https://maps.jackharrhy.dev/auth/callback`.
 
-Before starting these services, replace all four `:latest` image references
-with reviewed digests from the Tea Maps publisher. Rehearse against copies of
+The four Tea Maps images are pinned to digests published from Tea commit
+`17429487b2c5dc82bf59d3ce45df462d4064e39a`. Rehearse against copies of
 the two Worldview stores, and compare hosted rows, blobs, and every map cell.
 For final transfer, stop writes to Worldview, take SQLite backups including its
 live WAL, copy blobs and the whole Celld store, rename the copied
