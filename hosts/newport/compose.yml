@@ -120,7 +120,7 @@ services:
       - "traefik.http.routers.adam_eats.entrypoints=web"
 
   artbin:
-    image: ghcr.io/jackharrhy/artbin:main
+    image: ghcr.io/jackharrhy/tea-artbin:latest
     restart: unless-stopped
     networks: [web]
     env_file:
@@ -130,9 +130,9 @@ services:
       - FOURM_CLIENT_ID=artbin
       - ARTBIN_URL=https://artbin.jackharrhy.dev
     volumes:
-      - /mnt/terrabud/docker-data/newport/artbin_data/data:/app/apps/web/data
-      - /mnt/terrabud/docker-data/newport/artbin_data/uploads:/app/apps/web/public/uploads
-      - /mnt/terrabud/docker-data/newport/artbin_data/tmp:/app/apps/web/tmp/uploads
+      - /mnt/terrabud/docker-data/newport/artbin_tea_data/data:/app/apps/artbin/data
+      - /mnt/terrabud/docker-data/newport/artbin_tea_data/uploads:/app/apps/artbin/public/uploads
+      - /mnt/terrabud/docker-data/newport/artbin_tea_data/tmp:/app/apps/artbin/tmp/uploads
     labels:
       - "traefik.docker.network=newport_web"
       - "traefik.enable=true"
