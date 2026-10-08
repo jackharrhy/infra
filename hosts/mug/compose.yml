@@ -72,8 +72,11 @@ services:
   watchtower:
     image: ghcr.io/nicholas-fedor/watchtower:1.17
     restart: unless-stopped
+    environment:
+      DOCKER_CONFIG: /config
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - /home/jack/.docker:/config:ro
     env_file:
       - ./.runtime-secrets/watchtower.env
     labels:
@@ -260,7 +263,7 @@ services:
       - "traefik.http.routers.andrewsitemedia.tls.certresolver=mugresolver"
 
   teacms:
-    image: ghcr.io/jackharrhy/tea-cms@sha256:1d0982681b5afb98e658e80f41ddcc2732e7b8cd3d10a0c004fa6a1ae89a53d6
+    image: ghcr.io/jackharrhy/tea-cms:latest
     restart: unless-stopped
     networks: [web]
     environment:
@@ -278,7 +281,7 @@ services:
       retries: 3
       start_period: 15s
     labels:
-      - "com.centurylinklabs.watchtower.enable=false"
+      - "com.centurylinklabs.watchtower.enable=true"
       - "traefik.docker.network=mug_web"
       - "traefik.enable=true"
       - "traefik.http.services.teacms.loadbalancer.server.port=4351"
