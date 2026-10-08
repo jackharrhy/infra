@@ -12,6 +12,7 @@ diagram: https://jackharrhy.github.io/infra/infra.svg
 - `docs/`: generated D2/SVG diagram and old planning notes
 - `hosts/mug/`: DigitalOcean host compose stack
 - `hosts/newport/`: home host compose stack
+- `hosts/newport/ref/`: Tea Ref deployment and rollback notes
 - `hosts/newport/cheesetown/`: cheesetown Minecraft stack
 - `scripts/`: small helper scripts
 - `cli.py`: the `infra` CLI
