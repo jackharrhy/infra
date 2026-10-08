@@ -307,7 +307,7 @@ services:
       - "traefik.http.middlewares.worldview-rooms-body-limit.buffering.memRequestBodyBytes=1048576"
 
   ref-celld:
-    image: ghcr.io/jackharrhy/ref:latest
+    image: ghcr.io/jackharrhy/tea-ref@sha256:0f521cf127610021069d6e835d3c1d64a29be4fb67324c77b80de14e3a68bfbd
     restart: unless-stopped
     networks: [web]
     ports:
@@ -316,7 +316,7 @@ services:
       - CELLD_VARS_FILE=/run/secrets/ref.env
       - CELLD_TRUST_FORWARDED_HEADERS=1
     volumes:
-      - /mnt/terrabud/docker-data/newport/ref_celld:/app/.celld
+      - /mnt/terrabud/docker-data/newport/ref_celld_tea:/app/.celld
       - ./.runtime-secrets/ref.env:/run/secrets/ref.env:ro
     pids_limit: 128
     mem_limit: 512m
