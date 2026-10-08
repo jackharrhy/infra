@@ -11,6 +11,7 @@ diagram: https://jackharrhy.github.io/infra/infra.svg
 - `dns/`: octoDNS config and zone files
 - `docs/`: generated D2/SVG diagram and old planning notes
 - `hosts/mug/`: DigitalOcean host compose stack
+- `hosts/mug/radio/`: Tea Radio deployment and rollback notes
 - `hosts/newport/`: home host compose stack
 - `hosts/newport/ref/`: Tea Ref deployment and rollback notes
 - `hosts/newport/cheesetown/`: cheesetown Minecraft stack

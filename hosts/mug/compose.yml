@@ -161,7 +161,7 @@ services:
 
   # Radio uses the fork's single-node SQLite object store on this host.
   radio-celld:
-    image: ghcr.io/jackharrhy/radio:latest
+    image: ghcr.io/jackharrhy/tea-radio@sha256:5b0698eee781f65584eedaab6ddff91d484c7f26aa18e75f2fd34fab5c30e3ec
     restart: unless-stopped
     networks: [web]
     env_file:
@@ -171,8 +171,9 @@ services:
       - CELLD_DURABILITY=bucket
       - CELLD_WATCH=/app/.celld/state
       - CELLD_TRUST_FORWARDED_HEADERS=1
+      - RADIO_CELLD_DEPLOY_CONFIG=wrangler.celld-cutover.jsonc
     volumes:
-      - ./volumes/radio_celld:/app/.celld
+      - ./volumes/radio_celld_tea:/app/.celld
     pids_limit: 256
     mem_limit: 1g
     memswap_limit: 1g
