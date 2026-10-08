@@ -260,7 +260,7 @@ services:
       - "traefik.http.routers.andrewsitemedia.tls.certresolver=mugresolver"
 
   teacms:
-    image: ghcr.io/jackharrhy/teacms:main
+    image: ghcr.io/jackharrhy/tea-cms@sha256:1d0982681b5afb98e658e80f41ddcc2732e7b8cd3d10a0c004fa6a1ae89a53d6
     restart: unless-stopped
     networks: [web]
     environment:
