@@ -140,6 +140,133 @@ services:
       - "traefik.http.routers.artbin.rule=Host(`artbin.jackharrhy.dev`)"
       - "traefik.http.routers.artbin.entrypoints=web"
 
+  maps-ui:
+    image: ghcr.io/jackharrhy/tea-maps:latest
+    restart: unless-stopped
+    networks: [web, maps_backend]
+    environment:
+      - CELLD_VAR_MAPS_SERVICE_ORIGIN=http://maps-service:8792
+      - CELLD_VAR_MAPS_COLLABORATION_ORIGIN=http://maps-collaboration:44100
+      - CELLD_TRUST_FORWARDED_HEADERS=1
+    volumes:
+      - /mnt/terrabud/docker-data/newport/maps_ui_celld:/app/.celld
+    ports:
+      - "127.0.0.1:8790:8790"
+    pids_limit: 128
+    mem_limit: 1g
+    cpus: 2
+    stop_grace_period: 90s
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+      - "traefik.docker.network=newport_web"
+      - "traefik.enable=true"
+      - "traefik.http.services.maps-ui.loadbalancer.server.port=8790"
+      - "traefik.http.routers.maps-ui.rule=Host(`maps.jackharrhy.dev`)"
+      - "traefik.http.routers.maps-ui.entrypoints=web"
+      - "traefik.http.routers.maps-ui.middlewares=maps-public-origin"
+      - "traefik.http.middlewares.maps-public-origin.headers.customrequestheaders.X-Forwarded-Host=maps.jackharrhy.dev"
+      - "traefik.http.middlewares.maps-public-origin.headers.customrequestheaders.X-Forwarded-Proto=https"
+
+  maps-service:
+    image: ghcr.io/jackharrhy/tea-maps-service:latest
+    restart: unless-stopped
+    networks: [web, maps_backend]
+    env_file:
+      - ./.runtime-secrets/maps-ticket.env
+    environment:
+      - TEA_MAPS_URL=https://maps.jackharrhy.dev
+      - TEA_MAPS_COLLABORATION_URL=http://maps-collaboration:44100
+      - FOURM_URL=https://4orm.harrhy.xyz
+      - FOURM_CLIENT_ID=tea-maps
+      - TEA_MAPS_QUAKE_COMPILER_URL=http://maps-compiler:8788
+      - TEA_MAPS_GOWER_COMPILER_URL=http://maps-gower-compiler:8788
+    volumes:
+      - /mnt/terrabud/docker-data/newport/maps_service_tea:/app/data
+    pids_limit: 128
+    mem_limit: 2g
+    cpus: 2
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+
+  maps-collaboration:
+    image: ghcr.io/jackharrhy/tea-maps-collaboration:latest
+    restart: unless-stopped
+    networks: [maps_backend]
+    environment:
+      - TEA_MAPS_CELLD_DEPLOY_CONFIG=wrangler.celld-cutover.jsonc
+      - CELLD_VARS_FILE=/run/secrets/maps-ticket.env
+    volumes:
+      - /mnt/terrabud/docker-data/newport/maps_collaboration_tea:/app/.celld
+      - ./.runtime-secrets/maps-ticket.env:/run/secrets/maps-ticket.env:ro
+    pids_limit: 128
+    mem_limit: 1g
+    cpus: 1
+    stop_grace_period: 90s
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+
+  maps-compiler:
+    image: ghcr.io/jackharrhy/tea-maps-compiler:latest
+    restart: unless-stopped
+    networks: [maps_backend]
+    read_only: true
+    tmpfs:
+      - /tmp:size=512m,mode=1777
+    environment:
+      - TEA_MAPS_COMPILER_ORIGINS=https://maps.jackharrhy.dev,https://worldview.harrhy.xyz
+      - TEA_MAPS_COMPILER_MAX_CONCURRENT=1
+      - TEA_MAPS_COMPILER_THREADS=2
+      - TEA_MAPS_COMPILER_TIMEOUT_MS=60000
+      - TEA_MAPS_COMPILER_MAX_REQUEST_BYTES=188743680
+      - TEA_MAPS_COMPILER_MAX_MAP_BYTES=2097152
+      - TEA_MAPS_COMPILER_MAX_ASSET_BASE64_BYTES=180355072
+      - TEA_MAPS_COMPILER_MAX_ARTIFACT_BYTES=67108864
+      - ERICW_QBSP=/opt/ericw-tools/qbsp
+      - ERICW_VIS=/opt/ericw-tools/vis
+      - ERICW_LIGHT=/opt/ericw-tools/light
+    volumes:
+      - /home/jack/.local/lib/ericw-tools/2.0.0-alpha11:/opt/ericw-tools:ro
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 128
+    mem_limit: 2g
+    cpus: 2
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+
+  maps-gower-compiler:
+    image: ghcr.io/jackharrhy/tea-maps-compiler:latest
+    restart: unless-stopped
+    networks: [maps_backend]
+    read_only: true
+    tmpfs:
+      - /tmp:size=512m,mode=1777
+    environment:
+      - TEA_MAPS_GAME_PROFILE=gower
+      - TEA_MAPS_COMPILER_ORIGINS=https://maps.jackharrhy.dev,https://worldview.harrhy.xyz
+      - TEA_MAPS_COMPILER_MAX_CONCURRENT=1
+      - TEA_MAPS_COMPILER_THREADS=6
+      - TEA_MAPS_COMPILER_TIMEOUT_MS=1800000
+      - TEA_MAPS_COMPILER_MAX_REQUEST_BYTES=188743680
+      - TEA_MAPS_COMPILER_MAX_MAP_BYTES=2097152
+      - TEA_MAPS_COMPILER_MAX_ASSETS=64
+      - TEA_MAPS_COMPILER_MAX_ASSET_BASE64_BYTES=180355072
+      - TEA_MAPS_COMPILER_MAX_ARTIFACT_BYTES=67108864
+      - ERICW_QBSP=/opt/ericw-tools/qbsp
+      - ERICW_VIS=/opt/ericw-tools/vis
+      - ERICW_LIGHT=/opt/ericw-tools/light
+    volumes:
+      - /home/jack/.local/lib/ericw-tools/2.0.0-alpha11:/opt/ericw-tools:ro
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 128
+    mem_limit: 4g
+    cpus: 6
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+
   worldview:
     image: ghcr.io/jackharrhy/worldview:latest
     init: true
@@ -565,6 +692,9 @@ services:
 
 networks:
   web:
+  maps_backend:
+    internal: true
+
   worldview_backend:
     internal: true
   karakeep:

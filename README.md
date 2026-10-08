@@ -14,6 +14,7 @@ diagram: https://jackharrhy.github.io/infra/infra.svg
 - `hosts/mug/radio/`: Tea Radio deployment and rollback notes
 - `hosts/newport/`: home host compose stack
 - `hosts/newport/ref/`: Tea Ref deployment and rollback notes
+- `hosts/newport/maps/`: Tea Maps staging and cutover notes
 - `hosts/newport/cheesetown/`: cheesetown Minecraft stack
 - `scripts/`: small helper scripts
 - `cli.py`: the `infra` CLI

@@ -103,6 +103,13 @@ http:
       tls:
         certResolver: mugresolver
 
+    maps-via-newport:
+      rule: "Host(`maps.jackharrhy.dev`)"
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
+
     worldview-via-newport:
       rule: "Host(`worldview.harrhy.xyz`)"
       entryPoints: [websecure]
