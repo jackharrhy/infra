@@ -141,7 +141,7 @@ services:
       - "traefik.http.routers.artbin.entrypoints=web"
 
   maps-ui:
-    image: ghcr.io/jackharrhy/tea-maps@sha256:01a911c852a0cd34ae3e7e2b42317cc7e16b53658563d37150798dd024b015a2
+    image: ghcr.io/jackharrhy/tea-maps@sha256:d76a09cc92a4c9d726a9a908c821e020486ddd979d8f65fc4425b45cb2655cbd
     restart: unless-stopped
     networks: [web, maps_backend]
     environment:
@@ -168,7 +168,7 @@ services:
       - "traefik.http.middlewares.maps-public-origin.headers.customrequestheaders.X-Forwarded-Proto=https"
 
   maps-service:
-    image: ghcr.io/jackharrhy/tea-maps-service@sha256:4a2ef1d0eee363df1e50cc07ee1ffe9845627c4286c4f0ff8a58064bb6b47c2a
+    image: ghcr.io/jackharrhy/tea-maps-service@sha256:78c8824737e961e9c20174beba4fbd40ad0d68b1a5f2a181b35e9258d23a788b
     restart: unless-stopped
     networks: [web, maps_backend]
     env_file:

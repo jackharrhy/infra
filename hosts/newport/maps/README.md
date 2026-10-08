@@ -28,7 +28,9 @@ change with Newport Shell's existing local changes. Its image archive is in
 `/mnt/terrabud/backup/tea-maps-2026-10-08/fourm-maps-oauth-image.tar`; keep
 the live Compose image pin until those Shell changes are published too.
 
-The four Tea Maps images are pinned to digests published from Tea commit
+The UI and service images are pinned to Tea commit
+`c0d382522af0c1ea34a663886028d573be7e983b`; the unchanged collaboration
+and compiler images remain pinned to
 `17429487b2c5dc82bf59d3ce45df462d4064e39a`. On 2026-10-08, the final
 frozen copy passed integrity checks and byte-level comparisons: 3 users,
 3 projects, 7 maps, 37 resource mounts, 25 builds, and 99 blobs. All seven
