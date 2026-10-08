@@ -166,11 +166,6 @@ services:
       - "traefik.http.routers.maps-ui.middlewares=maps-public-origin"
       - "traefik.http.middlewares.maps-public-origin.headers.customrequestheaders.X-Forwarded-Host=maps.jackharrhy.dev"
       - "traefik.http.middlewares.maps-public-origin.headers.customrequestheaders.X-Forwarded-Proto=https"
-      - "traefik.http.routers.maps-ui-legacy.rule=Host(`worldview.harrhy.xyz`)"
-      - "traefik.http.routers.maps-ui-legacy.entrypoints=web"
-      - "traefik.http.routers.maps-ui-legacy.middlewares=maps-legacy-origin"
-      - "traefik.http.middlewares.maps-legacy-origin.headers.customrequestheaders.X-Forwarded-Host=worldview.harrhy.xyz"
-      - "traefik.http.middlewares.maps-legacy-origin.headers.customrequestheaders.X-Forwarded-Proto=https"
 
   maps-service:
     image: ghcr.io/jackharrhy/tea-maps-service@sha256:4a2ef1d0eee363df1e50cc07ee1ffe9845627c4286c4f0ff8a58064bb6b47c2a
@@ -181,7 +176,6 @@ services:
       - ./.runtime-secrets/maps-service.env
     environment:
       - TEA_MAPS_URL=https://maps.jackharrhy.dev
-      - TEA_MAPS_ADDITIONAL_PUBLIC_ORIGINS=https://worldview.harrhy.xyz
       - TEA_MAPS_COLLABORATION_URL=http://maps-collaboration:44100
       - FOURM_URL=https://4orm.harrhy.xyz
       - FOURM_CLIENT_ID=tea-maps
@@ -224,7 +218,7 @@ services:
     tmpfs:
       - /tmp:size=512m,mode=1777
     environment:
-      - TEA_MAPS_COMPILER_ORIGINS=https://maps.jackharrhy.dev,https://worldview.harrhy.xyz
+      - TEA_MAPS_COMPILER_ORIGINS=https://maps.jackharrhy.dev
       - TEA_MAPS_COMPILER_MAX_CONCURRENT=1
       - TEA_MAPS_COMPILER_THREADS=2
       - TEA_MAPS_COMPILER_TIMEOUT_MS=60000
@@ -255,7 +249,7 @@ services:
       - /tmp:size=512m,mode=1777
     environment:
       - TEA_MAPS_GAME_PROFILE=gower
-      - TEA_MAPS_COMPILER_ORIGINS=https://maps.jackharrhy.dev,https://worldview.harrhy.xyz
+      - TEA_MAPS_COMPILER_ORIGINS=https://maps.jackharrhy.dev
       - TEA_MAPS_COMPILER_MAX_CONCURRENT=1
       - TEA_MAPS_COMPILER_THREADS=6
       - TEA_MAPS_COMPILER_TIMEOUT_MS=1800000

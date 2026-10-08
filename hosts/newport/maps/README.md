@@ -4,9 +4,9 @@
 `maps-gower-compiler` in `../compose.yml` are the Tea replacement for
 Worldview. The UI and collaboration Workers run on separate local Celld
 instances. The hosted service and native compilers are private Node containers.
-Mug routes `maps.jackharrhy.dev` and `worldview.harrhy.xyz` to Newport.
-Both hostnames now serve Tea Maps. Keep the old hostname available so users can
-open browser-local projects there and export them for import at the new origin.
+Mug routes only `maps.jackharrhy.dev` to Newport. The former Worldview hostname
+has no router and returns 404; there is no redirect. Tea Maps accepts only the
+new project manifest and sidecar filenames.
 
 The UI state is under `/mnt/terrabud/docker-data/newport/maps_ui_celld`.
 Hosted projects and blobs are under `maps_service_tea`, and collaboration cells
@@ -36,14 +36,14 @@ collaboration snapshots matched; there were no checkpoints. Reports and the
 frozen source stores are under
 `/mnt/terrabud/backup/tea-maps-2026-10-08/final-frozen` on Newport. The
 original Worldview stores and archived images remain for rollback. Browser
-IndexedDB stays tied to its original hostname.
+storage on the old origin is inaccessible from Tea Maps and has no importer.
 
 For rollback, stop the three stateful Maps containers before touching their
 stores. The previous Worldview Compose services are available from the parent
 infra revision; its two original data directories remain untouched. Restore
 the saved Mug `newport-origin.yml.before-tea-maps` if the new hostname must be
-removed. Start Worldview from the previous Compose revision and check the old
-hostname before allowing writes. Do not copy the Tea stores back into the
+removed. Start Worldview from the previous Compose revision and restore the old
+router before allowing writes. Do not copy the Tea stores back into the
 original Worldview stores after they have accepted writes.
 
 Use scoped refreshes for these services. Do not refresh all of Newport to
