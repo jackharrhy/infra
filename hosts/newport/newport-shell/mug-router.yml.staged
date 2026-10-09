@@ -1,0 +1,10 @@
+# STAGED ONLY. Install on mug in its watched dynamic directory last.
+http:
+  routers:
+    newport-shell-via-newport:
+      rule: "Host(`jackharrhy.dev`) && (Path(`/mcp`) || Path(`/.well-known/oauth-protected-resource/mcp`))"
+      priority: 200
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver

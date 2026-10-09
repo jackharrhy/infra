@@ -1,0 +1,55 @@
+name: Public repository checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  hygiene:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Reject private files and JARs, even if force-added
+        run: |
+          python3 - <<'PY'
+          import fnmatch
+          import subprocess
+          from pathlib import PurePosixPath
+          paths = subprocess.check_output(['git', 'ls-files', '-z']).decode().split('\0')
+          private = ['*.jar', '*.pem', '*.key', '*.agekey', 'age-keys.txt',
+                     '.env', '.env.*', '*.env', '*.env.*', '.envrc',
+                     'id_rsa', 'id_ed25519', '*.before', '*.before-*', '*.bak']
+          bad = []
+          for path in filter(None, paths):
+              name = PurePosixPath(path).name
+              example = name.endswith(('.example', '.sample', '.template'))
+              if '.runtime-secrets' in PurePosixPath(path).parts or (
+                  not example and any(fnmatch.fnmatch(name.lower(), p) for p in private)
+              ):
+                  bad.append(path)
+          if bad:
+              raise SystemExit('Private files or JARs tracked:\n' + '\n'.join(bad))
+          PY
+
+      - name: Install checksum-verified Gitleaks
+        run: |
+          curl -fsSL https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz -o "$RUNNER_TEMP/gitleaks.tar.gz"
+          printf '551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  %s\n' "$RUNNER_TEMP/gitleaks.tar.gz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/gitleaks.tar.gz" -C "$RUNNER_TEMP" gitleaks
+
+      - name: Scan working tree and history for secrets
+        run: |
+          "$RUNNER_TEMP/gitleaks" dir . --redact=100
+          "$RUNNER_TEMP/gitleaks" git . --log-opts=--all --redact=100
+
+      - uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+      - name: CLI tests
+        run: uv run python -m unittest discover -s tests -v

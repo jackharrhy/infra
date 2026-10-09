@@ -24,7 +24,7 @@ infra diagram
 `status` compares Git revisions, not service health. `update` pulls Git only.
 Use repeated `--service NAME` options to refresh selected services without
 starting dependencies or pruning images. A full-host `refresh` also prunes
-unused images. Back up state before changing storage formats.
+unused images.
 
 `diagram` writes `docs/infra.d2` and renders SVG with `d2`. Use `--no-render`
 for source only, or `--format png` for PNG.

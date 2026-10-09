@@ -73,7 +73,9 @@ services:
       - "traefik.http.routers.cado.entrypoints=web"
 
   4orm:
-    image: ghcr.io/jackharrhy/4orm:main
+    # Targeted local build with Tea Maps OAuth and Newport Shell changes.
+    image: local/4orm:tea-maps-oauth-20261008
+    pull_policy: never
     restart: unless-stopped
     networks: [web]
     env_file:
@@ -101,6 +103,7 @@ services:
       - "traefik.http.services.4orm.loadbalancer.server.port=8000"
       - "traefik.http.routers.4orm.rule=Host(`4orm.harrhy.xyz`)"
       - "traefik.http.routers.4orm.entrypoints=web"
+      - "com.centurylinklabs.watchtower.enable=false"
 
   adam_eats:
     image: ghcr.io/jackharrhy/adam__eats:main

@@ -1,0 +1,25 @@
+_version = 5
+
+[common.worldGenerator]
+generatorPlan = "SURFACE_ONLY"
+chunkGeneratorMode = "PRE_EXISTING_ONLY"
+generationCenterChunkX = 6
+generationCenterChunkZ = 4
+generationMaxChunkRadius = 256
+
+[common.multiThreading]
+numberOfThreads = 1
+threadRunTimeRatio = 0.25
+
+[server]
+generationRequestRateLimit = 4
+maxGenerationRequestDistance = 256
+syncOnLoadRateLimit = 8
+maxSyncOnLoadRequestDistance = 256
+realTimeUpdateDistanceRadiusInChunks = 64
+playerBandwidthLimit = 256
+globalBandwidthLimit = 1024
+
+[client.advanced.autoUpdater]
+enableAutoUpdater = false
+enableSilentUpdates = false

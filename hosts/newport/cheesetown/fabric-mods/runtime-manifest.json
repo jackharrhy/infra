@@ -1,0 +1,115 @@
+{
+  "minecraft": "26.2",
+  "fabric_loader": "0.19.5",
+  "fabric_launcher": "1.1.2",
+  "mods": [
+    {
+      "project": "fabric-api",
+      "version": "0.161.0+26.2",
+      "version_id": "ewUK83HI",
+      "release_type": "release",
+      "source_url": "https://cdn.modrinth.com/data/P7dR8mSH/versions/ewUK83HI/fabric-api-0.161.0%2B26.2.jar",
+      "filename": "fabric-api-0.161.0+26.2.jar",
+      "sha256": "e5b858ceb13290c274e31cb888ff5a1a40cb91067e7ffab0b5b775aec51e216a"
+    },
+    {
+      "project": "distanthorizons",
+      "version": "3.3.3-26.2",
+      "version_id": "aAow4a9f",
+      "release_type": "release",
+      "source_url": "https://cdn.modrinth.com/data/uCdwusMi/versions/aAow4a9f/DistantHorizons-3.3.3-26.2-fabric-neoforge.jar",
+      "filename": "DistantHorizons-3.3.3-26.2-fabric-neoforge.jar",
+      "sha256": "abd4b8504c703d6a4517c154fdcef8c9a9da12599a653b3bedcfb100788cd2be"
+    },
+    {
+      "project": "simple-voice-chat",
+      "version": "fabric-2.6.24+26.2",
+      "version_id": "Ls232EsW",
+      "release_type": "beta",
+      "source_url": "https://cdn.modrinth.com/data/9eGKb6K1/versions/Ls232EsW/voicechat-fabric-2.6.24%2B26.2.jar",
+      "filename": "voicechat-fabric-2.6.24+26.2.jar",
+      "sha256": "6721500f14a655d7ad139a5297f24ffb4ae7b0f81d63232721cd4638042cd87e"
+    },
+    {
+      "project": "appleskin",
+      "version": "3.0.10+mc26.2",
+      "version_id": "uo5bAN1Y",
+      "release_type": "release",
+      "source_url": "https://cdn.modrinth.com/data/EsAfCjCV/versions/uo5bAN1Y/appleskin-fabric-mc26.2-3.0.10.jar",
+      "filename": "appleskin-fabric-mc26.2-3.0.10.jar",
+      "sha256": "e92f4d28973aec7ba9dbbfa74d163a1fadab0288fb3482247eb443cf03aa2178"
+    },
+    {
+      "project": "bluemap",
+      "version": "5.28-fabric",
+      "version_id": "bbzcTCOs",
+      "release_type": "release",
+      "source_url": "https://cdn.modrinth.com/data/swbUV1cr/versions/bbzcTCOs/bluemap-5.28-fabric.jar",
+      "filename": "bluemap-5.28-fabric.jar",
+      "sha256": "efb07ce31212a9d2d5464a9feab75eb3496ca38cc49f893062d39d0b3c87fbfa"
+    },
+    {
+      "project": "luckperms",
+      "version": "v5.5.85-fabric",
+      "version_id": "DzQPkkXY",
+      "release_type": "release",
+      "source_url": "https://cdn.modrinth.com/data/Vebnzrzj/versions/DzQPkkXY/LuckPerms-Fabric-5.5.85.jar",
+      "filename": "LuckPerms-Fabric-5.5.85.jar",
+      "sha256": "18598fcb95a83f6723d8bc68a905500ed5ecac92e9909ce1f25409cdebe2df49"
+    },
+    {
+      "project": "lithium",
+      "version": "mc26.2-0.25.3-fabric",
+      "version_id": "f7vZ0VWU",
+      "release_type": "release",
+      "source_url": "https://cdn.modrinth.com/data/gvQqBUqZ/versions/f7vZ0VWU/lithium-fabric-0.25.3%2Bmc26.2.jar",
+      "filename": "lithium-fabric-0.25.3+mc26.2.jar",
+      "sha256": "fdde92e238e8075f89ad7f701f2a3d5854af88ba9a67657184a4407b104ac563"
+    },
+    {
+      "project": "audioplayer",
+      "version": "fabric-2.5.0+26.2",
+      "version_id": "7grrYGZg",
+      "release_type": "release",
+      "source_url": "https://cdn.modrinth.com/data/SRlzjEBS/versions/7grrYGZg/audioplayer-fabric-2.5.0%2B26.2.jar",
+      "filename": "audioplayer-fabric-2.5.0+26.2.jar",
+      "sha256": "ec15507fa62570697e61d60d1ce070e22d2145327a1d879a6f5d127d67f177c7"
+    },
+    {
+      "project": "image2map",
+      "version": "0.14.0+26.2",
+      "version_id": "RKJFfwTN",
+      "release_type": "release",
+      "source_url": "https://cdn.modrinth.com/data/13RpG7dA/versions/RKJFfwTN/image2map-0.14.0%2B26.2.jar",
+      "filename": "image2map-0.14.0+26.2.jar",
+      "sha256": "6cb2bc98207b52a0beb82bfa839dd1b1a62baea61de681a1d875b99dee1f8f01"
+    },
+    {
+      "project": "takeaseat",
+      "version": "1.1.2+26.1",
+      "version_id": "DLOyjx3m",
+      "release_type": "beta",
+      "source_url": "https://cdn.modrinth.com/data/VLMe7pfI/versions/DLOyjx3m/takeaseat-1.1.2%2B26.1.jar",
+      "filename": "takeaseat-1.1.2+26.1.jar",
+      "sha256": "18a51d056f2c69623a755a9164b7dbde2d19313d7b678db2d7a7e22ead49fe78"
+    },
+    {
+      "project": "storefront",
+      "repository": "https://github.com/jackharrhy/Storefront",
+      "branch": "main",
+      "commit": "d48480f707c9b604b23b42af4683bcef5750f73a",
+      "promoted_head": "f6b7def83229705de2ec682c9af9508af1f0409d",
+      "pull_request": "https://github.com/jackharrhy/Storefront/pull/27",
+      "filename": "storefront-fabric-2.0-SNAPSHOT.jar",
+      "sha256": "b500c0d128d3b0cb9744749245f62868ff48aaebcf25057d26fe3a048c057f15"
+    },
+    {
+      "project": "itemsorter",
+      "repository": "https://github.com/jackharrhy/ItemSorter",
+      "branch": "master",
+      "commit": "2eee9705ca437fdc0288ec9816c2d08dc5e4ad9a",
+      "filename": "ItemSorter-Fabric-26.2.jar",
+      "sha256": "305c29480276d190f4251dc31d30afc1c953618876ad7065f60636857e0cfb06"
+    }
+  ]
+}

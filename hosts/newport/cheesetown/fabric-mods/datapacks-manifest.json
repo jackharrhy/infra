@@ -1,0 +1,124 @@
+{
+  "minecraft": "26.2",
+  "bundle": {
+    "source_url": "https://vanillatweaks.net/download/VanillaTweaks_d560686_UNZIP_ME.zip",
+    "path": "/home/jack/.hermes/cache/scratch/cheesetown-fabric-migration/VanillaTweaks_d560686_UNZIP_ME.zip",
+    "sha256": "a0b1a70ed337977d195eaa805a9fcdd6341291c90f1000367bdffdfb3714e9c0"
+  },
+  "artifacts": [
+    {
+      "filename": "wandering trades v1.7.16 (MC 26.2).zip",
+      "path": "/home/jack/.hermes/cache/scratch/cheesetown-fabric-migration/datapacks/wandering trades v1.7.16 (MC 26.2).zip",
+      "size": 32654,
+      "sha256": "1d8daa416b7bd3068377bec9e3ce7efa2c50bb07d4318aa979420374ffd49079",
+      "source_url": "https://vanillatweaks.net/download/VanillaTweaks_d560686_UNZIP_ME.zip",
+      "source_picker": "https://vanillatweaks.net/picker/datapacks/",
+      "minecraft": "26.2",
+      "pack_metadata": [
+        [
+          "pack.mcmeta",
+          {
+            "pack": {
+              "description": [
+                {
+                  "text": "Wandering Trades \u2500 Blocks Only Edition",
+                  "color": "gold"
+                },
+                {
+                  "text": "\nvanillatweaks.net",
+                  "color": "yellow"
+                }
+              ],
+              "min_format": 101,
+              "max_format": [
+                107,
+                1
+              ]
+            }
+          }
+        ]
+      ],
+      "publisher_hashes": null,
+      "verification": "Downloaded from official HTTPS picker-generated bundle; archive CRC and local SHA-256 verified. No publisher checksum supplied."
+    },
+    {
+      "filename": "player head drops v1.1.17 (MC 26.2).zip",
+      "path": "/home/jack/.hermes/cache/scratch/cheesetown-fabric-migration/datapacks/player head drops v1.1.17 (MC 26.2).zip",
+      "size": 5942,
+      "sha256": "d57d4d6ee5a63d68d0b52cd4a18cca3b353b0b2ec9264e751a3967dc3d75b916",
+      "source_url": "https://vanillatweaks.net/download/VanillaTweaks_d560686_UNZIP_ME.zip",
+      "source_picker": "https://vanillatweaks.net/picker/datapacks/",
+      "minecraft": "26.2",
+      "pack_metadata": [
+        [
+          "pack.mcmeta",
+          {
+            "pack": {
+              "description": [
+                {
+                  "text": "Player Head Drops",
+                  "color": "gold"
+                },
+                {
+                  "text": "\nvanillatweaks.net",
+                  "color": "yellow"
+                }
+              ],
+              "min_format": 101,
+              "max_format": [
+                107,
+                1
+              ]
+            }
+          }
+        ]
+      ],
+      "publisher_hashes": null,
+      "verification": "Downloaded from official HTTPS picker-generated bundle; archive CRC and local SHA-256 verified. No publisher checksum supplied."
+    },
+    {
+      "filename": "more mob heads v2.20.0 (MC 26.2).zip",
+      "path": "/home/jack/.hermes/cache/scratch/cheesetown-fabric-migration/datapacks/more mob heads v2.20.0 (MC 26.2).zip",
+      "size": 215127,
+      "sha256": "58f977bda12d097cb66fed3188f3cff1bb303569c740ba47c19d8f0d262e4611",
+      "source_url": "https://vanillatweaks.net/download/VanillaTweaks_d560686_UNZIP_ME.zip",
+      "source_picker": "https://vanillatweaks.net/picker/datapacks/",
+      "minecraft": "26.2",
+      "pack_metadata": [
+        [
+          "pack.mcmeta",
+          {
+            "pack": {
+              "description": [
+                {
+                  "text": "More Mob Heads",
+                  "color": "gold"
+                },
+                {
+                  "text": "\nvanillatweaks.net",
+                  "color": "yellow"
+                }
+              ],
+              "min_format": 101,
+              "max_format": [
+                107,
+                1
+              ]
+            },
+            "overlays": {
+              "entries": [
+                {
+                  "directory": "overlay_107_1",
+                  "min_format": 107,
+                  "max_format": 2147483647
+                }
+              ]
+            }
+          }
+        ]
+      ],
+      "publisher_hashes": null,
+      "verification": "Downloaded from official HTTPS picker-generated bundle; archive CRC and local SHA-256 verified. No publisher checksum supplied."
+    }
+  ]
+}

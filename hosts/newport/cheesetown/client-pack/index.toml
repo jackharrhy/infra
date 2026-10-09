@@ -1,6 +1,14 @@
 hash-format = "sha256"
 
 [[files]]
+file = "config/DistantHorizons.toml"
+hash = "de204cbf54db60f4be21ae76d7b872db6f9515325a16394c6b2d3d61d0338be4"
+
+[[files]]
+file = "config/sound_physics_remastered/soundphysics.properties"
+hash = "8e6ee1cb3bfa681390e6ed18c0b50d39b56ef217c392bdfe1a9c2513681a5433"
+
+[[files]]
 file = "mods/appleskin.pw.toml"
 hash = "dbb95bd2f35ea25e5f6a5a3c8f418be58b2d8308893fe454bfc1526567ef6325"
 metafile = true
@@ -8,6 +16,11 @@ metafile = true
 [[files]]
 file = "mods/cloth-config.pw.toml"
 hash = "17d315696055b60ff50039291d76703120b7200dcf11aa43485c52f0573aab19"
+metafile = true
+
+[[files]]
+file = "mods/distanthorizons.pw.toml"
+hash = "1bd6aa5b910ff93c68385d013dc7065f840ffb9f359953383f6178e33363ac45"
 metafile = true
 
 [[files]]

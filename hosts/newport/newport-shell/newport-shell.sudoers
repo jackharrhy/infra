@@ -1,0 +1,3 @@
+# Install root:root 0440 using visudo -cf before activation.
+# Execution UID is deliberately absent; no argument variation is allowed.
+newport-control ALL=(root) NOPASSWD: /usr/local/libexec/newport-shell-job ""
