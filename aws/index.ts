@@ -226,7 +226,6 @@ const inboundEmailLambda = new aws.lambda.CallbackFunction("ses-inbound-email-la
       }
     }
 
-    // copy to structured path if different
     if (structuredKey !== originalKey) {
       const { S3Client, CopyObjectCommand, DeleteObjectCommand } = require("@aws-sdk/client-s3");
       const s3 = new S3Client({});

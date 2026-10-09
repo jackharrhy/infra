@@ -1,15 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Ensure bind-mount volume directories exist for a given host compose file.
-#
-# Usage:
-#   ./scripts/ensure-volumes.sh <host>
-#   ./scripts/ensure-volumes.sh newport
-#
-# Notes:
-# - Parses compose YAML directly (PyYAML) so it does NOT require env files to exist.
-# - Creates directories only for bind mounts under ./volumes/... paths.
+# Read YAML without requiring rendered secrets; create only ./volumes bind mounts.
 
 HOST=${1:-}
 if [[ -z "$HOST" ]]; then
