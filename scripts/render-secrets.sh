@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Usage: ./scripts/render-secrets.sh <host>
-# Example: ./scripts/render-secrets.sh newport
-
 HOST=${1:-}
 if [[ -z "$HOST" ]]; then
   echo "usage: $0 <host>"

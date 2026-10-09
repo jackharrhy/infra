@@ -29,17 +29,11 @@ DNS_SECRET = DNS_DIR / "secrets" / "digitalocean.enc.yaml"
 
 NAS_DIR = REPO_ROOT / "nas"
 NAS_SECRET = NAS_DIR / "secrets" / "synology.enc.yaml"
-# Tracks the unix-timestamp window of the last TOTP code we burned, so
-# back-to-back CLI invocations don't replay the same 6-digit code (DSM
-# rejects replays within the window and returns a confusing privileges
-# error). Lives outside the repo since it's transient state.
+# DSM rejects reused TOTP windows; keep the last used window outside Git.
 NAS_OTP_STATE = Path.home() / ".cache" / "infra" / "nas-otp-window"
 
 INFRA_SERVICES = {"traefik", "watchtower", "beszel", "beszel-agent"}
 DB_IMAGE_PREFIXES = ("postgres:", "mysql:", "mariadb:", "mongo:", "redis:")
-
-
-# --- Data models ---
 
 
 @dataclass
@@ -59,11 +53,7 @@ class Host:
     services: list[Service] = field(default_factory=list)
 
 
-# --- Compose parsing ---
-
-
 def parse_traefik_labels(labels: list[str]) -> tuple[list[str], list[str]]:
-    """Extract domains and path rules from Traefik labels."""
     domains: list[str] = []
     path_rules: list[str] = []
 
@@ -71,11 +61,9 @@ def parse_traefik_labels(labels: list[str]) -> tuple[list[str], list[str]]:
         if not isinstance(label, str):
             continue
 
-        # Match Host(`...`) patterns
         host_matches = re.findall(r"Host\(`([^`]+)`\)", label)
         domains.extend(host_matches)
 
-        # Match PathPrefix(`...`) patterns
         path_matches = re.findall(r"PathPrefix\(`([^`]+)`\)", label)
         path_rules.extend(path_matches)
 
@@ -83,7 +71,6 @@ def parse_traefik_labels(labels: list[str]) -> tuple[list[str], list[str]]:
 
 
 def is_traefik_enabled(labels: list[str]) -> bool:
-    """Check if traefik.enable=true is in labels."""
     return any(
         isinstance(l, str) and "traefik.enable=true" in l
         for l in labels
@@ -91,7 +78,6 @@ def is_traefik_enabled(labels: list[str]) -> bool:
 
 
 def categorize_service(name: str, image: str, labels: list[str], networks: list[Any]) -> str:
-    """Determine the category of a service."""
     if name in INFRA_SERVICES:
         return "infra"
 
@@ -101,7 +87,6 @@ def categorize_service(name: str, image: str, labels: list[str], networks: list[
     if is_traefik_enabled(labels):
         return "website"
 
-    # On web network but no traefik labels yet (e.g. livebook, pad with TODO)
     network_names = _extract_network_names(networks)
     if "web" in network_names:
         return "website"
@@ -110,7 +95,6 @@ def categorize_service(name: str, image: str, labels: list[str], networks: list[
 
 
 def _extract_network_names(networks: Any) -> list[str]:
-    """Extract network names from compose networks field (list or dict)."""
     if isinstance(networks, list):
         return networks
     if isinstance(networks, dict):
@@ -119,7 +103,6 @@ def _extract_network_names(networks: Any) -> list[str]:
 
 
 def parse_compose(host_name: str, compose_path: Path) -> Host:
-    """Parse a compose.yml file into a Host with categorized Services."""
     with open(compose_path) as f:
         data = yaml.safe_load(f)
 
@@ -139,7 +122,6 @@ def parse_compose(host_name: str, compose_path: Path) -> Host:
             depends_on = list(depends_on.keys())
 
         domains, path_rules = parse_traefik_labels(labels)
-        # Deduplicate while preserving order
         domains = list(dict.fromkeys(domains))
         all_path_rules = list(dict.fromkeys(path_rules))
         # If there's a bare `/` catch-all, the specific paths are secondary routes
@@ -164,7 +146,6 @@ def parse_compose(host_name: str, compose_path: Path) -> Host:
 
 
 def discover_hosts() -> list[Host]:
-    """Discover and parse all host compose files."""
     hosts = []
     if not HOSTS_DIR.exists():
         click.echo(f"Warning: {HOSTS_DIR} does not exist", err=True)
@@ -180,11 +161,7 @@ def discover_hosts() -> list[Host]:
     return hosts
 
 
-# --- infra.yml parsing ---
-
-
 def load_infra_config() -> dict[str, Any]:
-    """Load the infra.yml config file."""
     if not INFRA_YML.exists():
         click.echo(f"Warning: {INFRA_YML} does not exist, skipping extra context", err=True)
         return {}
@@ -192,19 +169,13 @@ def load_infra_config() -> dict[str, Any]:
         return yaml.safe_load(f) or {}
 
 
-# --- D2 generation ---
-
-
 def _d2_id(name: str) -> str:
-    """Convert a name to a valid D2 identifier."""
-    # D2 allows most characters in identifiers, but we quote if needed
     if re.match(r"^[a-zA-Z_][a-zA-Z0-9_-]*$", name):
         return name
     return f'"{name}"'
 
 
 def _service_display_name(svc: Service) -> str:
-    """Get a human-readable display name for a service."""
     if svc.domains:
         primary = svc.domains[0]
         # Only append path if there's exactly one domain and one path rule
@@ -217,14 +188,12 @@ def _service_display_name(svc: Service) -> str:
 
 
 def _service_tooltip(svc: Service) -> str | None:
-    """Get a tooltip showing all domains if there are multiple."""
     if len(svc.domains) > 1:
         return ", ".join(svc.domains)
     return None
 
 
 def _host_label(name: str, specs: dict[str, Any] | None) -> str:
-    """Generate a D2 label for a host, including specs if available."""
     if not specs:
         return name
     parts = []
@@ -239,7 +208,6 @@ def _host_label(name: str, specs: dict[str, Any] | None) -> str:
 
 
 def generate_d2(hosts: list[Host], config: dict[str, Any]) -> str:
-    """Generate D2 diagram source from parsed hosts and config."""
     lines: list[str] = []
     lines.append("direction: down")
     lines.append("")
@@ -250,12 +218,10 @@ def generate_d2(hosts: list[Host], config: dict[str, Any]) -> str:
     connections = config.get("connections", [])
     host_specs = config.get("hosts", {})
 
-    # Build provider -> host mapping
     provider_hosts: dict[str, list[str]] = {}
     for provider_id, provider_conf in providers.items():
         provider_hosts[provider_id] = provider_conf.get("hosts", [])
 
-    # Track D2 path for each host (for database connections etc.)
     host_paths: dict[str, str] = {}
     for provider_id, provider_conf in providers.items():
         for host_name in provider_conf.get("hosts", []):
@@ -264,7 +230,6 @@ def generate_d2(hosts: list[Host], config: dict[str, Any]) -> str:
         for host_name in node_conf.get("hosts", []):
             host_paths[host_name] = f"{node_id}.{host_name}"
 
-    # Render network nodes (e.g. Tailscale)
     for net_id, net_conf in network.items():
         label = net_conf.get("label", net_id)
         shape = net_conf.get("shape", "cloud")
@@ -273,7 +238,6 @@ def generate_d2(hosts: list[Host], config: dict[str, Any]) -> str:
         lines.append("}")
         lines.append("")
 
-    # Render providers with hosts inside
     host_map = {h.name: h for h in hosts}
 
     for provider_id, provider_conf in providers.items():
@@ -295,7 +259,6 @@ def generate_d2(hosts: list[Host], config: dict[str, Any]) -> str:
         lines.append("}")
         lines.append("")
 
-    # Render extra nodes
     for node_id, node_conf in extra_nodes.items():
         label = node_conf.get("label", node_id)
         children = node_conf.get("children", {})
@@ -305,7 +268,6 @@ def generate_d2(hosts: list[Host], config: dict[str, Any]) -> str:
         if children or node_hosts:
             lines.append(f"{_d2_id(node_id)}: {label} {{")
 
-            # Render hosts inside this extra node
             for host_name in node_hosts:
                 host = host_map.get(host_name)
                 host_label = _host_label(host_name, host_specs.get(host_name))
@@ -332,16 +294,13 @@ def generate_d2(hosts: list[Host], config: dict[str, Any]) -> str:
             lines.append("}")
         lines.append("")
 
-    # Render network connections
     for net_id, net_conf in network.items():
         connects = net_conf.get("connects", [])
         for target in connects:
-            # Convert dotted path to D2 path
             d2_target = ".".join(_d2_id(p) for p in target.split("."))
             lines.append(f"{_d2_id(net_id)} -- {d2_target}")
         lines.append("")
 
-    # Render explicit connections (e.g. traefik proxy)
     for conn in connections:
         from_path = ".".join(_d2_id(p) for p in conn["from"].split("."))
         to_path = ".".join(_d2_id(p) for p in conn["to"].split("."))
@@ -353,7 +312,6 @@ def generate_d2(hosts: list[Host], config: dict[str, Any]) -> str:
     if connections:
         lines.append("")
 
-    # Render service-to-database connections
     for host_name, host_path in host_paths.items():
         host = host_map.get(host_name)
         if not host:
@@ -364,7 +322,6 @@ def generate_d2(hosts: list[Host], config: dict[str, Any]) -> str:
 
 
 def _render_host_services(lines: list[str], host: Host, indent: int = 4) -> None:
-    """Render categorized services for a host into D2 lines."""
     pad = " " * indent
 
     websites = [s for s in host.services if s.category == "website"]
@@ -396,7 +353,6 @@ def _render_host_services(lines: list[str], host: Host, indent: int = 4) -> None
         lines.append(f"{pad}databases: Databases {{")
         lines.append(f"{pad}  grid-columns: 1")
         for svc in databases:
-            # Show the postgres version in the label
             img_short = svc.image.split("/")[-1] if "/" in svc.image else svc.image
             lines.append(f"{pad}  {_d2_id(svc.name)}: {svc.name} ({img_short}) {{")
             lines.append(f"{pad}    shape: cylinder")
@@ -414,7 +370,6 @@ def _render_host_services(lines: list[str], host: Host, indent: int = 4) -> None
 
 
 def _render_db_connections(lines: list[str], host: Host, host_path: str) -> None:
-    """Render connections between services and their databases."""
     db_names = {s.name for s in host.services if s.category == "database"}
     svc_map = {s.name: s for s in host.services}
 
@@ -433,7 +388,6 @@ def _render_db_connections(lines: list[str], host: Host, host_path: str) -> None
         for other_name in db_names:
             other = svc_map[other_name]
             shared_nets = set(svc.networks) & set(other.networks)
-            # Exclude the general 'web' network
             shared_nets -= {"web"}
             if shared_nets and other_name not in svc.depends_on:
                 svc_cat = "websites" if svc.category == "website" else "bots"
@@ -443,14 +397,7 @@ def _render_db_connections(lines: list[str], host: Host, host_path: str) -> None
                 )
 
 
-# --- Remote host helpers ---
-
-
 def get_deploy_hosts(config: dict[str, Any]) -> dict[str, dict[str, str]]:
-    """Get hosts that have SSH deploy info from infra.yml.
-
-    Returns a dict of host_name -> {ssh, repo_path, compose_path}.
-    """
     hosts_conf = config.get("hosts", {})
     deploy_hosts: dict[str, dict[str, str]] = {}
     for name, conf in hosts_conf.items():
@@ -501,7 +448,6 @@ def run_host_command(
     cwd: Path,
     stream: bool = False,
 ) -> subprocess.CompletedProcess[str] | int:
-    """Run configured host work locally when it targets this machine."""
     if not is_local_ssh_target(ssh_target):
         return ssh_run(ssh_target, remote_command, stream=stream)
 
@@ -518,7 +464,6 @@ def run_host_command(
 
 
 def get_local_head() -> str:
-    """Get the local HEAD commit hash."""
     result = subprocess.run(
         ["git", "rev-parse", "HEAD"],
         capture_output=True, text=True, cwd=REPO_ROOT,
@@ -527,15 +472,11 @@ def get_local_head() -> str:
 
 
 def get_local_commits() -> set[str]:
-    """Get all local commit hashes (for ahead/behind detection)."""
     result = subprocess.run(
         ["git", "log", "--format=%H"],
         capture_output=True, text=True, cwd=REPO_ROOT,
     )
     return set(result.stdout.strip().splitlines())
-
-
-# --- CLI ---
 
 
 @click.group()
@@ -631,9 +572,8 @@ def status(host: str | None):
     local_head = get_local_head()
     local_commits = get_local_commits()
 
-    # Column widths
     name_w = max(len(n) for n in targets) + 2
-    hash_w = 9  # 7-char short hash + padding
+    hash_w = 9
 
     click.echo(f"{'Host':<{name_w}} {'Local':<{hash_w}} {'Remote':<{hash_w}} Status")
     click.echo(f"{'─' * name_w} {'─' * hash_w} {'─' * hash_w} {'─' * 12}")
@@ -763,18 +703,13 @@ exec uv run --project {REPO_ROOT} {REPO_ROOT / "cli.py"} "$@"
     target.chmod(0o755)
     click.echo(f"Installed: {target}")
 
-    # Check if ~/.local/bin is on PATH
     path_dirs = os.environ.get("PATH", "").split(os.pathsep)
     if str(bin_dir) not in path_dirs:
         click.echo(f"Note: {bin_dir} is not on your PATH. Add it with:")
         click.echo(f'  export PATH="{bin_dir}:$PATH"')
 
 
-# --- DNS (octodns) helpers ---
-
-
 def _decrypt_do_token() -> str:
-    """Decrypt the DigitalOcean API token from SOPS."""
     if not DNS_SECRET.exists():
         click.echo(f"Error: {DNS_SECRET} not found", err=True)
         click.echo("Create it with: sops dns/secrets/digitalocean.enc.yaml", err=True)
@@ -803,7 +738,6 @@ def _decrypt_do_token() -> str:
 
 
 def _octodns_env() -> dict[str, str]:
-    """Build environment with the decrypted DO token for octodns commands."""
     env = os.environ.copy()
     env["DIGITALOCEAN_TOKEN"] = _decrypt_do_token()
     return env
@@ -841,7 +775,6 @@ def dump(zone: str, lenient: bool):
     if result.returncode != 0:
         sys.exit(result.returncode)
 
-    # List what was written
     zone_files = sorted(DNS_ZONES_DIR.glob("*.yaml"))
     zone_files = [f for f in zone_files if f.name != ".gitkeep"]
     if zone_files:
@@ -883,7 +816,6 @@ def sync(zones: tuple[str, ...], force: bool, debug: bool):
     """Push local DNS changes to DigitalOcean."""
     env = _octodns_env()
 
-    # Always show the plan first
     cmd_plan = [
         sys.executable, "-m", "octodns.cmds.sync",
         "--config-file", str(DNS_CONFIG),
@@ -939,9 +871,6 @@ def auto_sync(zones: tuple[str, ...], force: bool):
 
     result = subprocess.run(cmd, env=env, cwd=REPO_ROOT)
     sys.exit(result.returncode)
-
-
-# --- NAS (Synology DSM) helpers ---
 
 
 def _decrypt_synology_creds() -> dict[str, Any]:
@@ -1130,27 +1059,13 @@ def nas_shares():
         click.echo(f"{name:<{name_w}} {vol:<12} {desc}")
 
 
-# --- NFS share privilege helpers ---
-#
-# The synology-api package wraps SYNO.Core.FileServ.NFS.SharePrivilege only on
-# the read side (and only for the global setting, not per-share rules). We use
-# the per-share `load` / `save` methods directly via the session's
-# request_data, following the same contract the florianehmke/synology Terraform
-# provider uses. Key contract details:
-#   - API:     SYNO.Core.FileServ.NFS.SharePrivilege   (version 1)
-#   - load:    { share_name: <json-quoted str> } -> { share_name, rule: [...] }
-#   - save:    { share_name: <json-quoted str>, rule: <json-encoded list> }
-#   - save REPLACES the entire rule list; mutations must read-modify-write.
-#
-# Rule shape (DSM raw values):
-#   { client, privilege ("ro"|"rw"), root_squash, async, crossmnt, insecure,
-#     security_flavor: { sys, kerberos, kerberos_integrity, kerberos_privacy } }
+# synology-api lacks per-share NFS writes. DSM save replaces all rules, so
+# mutations must load first and JSON-encode both share_name and rule.
 
 _NFS_PRIVILEGE_API = "SYNO.Core.FileServ.NFS.SharePrivilege"
 
 
 def _nfs_load_rules(client, share_name: str) -> list[dict[str, Any]]:
-    """Read the current ordered NFS rule list for a share."""
     info = client.gen_list.get(_NFS_PRIVILEGE_API)
     if not info:
         click.echo(f"Error: DSM does not expose {_NFS_PRIVILEGE_API}", err=True)
@@ -1172,7 +1087,6 @@ def _nfs_load_rules(client, share_name: str) -> list[dict[str, Any]]:
 
 
 def _nfs_save_rules(client, share_name: str, rules: list[dict[str, Any]]) -> None:
-    """Replace the NFS rule list for a share."""
     info = client.gen_list.get(_NFS_PRIVILEGE_API)
     try:
         resp = client.request_data(
@@ -1201,7 +1115,6 @@ def _nfs_save_rules(client, share_name: str, rules: list[dict[str, Any]]) -> Non
 
 
 def _format_rule(rule: dict[str, Any]) -> str:
-    """One-line summary of a rule for display."""
     sec = rule.get("security_flavor") or {}
     sec_flags = [k for k in ("sys", "kerberos", "kerberos_integrity", "kerberos_privacy") if sec.get(k)]
     flags = []
@@ -1326,7 +1239,6 @@ def nas_nfs_grant(
         },
     }
 
-    # Replace any existing rule for the same client; otherwise append.
     next_rules = [r for r in rules if r.get("client") != client_pattern]
     replaced = len(next_rules) != len(rules)
     next_rules.append(new_rule)

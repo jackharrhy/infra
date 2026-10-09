@@ -1,27 +1,16 @@
 # Tea Ref on Newport
 
-`ref-celld` in `../compose.yml` serves `ref.jackharrhy.dev` from the Tea
-monorepo image. Its Celld store is
-`/mnt/terrabud/docker-data/newport/ref_celld_tea`; the password is rendered to
-`../.runtime-secrets/ref.env`. Keep the image digest pinned when changing the
-runtime or application, and roll out only this service with
-`infra refresh newport --service ref-celld`.
+`ref-celld` in `../compose.yml` serves `ref.jackharrhy.dev`. Its store is
+`/mnt/terrabud/docker-data/newport/ref_celld_tea`; credentials render to
+`../.runtime-secrets/ref.env`. Keep image digests pinned and refresh only this
+service with `infra refresh newport --service ref-celld`.
 
-The October 2026 migration used Tea Ref's `ref-archive` version 1 export and
-restore. It transferred one board, 49 items, 12 uploaded assets, and 36 cached
-previews. The authenticated public archive after cutover matches the frozen
-source archive for board content, layout, metadata, and asset digests. Item
-revision counters are reset by archive restore; clients should reload after a
-cutover. The original Celld volume is retained at
-`/mnt/terrabud/docker-data/newport/ref_celld`.
+Archive restore resets item revision counters; clients must reload after a
+cutover. Migration archives, the original image, and its cold volume backup
+are in `/mnt/terrabud/docker-data/newport/ref-migration/`. They contain private
+board data and images.
 
-Private migration material is in
-`/mnt/terrabud/docker-data/newport/ref-migration/`: the frozen source archive,
-post-cutover archive, original image tarball, and cold backup of the original
-Celld volume. These contain board data and images; keep them private.
-
-For rollback, stop `ref-celld`, change its image to the saved original image
-and its mount to `ref_celld`, then start only `ref-celld`. That original store
-is a snapshot from cutover, so export and save any new Tea Ref edits before
-switching back. The archived source image can be loaded with `docker load` if
-the retired registry package is unavailable.
+For rollback, stop `ref-celld` and export any new edits. Restore the original
+image (use `docker load` if its registry package is unavailable) and mount
+`/mnt/terrabud/docker-data/newport/ref_celld`, then start only `ref-celld`.
+The original store is a cutover snapshot and does not contain later Tea edits.
