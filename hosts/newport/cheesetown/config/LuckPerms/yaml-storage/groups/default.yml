@@ -39,16 +39,10 @@ permissions:
       value: false
   - imageframe.preference:
       value: false
-  - emf.help:
-      value: false
-  - emf.shop:
-      value: false
-  - emf.sellall:
-      value: false
   - voicechat.listen
   - voicechat.speak
   - voicechat.groups:
-      value: false
+      value: true
   - interactionvisualizer.toggle
   - interactionvisualizer.refresh:
       value: false

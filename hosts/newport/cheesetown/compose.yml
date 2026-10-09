@@ -21,48 +21,47 @@ services:
       - "0.0.0.0:7001:7001/tcp"
     environment:
       EULA: "true"
-      TYPE: PAPER
+      TYPE: FABRIC
       VERSION: "26.2"
-      PAPER_BUILD: "123"
+      FABRIC_LOADER_VERSION: "0.19.5"
+      FABRIC_LAUNCHER_VERSION: "1.1.2"
       SKIP_DOWNLOAD_DEFAULTS: "true"
       SYNC_SKIP_NEWER_IN_DESTINATION: "false"
+      REPLACE_ENV_DURING_SYNC: "false"
       MEMORY: 6G
       MOTD: "\u00a7echeesetown"
-      DIFFICULTY: normal
+      DIFFICULTY: hard
       MODE: survival
       LEVEL: world
       ONLINE_MODE: "true"
       ENFORCE_SECURE_PROFILE: "true"
       ENABLE_WHITELIST: "true"
       ENFORCE_WHITELIST: "true"
-      WHITELIST: cheesemany
+      WHITELIST: cheesemany,ncashin,TheDollyLama,walgreens2,Fluffenstins,koalasthegreat,marty4president
       OPS: cheesemany
       MAX_PLAYERS: "12"
-      VIEW_DISTANCE: "10"
+      VIEW_DISTANCE: "16"
       SIMULATION_DISTANCE: "8"
       SPAWN_PROTECTION: "16"
       PVP: "true"
       ENABLE_RCON: "true"
       RCON_PASSWORD_FILE: /run/secrets/rcon_password
       RCON_CMDS_STARTUP: |-
-        execute in minecraft:overworld run gamerule minecraft:players_sleeping_percentage 51
+        execute in minecraft:overworld run gamerule minecraft:players_sleeping_percentage 50
 
-      MODRINTH_PROJECTS: "@/extras/plugins.txt"
-      MODRINTH_DOWNLOAD_DEPENDENCIES: none
-      PLUGINS: |-
-        https://github.com/jackharrhy/Storefront/releases/download/2026.09.14/storefront-2.0-SNAPSHOT.jar
-        https://github.com/STollenaar/ItemSorter/releases/download/v0.6.0/ItemSorter-26.2.jar
-        https://github.com/Siebrenvde/AppleSkinSpigot/releases/download/2.0.2/AppleSkinSpigot-2.0.2.jar
-        https://ci.ender.zone/job/EssentialsX/1827/artifact/jars/EssentialsX-2.22.1-dev%2B23-43cb76a.jar
-        https://ci.ender.zone/job/EssentialsX/1827/artifact/jars/EssentialsXSpawn-2.22.1-dev%2B23-43cb76a.jar
       TZ: America/St_Johns
       ENABLE_ROLLING_LOGS: "true"
     secrets:
       - rcon_password
     volumes:
-      - /mnt/terrabud/docker-data/newport/cheesetown/data:/data
-      - ./config:/plugins:ro
-      - ./plugins.txt:/extras/plugins.txt:ro
+      - /mnt/terrabud/docker-data/newport/cheesetown/fabric-data:/data
+      - type: bind
+        source: /mnt/terrabud/docker-data/newport/cheesetown/provisioned-mods
+        target: /mods
+        read_only: true
+        bind:
+          create_host_path: false
+      - ./fabric-config:/config:ro
       - ./assets/server-icon.png:/data/server-icon.png:ro
     labels:
       traefik.enable: "false"
@@ -115,7 +114,7 @@ services:
     secrets:
       - rcon_password
     volumes:
-      - /mnt/terrabud/docker-data/newport/cheesetown/data:/data:ro
+      - /mnt/terrabud/docker-data/newport/cheesetown/fabric-data:/data:ro
       - /mnt/terrabud/docker-data/newport/cheesetown/backups:/backups
     labels:
       traefik.enable: "false"

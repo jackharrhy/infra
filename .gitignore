@@ -1,13 +1,35 @@
 .venv/
-__pycache__
+__pycache__/
+node_modules/
+.pulumi/
 *.swp
 infra.png
 .DS_Store
+.vscode/
+tmp/
 
-# secrets
-hosts/*/.runtime-secrets/
-hosts/**/.runtime-secrets/
+# Runtime credentials; only non-secret examples belong in Git.
+.runtime-secrets/
+.env
+.env.*
 *.env
+*.env.*
 .envrc
-tmp
-.vscode
+*.pem
+*.key
+*.agekey
+age-keys.txt
+id_rsa
+id_ed25519
+!*.env.example
+!*.env.sample
+!*.env.template
+!.env.example
+!.env.sample
+!.env.template
+
+# Artifacts and local rollback copies.
+*.jar
+*.before
+*.before-*
+*.bak

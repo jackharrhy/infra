@@ -13,9 +13,7 @@ new isolated stores and cannot read these copied rooms or audio objects. Keep
 store. Deploy a reviewed image digest with `infra refresh mug --service
 radio-celld`; Watchtower does not update this stateful service.
 
-The original store remains at `../volumes/radio_celld/` after cutover. A cold
-backup of that store and the original container image are held privately on
-Newport under `/mnt/terrabud/docker-data/newport/radio-migration/`. To roll
-back, first stop the Tea service and save any new Tea Radio state. Then restore
-the original image and volume in `../compose.yml` and start only `radio-celld`.
-The old store is a snapshot from cutover and does not include later Tea edits.
+The retired `../volumes/radio_celld/` store and the Newport migration archive
+were removed after cutover confirmation. Back up the current
+`../volumes/radio_celld_tea/` store before replacing the Tea image or restoring
+data.

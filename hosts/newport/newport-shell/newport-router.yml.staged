@@ -1,0 +1,25 @@
+# STAGED ONLY. Copy into ../traefik/dynamic only after live gates pass.
+http:
+  routers:
+    newport-shell:
+      rule: "Host(`jackharrhy.dev`) && (Path(`/mcp`) || Path(`/.well-known/oauth-protected-resource/mcp`))"
+      priority: 200
+      entryPoints: [web]
+      service: newport-shell
+      middlewares: [newport-shell-rate, newport-shell-body]
+  middlewares:
+    newport-shell-rate:
+      rateLimit:
+        average: 10
+        period: 1s
+        burst: 20
+    newport-shell-body:
+      buffering:
+        maxRequestBodyBytes: 16384
+        memRequestBodyBytes: 16384
+  services:
+    newport-shell:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: http://127.0.0.1:8796

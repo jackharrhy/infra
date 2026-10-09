@@ -1,0 +1,1 @@
+{"ensurePlayerWontSuffocate":true,"mustBeEmptyHandToSit":true,"blockMustBeLowerThanPlayer":true,"mustNotBeObstructed":true,"maxDistance":2.0,"allowedBlockId":[],"allowedBlockTag":["stairs","slabs"],"stairsOffset":false,"requiredOpLevel":0}

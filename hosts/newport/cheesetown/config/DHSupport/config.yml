@@ -1,0 +1,40 @@
+database_path: "{datadir}/data.sqlite"
+render_distance: 64
+distant_generation_enabled: true
+client_lod_request_concurrency_limit: 4
+server_lod_request_concurrency_limit: 16
+real_time_updates_enabled: true
+real_time_update_radius: 64
+login_data_sync_enabled: true
+login_data_sync_radius: 64
+login_data_sync_rc_limit: 8
+max_data_transfer_speed: 0
+generate_new_chunks: false
+lod_refresh_interval: 15
+builder_type: FullBuilder
+builder_resolution: 2
+material_map:
+  bamboo: air
+  seagrass: water
+  tall_seagrass: water
+  kelp: water
+  kelp_plant: water
+  iron_ore: stone
+  diamond_ore: stone
+worlds:
+  world:
+    builder_type: FastOverworldBuilder
+  world_nether:
+    render_distance: 32
+update_events:
+  - org.bukkit.event.block.BlockPlaceEvent
+  - org.bukkit.event.block.BlockBreakEvent
+  - org.bukkit.event.block.BlockExplodeEvent
+  - org.bukkit.event.block.BlockPistonExtendEvent
+  - org.bukkit.event.block.BlockPistonRetractEvent
+  - org.bukkit.event.world.StructureGrowEvent
+  - org.bukkit.event.world.ChunkPopulateEvent
+scheduler_threads: 2
+enable_dh_command_help_text: false
+check_for_updates: false
+config_version: 12

@@ -1,0 +1,15 @@
+_version = 5
+
+[client.advanced.autoUpdater]
+enableAutoUpdater = false
+enableSilentUpdates = false
+
+[client.advanced.graphics.quality]
+lodChunkRenderDistanceRadius = 64
+
+[client.advanced.graphics.experimental]
+renderingEngine = "AUTO"
+
+[client.advanced.logging.warning]
+showHighVanillaRenderDistanceWarning = false
+showGarbageCollectorWarning = false

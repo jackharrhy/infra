@@ -1,0 +1,36 @@
+[Unit]
+Description=Newport Shell authenticated control plane
+After=network-online.target
+Wants=network-online.target
+RequiresMountsFor=/mnt/terrabud
+
+[Service]
+Type=simple
+User=newport-control
+Group=newport-control
+WorkingDirectory=/opt/newport-shell
+EnvironmentFile=/etc/newport-shell/control.env
+# The privilege boundary is the no-argument root-owned helper, not this UID.
+# sudo requires NoNewPrivileges=false here; execution units set it true.
+ExecStartPre=+/usr/local/libexec/newport-shell-quotas
+ExecStartPre=+/usr/bin/systemctl stop newport-job-*.service
+ExecStart=/opt/newport-shell/node --import remix/node-tsx /opt/newport-shell/server.ts
+ExecStopPost=+/usr/bin/systemctl stop newport-job-*.service
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=15
+KillMode=control-group
+StateDirectory=newport-shell
+StateDirectoryMode=0700
+UMask=0077
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectProc=invisible
+ReadWritePaths=/var/lib/newport-shell
+MemoryMax=512M
+TasksMax=64
+LimitNOFILE=1024
+
+[Install]
+WantedBy=multi-user.target

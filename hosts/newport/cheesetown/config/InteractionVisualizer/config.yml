@@ -333,8 +333,8 @@ Entities:
         List:
           - ["^ALTAR Probe.*", "NETHER_STAR"]
           - ["^Blacklisted Item$", "*"]
-      RegularFormat: "{Item} &bx{Amount} &6[{Timer}&6]"
-      SingularFormat: "{Item} &6[{Timer}&6]"
+      RegularFormat: "{Item} &bx{Amount}"
+      SingularFormat: "{Item}"
       ToolsFormat: "{Item} &6[{Durability}&6]"
       #Hide if there is more than this defined amount of item entities in one block
       Cramping: 6
@@ -365,7 +365,7 @@ Modules:
     OverridingDisabled: []
   Hologram:
     Enabled: true
-    OverridingDisabled: []
+    OverridingDisabled: ["interactionvisualizer:item"]
 
 Settings:
   #Whether everything should be disabled to the player by default
