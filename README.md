@@ -52,10 +52,16 @@ Credentials: `nas/secrets/synology.enc.yaml`.
 ```sh
 infra nas login-check
 infra nas shares
+infra nas search 'whitelist.json' --name-only
+infra nas search minecraft --limit 50 --offset 0 --json
 infra nas debug-share SHARE
 infra nas nfs list SHARE
 infra nas nfs grant SHARE CLIENT_PATTERN
 infra nas nfs revoke SHARE CLIENT_PATTERN --yes
 ```
+
+`nas search` queries DSM's index. Use `--name-only` for filenames, `--limit` and
+`--offset` for pagination, or `--json` for the raw response. NAS result paths
+are not local mount paths; results depend on indexing and account permissions.
 
 Cheesetown has its own Compose project under `hosts/newport/cheesetown/`.
