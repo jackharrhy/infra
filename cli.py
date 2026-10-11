@@ -969,7 +969,8 @@ def _resolve_synology_otp(creds: dict[str, Any]) -> str | None:
 def _synology_client(api_class: str):
     """Return an instantiated synology-api client.
 
-    api_class is one of: 'core_share', 'filestation', 'core_sys_info'.
+    api_class is one of: 'core_share', 'filestation', 'core_sys_info',
+    'universal_search'.
     Lazy-imported so the dep isn't required for unrelated commands.
     """
     creds = _decrypt_synology_creds()
@@ -996,6 +997,9 @@ def _synology_client(api_class: str):
     if api_class == "core_sys_info":
         from synology_api.core_sys_info import SysInfo
         return SysInfo(**common)
+    if api_class == "universal_search":
+        from synology_api.universal_search import UniversalSearch
+        return UniversalSearch(**common)
     raise ValueError(f"Unknown api_class: {api_class}")
 
 
@@ -1032,6 +1036,70 @@ def nas_login_check():
                   "uptime", "is_dsm_boot_completed", "temperature"):
             if k in data:
                 click.echo(f"  {k}: {data[k]}")
+
+
+@nas.command("search")
+@click.argument("keyword")
+@click.option("--json", "as_json", is_flag=True, help="Emit the DSM result as JSON.")
+@click.option("--limit", type=click.IntRange(1, 1000), default=10, show_default=True)
+@click.option("--offset", type=click.IntRange(min=0), default=0, show_default=True)
+@click.option("--name-only", is_flag=True, help="Search filenames, not indexed content.")
+def nas_search(keyword: str, as_json: bool, limit: int, offset: int, name_only: bool):
+    """Search the NAS Universal Search index (read-only)."""
+    client = None
+    try:
+        client = _synology_client("universal_search")
+        if limit == 10 and offset == 0 and not name_only:
+            result = client.search(keyword)
+        else:
+            # The community search() fixes size=10/from=0; use its authenticated
+            # transport and discovery for pagination and filename-only queries.
+            api = "SYNO.Finder.FileIndexing.Search"
+            weights = [{"field": "SYNOMDSearchFileName", "weight": 8.5, "trailing_wildcard": "true"}]
+            if not name_only:
+                weights += [{"field": "SYNOMDWildcard", "weight": 1}, {"field": "SYNOMDTextContent", "weight": 1}]
+            result = client.request_data(api, client.gen_list[api]["path"], {
+                "api": api, "version": 1, "method": "search",
+                "query_serial": 1, "indice": "[]", "criteria_list": "[]",
+                "keyword": keyword, "orig_keyword": keyword, "file_type": "",
+                "from": offset, "size": limit,
+                "fields": json.dumps(["SYNOMDSharePath", "SYNOMDPath", "SYNOMDFSName", "SYNOMDFSSize", "SYNOMDIsDir", "SYNOMDContentModificationDate"]),
+                "search_weight_list": json.dumps(weights),
+                "sorter_field": "relevance", "sorter_direction": "asc",
+                "sorter_use_nature_sort": "false", "sorter_show_directory_first": "true",
+            })
+        if not isinstance(result, dict) or result.get("success") is not True:
+            raise click.ClickException("Universal Search returned an unsuccessful response.")
+        data = result.get("data")
+        if (not isinstance(data, dict) or data.get("has_error") or data.get("unavail")
+                or not isinstance(data.get("hits"), list)
+                or not all(isinstance(hit, dict) for hit in data["hits"])
+                or not isinstance(data.get("total"), int) or data["total"] < 0):
+            raise click.ClickException("Universal Search returned incomplete or malformed results.")
+    except click.ClickException:
+        raise
+    except Exception as error:
+        # Library exceptions can contain credential-bearing request URLs.
+        code = getattr(error, "error_code", None)
+        suffix = f" (DSM code {code})" if isinstance(code, int) else ""
+        raise click.ClickException(f"NAS search failed{suffix}; check authentication and Universal Search availability.") from None
+    finally:
+        if client is not None:
+            try:
+                client.logout()
+            except Exception:
+                click.echo("Warning: NAS session logout failed.", err=True)
+    if as_json:
+        click.echo(json.dumps(result, indent=2))
+        return
+    data = result.get("data") or {}
+    hits = data.get("hits", [])
+    click.echo(f"Showing {len(hits)} of {data['total']} indexed matches (offset {offset}).")
+    if hits and offset + len(hits) < data["total"]:
+        click.echo(f"More results: repeat with --offset {offset + len(hits)}")
+    for hit in hits:
+        path = hit.get("SYNOMDSharePath") or hit.get("SYNOMDPath") or hit.get("SYNOMDFSName", "?")
+        click.echo(f"{path}\t{hit.get('SYNOMDFSSize', '?')} bytes\tmodified={hit.get('SYNOMDContentModificationDate', '?')}")
 
 
 @nas.command("shares")
