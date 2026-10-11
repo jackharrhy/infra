@@ -73,9 +73,7 @@ services:
       - "traefik.http.routers.cado.entrypoints=web"
 
   4orm:
-    # Targeted local build with Tea Maps OAuth and Newport Shell changes.
-    image: local/4orm:tea-maps-oauth-20261008
-    pull_policy: never
+    image: ghcr.io/jackharrhy/4orm:main
     restart: unless-stopped
     networks: [web]
     env_file:
@@ -103,7 +101,7 @@ services:
       - "traefik.http.services.4orm.loadbalancer.server.port=8000"
       - "traefik.http.routers.4orm.rule=Host(`4orm.harrhy.xyz`)"
       - "traefik.http.routers.4orm.entrypoints=web"
-      - "com.centurylinklabs.watchtower.enable=false"
+      - "com.centurylinklabs.watchtower.enable=true"
 
   adam_eats:
     image: ghcr.io/jackharrhy/adam__eats:main
@@ -144,7 +142,7 @@ services:
       - "traefik.http.routers.artbin.entrypoints=web"
 
   maps-ui:
-    image: ghcr.io/jackharrhy/tea-maps@sha256:d76a09cc92a4c9d726a9a908c821e020486ddd979d8f65fc4425b45cb2655cbd
+    image: ghcr.io/jackharrhy/tea-maps:latest
     restart: unless-stopped
     networks: [web, maps_backend]
     environment:
@@ -160,7 +158,7 @@ services:
     cpus: 2
     stop_grace_period: 90s
     labels:
-      - "com.centurylinklabs.watchtower.enable=false"
+      - "com.centurylinklabs.watchtower.enable=true"
       - "traefik.docker.network=newport_web"
       - "traefik.enable=true"
       - "traefik.http.services.maps-ui.loadbalancer.server.port=8790"
@@ -171,7 +169,7 @@ services:
       - "traefik.http.middlewares.maps-public-origin.headers.customrequestheaders.X-Forwarded-Proto=https"
 
   maps-service:
-    image: ghcr.io/jackharrhy/tea-maps-service@sha256:78c8824737e961e9c20174beba4fbd40ad0d68b1a5f2a181b35e9258d23a788b
+    image: ghcr.io/jackharrhy/tea-maps-service:latest
     restart: unless-stopped
     networks: [web, maps_backend]
     env_file:
@@ -194,10 +192,10 @@ services:
     mem_limit: 2g
     cpus: 2
     labels:
-      - "com.centurylinklabs.watchtower.enable=false"
+      - "com.centurylinklabs.watchtower.enable=true"
 
   maps-collaboration:
-    image: ghcr.io/jackharrhy/tea-maps-collaboration@sha256:5c15165d6961e7d4c793715ca1d52c7f47232e961afdb6f0cda3e0767734307c
+    image: ghcr.io/jackharrhy/tea-maps-collaboration:latest
     restart: unless-stopped
     networks: [maps_backend]
     environment:
@@ -211,10 +209,10 @@ services:
     cpus: 1
     stop_grace_period: 90s
     labels:
-      - "com.centurylinklabs.watchtower.enable=false"
+      - "com.centurylinklabs.watchtower.enable=true"
 
   maps-compiler:
-    image: ghcr.io/jackharrhy/tea-maps-compiler@sha256:09418908856e1c9006017b219ddd89085efc9d02703a86b810f81c3b7dd079a5
+    image: ghcr.io/jackharrhy/tea-maps-compiler:latest
     restart: unless-stopped
     networks: [maps_backend]
     read_only: true
@@ -241,10 +239,10 @@ services:
     mem_limit: 2g
     cpus: 2
     labels:
-      - "com.centurylinklabs.watchtower.enable=false"
+      - "com.centurylinklabs.watchtower.enable=true"
 
   maps-gower-compiler:
-    image: ghcr.io/jackharrhy/tea-maps-compiler@sha256:09418908856e1c9006017b219ddd89085efc9d02703a86b810f81c3b7dd079a5
+    image: ghcr.io/jackharrhy/tea-maps-compiler:latest
     restart: unless-stopped
     networks: [maps_backend]
     read_only: true
@@ -273,7 +271,7 @@ services:
     mem_limit: 4g
     cpus: 6
     labels:
-      - "com.centurylinklabs.watchtower.enable=false"
+      - "com.centurylinklabs.watchtower.enable=true"
 
   ref-celld:
     image: ghcr.io/jackharrhy/tea-ref@sha256:0f521cf127610021069d6e835d3c1d64a29be4fb67324c77b80de14e3a68bfbd
@@ -304,7 +302,7 @@ services:
       - "traefik.http.middlewares.ref-public-origin.headers.customrequestheaders.X-Forwarded-Proto=https"
 
   marky:
-    image: ghcr.io/jackharrhy/tea-marky@sha256:af6b1c604cf0beaa523d2b3ba0c60a84ee001123e76d65a29b5baaea91857bc6
+    image: ghcr.io/jackharrhy/tea-marky:latest
     restart: unless-stopped
     networks: [web]
     env_file:
@@ -324,56 +322,7 @@ services:
       - "traefik.http.services.marky.loadbalancer.server.port=44100"
       - "traefik.http.routers.marky.rule=Host(`md.jackharrhy.dev`)"
       - "traefik.http.routers.marky.entrypoints=web"
-      - "com.centurylinklabs.watchtower.enable=false"
-
-  # Karakeep is the web-capture inbox. Its SQLite DB and downloaded assets are
-  # kept separate; the retired Monbooru gallery + metadata are archived under
-  # /mnt/terrabud/docker-data/newport/monbooru-archive-20260904.
-  karakeep:
-    image: ghcr.io/karakeep-app/karakeep:0.33.2
-    restart: unless-stopped
-    networks: [web, karakeep]
-    env_file:
-      - ./.runtime-secrets/karakeep.env
-    environment:
-      - NEXTAUTH_URL=https://karakeep.jackharrhy.dev
-      # The initial owner account exists; subsequent accounts are admin-created.
-      - DISABLE_SIGNUPS=true
-      - DATA_DIR=/data
-      - MEILI_ADDR=http://karakeep_meilisearch:7700
-      - BROWSER_WEB_URL=http://karakeep_chrome:9222
-      - TZ=America/St_Johns
-    volumes:
-      - /mnt/terrabud/docker-data/newport/karakeep/data:/data
-    labels:
-      - "traefik.docker.network=newport_web"
-      - "traefik.enable=true"
-      - "traefik.http.services.karakeep.loadbalancer.server.port=3000"
-      - "traefik.http.routers.karakeep.rule=Host(`karakeep.jackharrhy.dev`)"
-      - "traefik.http.routers.karakeep.entrypoints=web"
-
-  karakeep_chrome:
-    image: ghcr.io/karakeep-app/karakeep-chrome:release
-    restart: unless-stopped
-    init: true
-    networks: [karakeep]
-    command:
-      - --disable-gpu
-      - --disable-dev-shm-usage
-      - --hide-scrollbars
-      - --disable-blink-features=AutomationControlled
-      - --window-size=1440,900
-
-  karakeep_meilisearch:
-    image: getmeili/meilisearch:v1.41.0
-    restart: unless-stopped
-    networks: [karakeep]
-    env_file:
-      - ./.runtime-secrets/karakeep.env
-    environment:
-      - MEILI_NO_ANALYTICS=true
-    volumes:
-      - /mnt/terrabud/docker-data/newport/karakeep/meilisearch:/meili_data
+      - "com.centurylinklabs.watchtower.enable=true"
 
   rotund_org:
     image: ghcr.io/jackharrhy/rotund.org:main
@@ -560,8 +509,6 @@ networks:
   maps_backend:
     internal: true
 
-  karakeep:
-    internal: true
   miniflux:
   sluggers_super_draft:
   cmd_db:
