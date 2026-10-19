@@ -10,16 +10,14 @@ import cli
 class IsLocalSshTargetTests(unittest.TestCase):
     @patch("cli.socket.getfqdn", return_value="newport.hedgehog-python.ts.net")
     @patch("cli.socket.gethostname", return_value="newport")
-    def test_recognizes_local_hostname_and_fqdn(self, _gethostname, _getfqdn):
-        self.assertTrue(cli.is_local_ssh_target("jack@newport"))
-        self.assertTrue(
-            cli.is_local_ssh_target("jack@newport.hedgehog-python.ts.net")
-        )
-
-    @patch("cli.socket.getfqdn", return_value="newport.hedgehog-python.ts.net")
-    @patch("cli.socket.gethostname", return_value="newport")
-    def test_rejects_a_different_host(self, _gethostname, _getfqdn):
-        self.assertFalse(cli.is_local_ssh_target("jack@mug"))
+    def test_matches_only_local_hosts(self, _gethostname, _getfqdn):
+        for target, expected in (
+            ("jack@newport", True),
+            ("jack@newport.hedgehog-python.ts.net", True),
+            ("jack@mug", False),
+        ):
+            with self.subTest(target=target):
+                self.assertEqual(expected, cli.is_local_ssh_target(target))
 
     @patch("cli.subprocess.run")
     @patch("cli.is_local_ssh_target", return_value=True)
@@ -54,6 +52,7 @@ class IsLocalSshTargetTests(unittest.TestCase):
         result = CliRunner().invoke(cli.cli, ["update", "newport"])
 
         self.assertEqual(0, result.exit_code, result.output)
+        _ssh_run.assert_not_called()
         run_host.assert_called_once_with(
             "jack@newport",
             "cd ~/infra && git pull",

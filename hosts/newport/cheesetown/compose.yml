@@ -30,6 +30,11 @@ services:
       REPLACE_ENV_DURING_SYNC: "false"
       MEMORY: 6G
       MOTD: "\u00a7echeesetown"
+      RESOURCE_PACK: https://cheesetown.rocks/downloads/cheesetown-paintings-1.0.0.zip
+      RESOURCE_PACK_SHA1: 0d75ce21e1c9d62e4e401f77af9d71c85a745db3
+      RESOURCE_PACK_ID: e0ce5cb7-45eb-5408-bd30-2ef402beec12
+      RESOURCE_PACK_PROMPT: ""
+      RESOURCE_PACK_ENFORCE: "false"
       DIFFICULTY: hard
       MODE: survival
       LEVEL: world
@@ -37,7 +42,7 @@ services:
       ENFORCE_SECURE_PROFILE: "true"
       ENABLE_WHITELIST: "true"
       ENFORCE_WHITELIST: "true"
-      WHITELIST: cheesemany,ncashin,TheDollyLama,walgreens2,Fluffenstins,koalasthegreat,Marty4President,CatanCraft,NathanHobbs,_KFC555Noy_,AaronCS,aidan17,amye_rose,andrewgosse,Bonavistask8er,CrypticWolf1999,DarthDad,DoleBananas,ecu,gabsiscute,guitargun,Janitor_Dan,l4venza,Lakeboi_Q,Luke1124,MooMooMoo,NathanMacneil,NinjaRicecakes,nint8835,OmegaNave,RadicalDolphin,ranguli,swp147,Theoya,TheRealKingPin99,Vahnatai,Zac3138,Itz_S1las_,JeffreyEpstein03
+      WHITELIST: cheesemany,ncashin,TheDollyLama,walgreens2,Fluffenstins,koalasthegreat,Marty4President,CatanCraft,NathanHobbs,_KFC555Noy_,AaronCS,aidan17,amye_rose,andrewgosse,Bonavistask8er,CrypticWolf1999,DarthDad,DoleBananas,ecu,gabsiscute,guitargun,Janitor_Dan,l4venza,Lakeboi_Q,Luke1124,MooMooMoo,NathanMacneil,NinjaRicecakes,nint8835,OmegaNave,RadicalDolphin,ranguli,swp147,Theoya,TheRealKingPin99,Vahnatai,Zac3138,Itz_S1las_,JeffreyEpstein03,st340,MiseDev
       OPS: cheesemany
       MAX_PLAYERS: "12"
       VIEW_DISTANCE: "16"
