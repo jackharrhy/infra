@@ -13,6 +13,3 @@ identity and cell namespace. Compilers mount ericw-tools read only.
 Render `maps-ticket.enc.yaml` and `maps-service.enc.yaml` with
 `./scripts/render-secrets.sh newport`. The public OAuth callback is
 `https://maps.jackharrhy.dev/auth/callback`.
-
-The local 4orm image includes unpublished Maps and Newport Shell OAuth changes.
-Its archive is `/mnt/terrabud/backup/tea-maps-2026-10-08/fourm-maps-oauth-image.tar`.

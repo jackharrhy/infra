@@ -1,5 +1,4 @@
 #!/usr/bin/env -S uv run
-"""Infra CLI - tools for managing and visualizing infrastructure."""
 
 from __future__ import annotations
 
@@ -128,7 +127,7 @@ def parse_compose(host_name: str, compose_path: Path) -> Host:
         has_catch_all = "/" in all_path_rules
         path_rules = [p for p in all_path_rules if p != "/"]
         if has_catch_all:
-            path_rules = []  # domain-level service, paths are secondary
+            path_rules = []
         category = categorize_service(svc_name, image, labels, networks)
 
         service = Service(
@@ -414,11 +413,6 @@ def get_deploy_hosts(config: dict[str, Any]) -> dict[str, dict[str, str]]:
 
 
 def ssh_run(ssh_target: str, command: str, *, stream: bool = False) -> subprocess.CompletedProcess[str] | int:
-    """Run a command on a remote host via SSH.
-
-    If stream=True, streams output live and returns the exit code.
-    Otherwise returns a CompletedProcess.
-    """
     ssh_cmd = ["ssh", "-o", "ConnectTimeout=5", "-o", "BatchMode=yes", ssh_target, command]
     if stream:
         result = subprocess.run(ssh_cmd)
@@ -427,12 +421,7 @@ def ssh_run(ssh_target: str, command: str, *, stream: bool = False) -> subproces
 
 
 def is_local_ssh_target(ssh_target: str) -> bool:
-    """Return whether an SSH target names this machine.
-
-    The deployment config uses an SSH target for every host, including the
-    controller itself. A local target may not accept the user's SSH key, even
-    though the equivalent command can run locally without SSH.
-    """
+    """Local targets need not authorize the controller's SSH key."""
     host = ssh_target.rsplit("@", 1)[-1].rstrip(".").lower()
     hostname = socket.gethostname().rstrip(".").lower()
     fqdn = socket.getfqdn().rstrip(".").lower()
@@ -874,19 +863,6 @@ def auto_sync(zones: tuple[str, ...], force: bool):
 
 
 def _decrypt_synology_creds() -> dict[str, Any]:
-    """Decrypt Synology DSM credentials from SOPS.
-
-    Expected keys in the secret:
-      SYNOLOGY_HOST         - hostname or IP (e.g. stash.hedgehog-python.ts.net)
-      SYNOLOGY_PORT         - DSM HTTPS port (e.g. 5001) or HTTP (5000)
-      SYNOLOGY_USERNAME     - DSM account
-      SYNOLOGY_PASSWORD     - DSM account password
-      SYNOLOGY_SECURE       - "true" for HTTPS (default), "false" for HTTP
-      SYNOLOGY_OTP          - (optional) one-shot 2FA code
-      SYNOLOGY_TOTP_SECRET  - (optional) TOTP shared secret (base32);
-                              if present, a fresh code is generated each login
-                              and SYNOLOGY_OTP is ignored.
-    """
     if not NAS_SECRET.exists():
         click.echo(f"Error: {NAS_SECRET} not found", err=True)
         click.echo(f"Create it with: sops {NAS_SECRET.relative_to(REPO_ROOT)}", err=True)
@@ -916,16 +892,6 @@ def _decrypt_synology_creds() -> dict[str, Any]:
 
 
 def _resolve_synology_otp(creds: dict[str, Any]) -> str | None:
-    """Resolve the OTP to pass to the DSM login call.
-
-    Preference order: a stored TOTP secret (generates a fresh code), then a
-    literal one-shot code, otherwise no 2FA.
-
-    When using a TOTP secret, ensures the generated code is from a 30-second
-    window that hasn't already been used by a prior CLI invocation (DSM
-    rejects replays within the same window). Sleeps until the next window if
-    needed — at most ~30s, usually 0.
-    """
     totp_secret = creds.get("SYNOLOGY_TOTP_SECRET")
     if not totp_secret:
         return creds.get("SYNOLOGY_OTP") or None
@@ -967,12 +933,7 @@ def _resolve_synology_otp(creds: dict[str, Any]) -> str | None:
 
 
 def _synology_client(api_class: str):
-    """Return an instantiated synology-api client.
-
-    api_class is one of: 'core_share', 'filestation', 'core_sys_info',
-    'universal_search'.
-    Lazy-imported so the dep isn't required for unrelated commands.
-    """
+    """Lazy-import DSM APIs so unrelated commands do not require synology-api."""
     creds = _decrypt_synology_creds()
     secure = str(creds.get("SYNOLOGY_SECURE", "true")).lower() != "false"
     port = str(creds.get("SYNOLOGY_PORT", "5001" if secure else "5000"))
@@ -1031,7 +992,6 @@ def nas_login_check():
     data = info.get("data", info) if isinstance(info, dict) else {}
     click.echo(click.style("ok", fg="green"))
     if data:
-        # Print a small, friendly subset (DSM keys vary across versions).
         for k in ("hostname", "model", "serial", "ram_size", "dsm_version",
                   "uptime", "is_dsm_boot_completed", "temperature"):
             if k in data:

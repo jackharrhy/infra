@@ -1,14 +1,10 @@
 # infra
 
-my infra
-
 ![Infrastructure diagram](https://jackharrhy.github.io/infra/infra.svg)
 
-- `hosts/`: Compose stacks and service-specific storage/rollback notes
+- `hosts/`: Compose stacks and service-specific operating notes
 - `dns/`: octoDNS zones and configuration
 - `aws/`: Pulumi resources and mail setup
-- `scripts/`: volume setup, secret rendering, and import tools
-- `cli.py`, `infra.yml`: fleet commands and diagram inputs
 - `docs/`: generated diagram, published by GitHub Pages
 
 ## CLI
@@ -22,28 +18,27 @@ infra diagram
 ```
 
 `status` compares Git revisions, not service health. `update` pulls Git only.
-Use repeated `--service NAME` options to refresh selected services without
-starting dependencies or pruning images. A full-host `refresh` also prunes
-unused images.
+Repeated `--service NAME` options refresh selected services without starting
+dependencies or pruning images. An unscoped `refresh HOST` refreshes the whole
+host stack and prunes all unused images. Nested projects such as Cheesetown are
+separate (`hosts/newport/cheesetown/`).
 
-`diagram` writes `docs/infra.d2` and renders SVG with `d2`. Use `--no-render`
-for source only, or `--format png` for PNG.
+`diagram` writes `docs/infra.d2` and renders with `d2`; `--no-render` writes source only.
 
 ## Secrets and DNS
 
-Secrets are SOPS-encrypted YAML. Rendered files go into sibling
-`.runtime-secrets/` directories and stay out of Git.
+Secrets are SOPS-encrypted YAML; rendering requires `sops` and an age key.
+Rendered `.runtime-secrets/` files stay out of Git.
 
 ```sh
 sops hosts/{host}/secrets/{service}.enc.yaml
 ./scripts/render-secrets.sh newport
-infra dns dump
 infra dns diff jackharrhy.com.
 infra dns sync jackharrhy.com.
 ```
 
-DNS uses DigitalOcean. `sync` shows the plan and asks before applying.
-Mail setup and outstanding DKIM work are in [aws/README.md](aws/README.md).
+DNS uses DigitalOcean. `sync` asks before applying; `infra dns dump` pulls records.
+Mail setup is in [aws/README.md](aws/README.md).
 
 ## NAS
 
@@ -54,14 +49,10 @@ infra nas login-check
 infra nas shares
 infra nas search 'whitelist.json' --name-only
 infra nas search minecraft --limit 50 --offset 0 --json
-infra nas debug-share SHARE
 infra nas nfs list SHARE
 infra nas nfs grant SHARE CLIENT_PATTERN
 infra nas nfs revoke SHARE CLIENT_PATTERN --yes
 ```
 
-`nas search` queries DSM's index. Use `--name-only` for filenames, `--limit` and
-`--offset` for pagination, or `--json` for the raw response. NAS result paths
-are not local mount paths; results depend on indexing and account permissions.
-
-Cheesetown has its own Compose project under `hosts/newport/cheesetown/`.
+Search uses DSM's index and account permissions, not a local crawl. Returned NAS
+paths are not local mount paths. See `infra nas search --help` for options.

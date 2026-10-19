@@ -202,7 +202,6 @@ const inboundEmailLambda = new aws.lambda.CallbackFunction("ses-inbound-email-la
     const receipt = record.ses.receipt;
     const toAddrs: string[] = [...(mail.destination ?? []), ...(mail.commonHeaders?.to ?? [])];
 
-    // Determine a structured S3 key and message kind from the recipient domain.
     const originalKey = `${receipt.action.objectKeyPrefix ?? "inbound/"}${mail.messageId}`;
     let structuredKey = originalKey;
     let kind: "reply" | "dmarc" = "reply";
@@ -326,7 +325,7 @@ new aws.ses.ReceiptRule("ses-inbound-receipt-rule", {
   ],
 });
 
-// Public S3 bucket for campaign media (images hosted for email)
+// Email clients need public campaign-image URLs.
 const mediaBucket = new aws.s3.Bucket("lists-media", {
   bucket: "jackharrhy-lists-media",
   forceDestroy: false,

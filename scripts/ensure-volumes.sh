@@ -38,15 +38,12 @@ for _, svc in services.items():
         src = None
 
         if isinstance(vol, str):
-            # host:container[:mode]
             parts = vol.split(":")
             if len(parts) >= 2:
                 src = parts[0]
         elif isinstance(vol, dict):
-            # long syntax: type/source/target
             src = vol.get("source")
             typ = vol.get("type")
-            # only bind-like sources under volumes path
             if typ not in (None, "bind"):
                 continue
 
