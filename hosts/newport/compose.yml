@@ -274,7 +274,7 @@ services:
       - "com.centurylinklabs.watchtower.enable=true"
 
   ref-celld:
-    image: ghcr.io/jackharrhy/tea-ref@sha256:0f521cf127610021069d6e835d3c1d64a29be4fb67324c77b80de14e3a68bfbd
+    image: ghcr.io/jackharrhy/tea-ref@sha256:9a6739973a674a30292202310263b6974ec0edf5b306972904255fb482cce7f3
     restart: unless-stopped
     networks: [web]
     ports:
