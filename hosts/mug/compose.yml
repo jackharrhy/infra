@@ -161,7 +161,7 @@ services:
 
   # Radio uses the fork's single-node SQLite object store on this host.
   radio-celld:
-    image: ghcr.io/jackharrhy/tea-radio@sha256:41c341007e71e0a33d8035b545154a926838eb0a09f1c693e1bc37f002da0e7e
+    image: ghcr.io/jackharrhy/tea-radio:latest
     restart: unless-stopped
     networks: [web]
     env_file:
@@ -195,7 +195,7 @@ services:
       - "traefik.http.middlewares.radio-login-rate.ratelimit.average=6"
       - "traefik.http.middlewares.radio-login-rate.ratelimit.period=1m"
       - "traefik.http.middlewares.radio-login-rate.ratelimit.burst=10"
-      - "com.centurylinklabs.watchtower.enable=false"
+      - "com.centurylinklabs.watchtower.enable=true"
 
   burger:
     image: ghcr.io/jackharrhy/burger:main
