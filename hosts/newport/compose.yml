@@ -135,6 +135,7 @@ services:
       - /mnt/terrabud/docker-data/newport/artbin_tea_data/uploads:/app/apps/artbin/public/uploads
       - /mnt/terrabud/docker-data/newport/artbin_tea_data/tmp:/app/apps/artbin/tmp/uploads
     labels:
+      - "com.centurylinklabs.watchtower.enable=true"
       - "traefik.docker.network=newport_web"
       - "traefik.enable=true"
       - "traefik.http.services.artbin.loadbalancer.server.port=3000"
@@ -274,7 +275,7 @@ services:
       - "com.centurylinklabs.watchtower.enable=true"
 
   ref-celld:
-    image: ghcr.io/jackharrhy/tea-ref@sha256:52c14d6f0c016d1c3462c005f8c06f56f8ebaf4e96b6f0606da83f9eaa21aa5d
+    image: ghcr.io/jackharrhy/tea-ref:latest
     restart: unless-stopped
     networks: [web]
     ports:
@@ -290,7 +291,7 @@ services:
     cpus: 1
     stop_grace_period: 90s
     labels:
-      - "com.centurylinklabs.watchtower.enable=false"
+      - "com.centurylinklabs.watchtower.enable=true"
       - "traefik.docker.network=newport_web"
       - "traefik.enable=true"
       - "traefik.http.services.ref-celld.loadbalancer.server.port=8080"
