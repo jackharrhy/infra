@@ -475,22 +475,22 @@ services:
       - ./volumes/incydecy:/app/data
 
   steve:
-    image: ghcr.io/jackharrhy/letters-to-steve:latest
+    image: ghcr.io/jackharrhy/tea-letters-to-steve:latest
     restart: unless-stopped
     networks: [web]
     env_file:
       - ./.runtime-secrets/steve.env
     environment:
-      - DATABASE_PATH=/code/data/letters.sqlite
-      - UPLOAD_DIRECTORY=/code/data/uploads
+      - DATABASE_PATH=/app/data/letters.sqlite
+      - UPLOAD_DIRECTORY=/app/data/uploads
       - TRUST_PROXY=true
     volumes:
-      - ./volumes/steve:/code/data
+      - /mnt/terrabud/docker-data/newport/steve_tea_data:/app/data
     labels:
-      - "com.centurylinklabs.watchtower.enable=false"
+      - "com.centurylinklabs.watchtower.enable=true"
       - "traefik.docker.network=newport_web"
       - "traefik.enable=true"
-      - "traefik.http.services.steve.loadbalancer.server.port=5000"
+      - "traefik.http.services.steve.loadbalancer.server.port=44110"
       - "traefik.http.routers.steve.rule=Host(`steve-letter-writ.ing`)"
       - "traefik.http.routers.steve.entrypoints=web"
 
