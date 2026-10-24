@@ -22,16 +22,16 @@ services:
     environment:
       EULA: "true"
       TYPE: FABRIC
-      VERSION: "26.2"
-      FABRIC_LOADER_VERSION: "0.19.5"
+      VERSION: "26.3"
+      FABRIC_LOADER_VERSION: "0.20.1"
       FABRIC_LAUNCHER_VERSION: "1.1.2"
       SKIP_DOWNLOAD_DEFAULTS: "true"
       SYNC_SKIP_NEWER_IN_DESTINATION: "false"
       REPLACE_ENV_DURING_SYNC: "false"
       MEMORY: 6G
       MOTD: "\u00a7echeesetown"
-      RESOURCE_PACK: https://cheesetown.rocks/downloads/cheesetown-paintings-1.0.0.zip
-      RESOURCE_PACK_SHA1: 0d75ce21e1c9d62e4e401f77af9d71c85a745db3
+      RESOURCE_PACK: https://cheesetown.rocks/downloads/cheesetown-paintings-1.0.1.zip
+      RESOURCE_PACK_SHA1: 23d2cf0ce1434c0ad1e06112edf1a60e24ca7bdc
       RESOURCE_PACK_ID: e0ce5cb7-45eb-5408-bd30-2ef402beec12
       RESOURCE_PACK_PROMPT: ""
       RESOURCE_PACK_ENFORCE: "false"

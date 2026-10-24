@@ -1,13 +1,13 @@
 name = "Cheesepack v1"
 author = "cheesetown"
-version = "1.0.5"
+version = "1.0.6"
 pack-format = "packwiz:1.1.0"
 
 [index]
 file = "index.toml"
 hash-format = "sha256"
-hash = "debb84f3890b3b4eaad817990c4bba5fe5c8094cf4e643fc7c07cd87083f132d"
+hash = "f1ea451490b30cd85de88ed2da12f0371dcf64003f636865a99ac100ca886e57"
 
 [versions]
-fabric = "0.19.5"
-minecraft = "26.2"
+fabric = "0.20.1"
+minecraft = "26.3"

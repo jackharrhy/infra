@@ -20,8 +20,8 @@ PRELAUNCH = f'"$INST_JAVA" -jar packwiz-installer-bootstrap.jar -g -s client {PA
 COMPONENTS = {
     "formatVersion": 1,
     "components": [
-        {"uid": "net.minecraft", "version": "26.2", "important": True},
-        {"uid": "net.fabricmc.fabric-loader", "version": "0.19.5", "important": True},
+        {"uid": "net.minecraft", "version": "26.3", "important": True},
+        {"uid": "net.fabricmc.fabric-loader", "version": "0.20.1", "important": True},
     ],
 }
 INSTANCE = "\n".join([
@@ -30,7 +30,7 @@ INSTANCE = "\n".join([
     # Qt INI syntax requires escaping the command's literal quotes.
     "OverrideCommands=true", f"PreLaunchCommand={json.dumps(PRELAUNCH)}",
     "PostExitCommand=", "WrapperCommand=",
-    "notes=Minecraft 26.2 / Fabric 0.19.5. Requires Java 25. HTTPS pack updates before each launch.", "",
+    "notes=Minecraft 26.3 / Fabric 0.20.1. Requires Java 25. HTTPS pack updates before each launch.", "",
 ])
 
 

@@ -1,89 +1,19 @@
 {
-  "minecraft": "26.2",
+  "minecraft": "26.3",
   "bundle": {
-    "source_url": "https://vanillatweaks.net/download/VanillaTweaks_d560686_UNZIP_ME.zip",
-    "path": "/home/jack/.hermes/cache/scratch/cheesetown-fabric-migration/VanillaTweaks_d560686_UNZIP_ME.zip",
-    "sha256": "a0b1a70ed337977d195eaa805a9fcdd6341291c90f1000367bdffdfb3714e9c0"
+    "source_url": "https://vanillatweaks.net/download/VanillaTweaks_d243327_UNZIP_ME.zip",
+    "path": "/mnt/terrabud/builds/cheesetown-26.3/datapacks/VanillaTweaks_d243327_UNZIP_ME.zip",
+    "sha256": "0c7ce6b1af051d89f8be8d5f2787505d3f1f525fd7e1b85b11b17493cf685178"
   },
   "artifacts": [
     {
-      "filename": "wandering trades v1.7.16 (MC 26.2).zip",
-      "path": "/home/jack/.hermes/cache/scratch/cheesetown-fabric-migration/datapacks/wandering trades v1.7.16 (MC 26.2).zip",
-      "size": 32654,
-      "sha256": "1d8daa416b7bd3068377bec9e3ce7efa2c50bb07d4318aa979420374ffd49079",
-      "source_url": "https://vanillatweaks.net/download/VanillaTweaks_d560686_UNZIP_ME.zip",
+      "filename": "more mob heads v2.20.1 (MC 26.3).zip",
+      "path": "/mnt/terrabud/builds/cheesetown-26.3/datapacks/more mob heads v2.20.1 (MC 26.3).zip",
+      "size": 267736,
+      "sha256": "0d393660372f81fa7a885e5e22632a8ecf0921aa26239e14ce064eb354c14e84",
+      "source_url": "https://vanillatweaks.net/download/VanillaTweaks_d243327_UNZIP_ME.zip",
       "source_picker": "https://vanillatweaks.net/picker/datapacks/",
-      "minecraft": "26.2",
-      "pack_metadata": [
-        [
-          "pack.mcmeta",
-          {
-            "pack": {
-              "description": [
-                {
-                  "text": "Wandering Trades \u2500 Blocks Only Edition",
-                  "color": "gold"
-                },
-                {
-                  "text": "\nvanillatweaks.net",
-                  "color": "yellow"
-                }
-              ],
-              "min_format": 101,
-              "max_format": [
-                107,
-                1
-              ]
-            }
-          }
-        ]
-      ],
-      "publisher_hashes": null,
-      "verification": "Downloaded from official HTTPS picker-generated bundle; archive CRC and local SHA-256 verified. No publisher checksum supplied."
-    },
-    {
-      "filename": "player head drops v1.1.17 (MC 26.2).zip",
-      "path": "/home/jack/.hermes/cache/scratch/cheesetown-fabric-migration/datapacks/player head drops v1.1.17 (MC 26.2).zip",
-      "size": 5942,
-      "sha256": "d57d4d6ee5a63d68d0b52cd4a18cca3b353b0b2ec9264e751a3967dc3d75b916",
-      "source_url": "https://vanillatweaks.net/download/VanillaTweaks_d560686_UNZIP_ME.zip",
-      "source_picker": "https://vanillatweaks.net/picker/datapacks/",
-      "minecraft": "26.2",
-      "pack_metadata": [
-        [
-          "pack.mcmeta",
-          {
-            "pack": {
-              "description": [
-                {
-                  "text": "Player Head Drops",
-                  "color": "gold"
-                },
-                {
-                  "text": "\nvanillatweaks.net",
-                  "color": "yellow"
-                }
-              ],
-              "min_format": 101,
-              "max_format": [
-                107,
-                1
-              ]
-            }
-          }
-        ]
-      ],
-      "publisher_hashes": null,
-      "verification": "Downloaded from official HTTPS picker-generated bundle; archive CRC and local SHA-256 verified. No publisher checksum supplied."
-    },
-    {
-      "filename": "more mob heads v2.20.0 (MC 26.2).zip",
-      "path": "/home/jack/.hermes/cache/scratch/cheesetown-fabric-migration/datapacks/more mob heads v2.20.0 (MC 26.2).zip",
-      "size": 215127,
-      "sha256": "58f977bda12d097cb66fed3188f3cff1bb303569c740ba47c19d8f0d262e4611",
-      "source_url": "https://vanillatweaks.net/download/VanillaTweaks_d560686_UNZIP_ME.zip",
-      "source_picker": "https://vanillatweaks.net/picker/datapacks/",
-      "minecraft": "26.2",
+      "minecraft": "26.3",
       "pack_metadata": [
         [
           "pack.mcmeta",
@@ -99,18 +29,27 @@
                   "color": "yellow"
                 }
               ],
-              "min_format": 101,
+              "min_format": [
+                121,
+                0
+              ],
               "max_format": [
-                107,
-                1
+                121,
+                0
               ]
             },
             "overlays": {
               "entries": [
                 {
                   "directory": "overlay_107_1",
-                  "min_format": 107,
-                  "max_format": 2147483647
+                  "min_format": [
+                    121,
+                    0
+                  ],
+                  "max_format": [
+                    121,
+                    0
+                  ]
                 }
               ]
             }
@@ -118,7 +57,83 @@
         ]
       ],
       "publisher_hashes": null,
-      "verification": "Downloaded from official HTTPS picker-generated bundle; archive CRC and local SHA-256 verified. No publisher checksum supplied."
+      "verification": "Downloaded from official HTTPS picker-generated Minecraft26.3 bundle; archive CRC and local SHA-256 verified. No publisher checksum supplied."
+    },
+    {
+      "filename": "player head drops v1.1.18 (MC 26.3).zip",
+      "path": "/mnt/terrabud/builds/cheesetown-26.3/datapacks/player head drops v1.1.18 (MC 26.3).zip",
+      "size": 6547,
+      "sha256": "b616fa81c642238996fef71adce2ab09df68b9a3c28980f2e978f2c6b7ac25d6",
+      "source_url": "https://vanillatweaks.net/download/VanillaTweaks_d243327_UNZIP_ME.zip",
+      "source_picker": "https://vanillatweaks.net/picker/datapacks/",
+      "minecraft": "26.3",
+      "pack_metadata": [
+        [
+          "pack.mcmeta",
+          {
+            "pack": {
+              "description": [
+                {
+                  "text": "Player Head Drops",
+                  "color": "gold"
+                },
+                {
+                  "text": "\nvanillatweaks.net",
+                  "color": "yellow"
+                }
+              ],
+              "min_format": [
+                121,
+                0
+              ],
+              "max_format": [
+                121,
+                0
+              ]
+            }
+          }
+        ]
+      ],
+      "publisher_hashes": null,
+      "verification": "Downloaded from official HTTPS picker-generated Minecraft26.3 bundle; archive CRC and local SHA-256 verified. No publisher checksum supplied."
+    },
+    {
+      "filename": "wandering trades v1.7.18 (MC 26.3).zip",
+      "path": "/mnt/terrabud/builds/cheesetown-26.3/datapacks/wandering trades v1.7.18 (MC 26.3).zip",
+      "size": 29476,
+      "sha256": "7c931000269ce9d7b716f8f142eed2e3e99966960141e1d236bf11a2af8533d5",
+      "source_url": "https://vanillatweaks.net/download/VanillaTweaks_d243327_UNZIP_ME.zip",
+      "source_picker": "https://vanillatweaks.net/picker/datapacks/",
+      "minecraft": "26.3",
+      "pack_metadata": [
+        [
+          "pack.mcmeta",
+          {
+            "pack": {
+              "description": [
+                {
+                  "text": "Wandering Trades \u2500 Blocks Only Edition",
+                  "color": "gold"
+                },
+                {
+                  "text": "\nvanillatweaks.net",
+                  "color": "yellow"
+                }
+              ],
+              "min_format": [
+                121,
+                0
+              ],
+              "max_format": [
+                121,
+                0
+              ]
+            }
+          }
+        ]
+      ],
+      "publisher_hashes": null,
+      "verification": "Downloaded from official HTTPS picker-generated Minecraft26.3 bundle; archive CRC and local SHA-256 verified. No publisher checksum supplied."
     }
   ]
 }

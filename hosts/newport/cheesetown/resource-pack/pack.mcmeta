@@ -2,12 +2,12 @@
   "pack": {
     "description": "Cheesetown: Hube paintings by Katie Hardy",
     "min_format": [
-      88,
-      0
+      97,
+      1
     ],
     "max_format": [
-      88,
-      0
+      97,
+      1
     ]
   }
 }

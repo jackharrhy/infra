@@ -7,8 +7,8 @@ preserved; attribution is in `CREDITS.txt`.
 Rebuild from this directory:
 
 ```bash
-python -m zipfile -c ../downloads/cheesetown-paintings-1.0.0.zip pack.mcmeta assets CREDITS.txt
-sha1sum ../downloads/cheesetown-paintings-1.0.0.zip
+python -m zipfile -c ../downloads/cheesetown-paintings-1.0.1.zip pack.mcmeta assets CREDITS.txt
+sha1sum ../downloads/cheesetown-paintings-1.0.1.zip
 ```
 
 Update the Compose URL/version and SHA-1 together. Generated ZIPs stay in ignored
