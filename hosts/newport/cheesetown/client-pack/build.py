@@ -14,8 +14,8 @@ DOWNLOADS = ROOT.parent / "downloads"
 PACK_URL = "https://cheesetown.rocks/pack.toml"
 BOOTSTRAP_URL = "https://github.com/packwiz/packwiz-installer-bootstrap/releases/download/v0.0.3/packwiz-installer-bootstrap.jar"
 BOOTSTRAP_SHA256 = "a8fbb24dc604278e97f4688e82d3d91a318b98efc08d5dbfcbcbcab6443d116c"
-ZIP_NAME = "cheesepack-v1.zip"
-MRPACK_NAME = "cheesepack-v1.mrpack"
+ZIP_NAME = "cheesepack-v2.zip"
+MRPACK_NAME = "cheesepack-v2.mrpack"
 PRELAUNCH = f'"$INST_JAVA" -jar packwiz-installer-bootstrap.jar -g -s client {PACK_URL}'
 COMPONENTS = {
     "formatVersion": 1,
@@ -26,7 +26,7 @@ COMPONENTS = {
 }
 INSTANCE = "\n".join([
     "[General]", "ConfigVersion=1.2", "InstanceType=OneSix",
-    "name=Cheesepack v1", "iconKey=cheesepack",
+    "name=Cheesepack v2", "iconKey=cheesepack",
     # Qt INI syntax requires escaping the command's literal quotes.
     "OverrideCommands=true", f"PreLaunchCommand={json.dumps(PRELAUNCH)}",
     "PostExitCommand=", "WrapperCommand=",
@@ -51,10 +51,10 @@ def main():
         archive.writestr("cheesepack/mmc-pack.json", json.dumps(COMPONENTS, indent=2) + "\n")
         archive.writestr("cheesepack/.minecraft/packwiz-installer-bootstrap.jar", bootstrap)
         archive.write(ROOT.parent / "assets/pack-icon.png", "cheesepack/cheesepack.png")
-    shutil.copyfile(DOWNLOADS / ZIP_NAME, DOWNLOADS / "Cheesepack v1.zip")
+    shutil.copyfile(DOWNLOADS / ZIP_NAME, DOWNLOADS / "Cheesepack v2.zip")
     (DOWNLOADS / "SHA256SUMS").write_text("".join(
         f"{hashlib.sha256((DOWNLOADS / name).read_bytes()).hexdigest()}  {name}\n"
-        for name in [ZIP_NAME, "Cheesepack v1.zip", MRPACK_NAME, "packwiz-installer-bootstrap.jar"]
+        for name in [ZIP_NAME, "Cheesepack v2.zip", MRPACK_NAME, "packwiz-installer-bootstrap.jar"]
     ))
 
 
