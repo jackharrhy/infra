@@ -5,7 +5,7 @@
 Stores under `/mnt/terrabud/docker-data/newport/`:
 - `maps_ui_celld`: UI state
 - `maps_service_tea`: projects and blobs
-- `maps_collaboration_tea`: collaboration cells
+- `maps_collaboration_tea_v2`: collaboration cells
 
 Collaboration uses Tea's `tea-maps-collaboration` Worker identity. Keep the
 collaboration store paired with the service's map records when moving volumes.
