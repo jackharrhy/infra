@@ -200,7 +200,6 @@ services:
     restart: unless-stopped
     networks: [maps_backend]
     environment:
-      - TEA_MAPS_CELLD_DEPLOY_CONFIG=wrangler.celld-cutover.jsonc
       - CELLD_VARS_FILE=/run/secrets/maps-ticket.env
     volumes:
       - /mnt/terrabud/docker-data/newport/maps_collaboration_tea:/app/.celld

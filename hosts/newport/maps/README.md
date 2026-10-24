@@ -7,8 +7,9 @@ Stores under `/mnt/terrabud/docker-data/newport/`:
 - `maps_service_tea`: projects and blobs
 - `maps_collaboration_tea`: collaboration cells
 
-Collaboration requires `wrangler.celld-cutover.jsonc` for the existing Worker
-identity and cell namespace. Compilers mount ericw-tools read only.
+Collaboration uses Tea's `tea-maps-collaboration` Worker identity. Keep the
+collaboration store paired with the service's map records when moving volumes.
+Compilers mount ericw-tools read only.
 
 Render `maps-ticket.enc.yaml` and `maps-service.enc.yaml` with
 `./scripts/render-secrets.sh newport`. The public OAuth callback is
