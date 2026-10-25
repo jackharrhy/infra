@@ -112,7 +112,9 @@ services:
       RCON_PASSWORD_FILE: /run/secrets/rcon_password
       INITIAL_DELAY: "0"
       BACKUP_INTERVAL: 6h
-      PRUNE_BACKUPS_DAYS: "14"
+      PRUNE_BACKUPS_DAYS: "0"
+      PRUNE_BACKUPS_COUNT: ""
+      POST_BACKUP_SCRIPT_FILE: /retain-backups.sh
       BACKUP_NAME: cheesetown
       EXCLUDES: "*.jar,cache,logs,*.tmp,bluemap/web,bluemap/maps"
       TZ: America/St_Johns
@@ -121,6 +123,7 @@ services:
     volumes:
       - /mnt/terrabud/docker-data/newport/cheesetown/fabric-data:/data:ro
       - /mnt/terrabud/docker-data/newport/cheesetown/backups:/backups
+      - ./retain-backups.sh:/retain-backups.sh:ro
     labels:
       traefik.enable: "false"
       com.centurylinklabs.watchtower.enable: "false"
