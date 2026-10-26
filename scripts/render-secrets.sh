@@ -31,6 +31,10 @@ for f in "$BASE"/**/secrets/*.enc.yaml "$BASE"/**/secrets/*.enc.yml; do
 
   if [[ "$base" == *.pem ]]; then
     sops -d --extract '["pem"]' --output-type binary "$f" > "$out"
+  elif [[ "$base" == *.json ]]; then
+    sops -d --extract '["json"]' --output-type binary "$f" > "$out_dir/$base"
+    chmod 600 "$out_dir/$base"
+    continue
   elif [[ "$base" == *.htpasswd ]]; then
     # Traefik expects htpasswd's user:hash format rather than dotenv output.
     sops -d --output-type dotenv "$f" | sed 's/=/:/' > "$out"

@@ -1,0 +1,14 @@
+http:
+  routers:
+    lore:
+      rule: "Host(`lore.jackharrhy.dev`)"
+      entryPoints: [websecure]
+      service: lore-newport
+      tls:
+        certResolver: mugresolver
+  services:
+    lore-newport:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: "h2c://newport.hedgehog-python.ts.net:41337"

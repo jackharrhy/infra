@@ -504,7 +504,96 @@ services:
       - "traefik.http.routers.notscared_site.rule=Host(`notsca.red`)"
       - "traefik.http.routers.notscared_site.entrypoints=web"
 
+  lore:
+    image: ghcr.io/epicgames/lore/loreserver:0.11.0@sha256:62a6ae27091e6a525e3c078d48f81969e8b7dbedab7d4f736cacc5bb575bbae1
+    restart: unless-stopped
+    user: "1000:1000"
+    ports:
+      - "100.123.66.70:41337:41337/tcp"
+      - "127.0.0.1:41339:41339/tcp"
+    networks: [web]
+    volumes:
+      - /mnt/terrabud/docker-data/newport/lore:/data
+      - ./lore/local.toml:/etc/lore/config/local.toml:ro
+    labels:
+      - "traefik.enable=false"
+      - "com.centurylinklabs.watchtower.enable=false"
+
+  jack-auth-db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    networks: [jack_auth_backend]
+    env_file: [./jack-auth/.runtime-secrets/postgres.env]
+    volumes:
+      - /mnt/terrabud/docker-data/newport/jack-auth/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U zitadel -d zitadel"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+
+  jack-auth-api:
+    image: ghcr.io/zitadel/zitadel:v4.20.0@sha256:9ea0e9ecfdc43115da871242e40a0320f2ece864c7cd8b5d41a863a7f4902499
+    restart: unless-stopped
+    command: [start-from-init, --masterkeyFromEnv, --tlsMode, external]
+    networks: [jack_auth_backend, web]
+    ports: ["100.123.66.70:18085:8080/tcp"]
+    env_file: [./jack-auth/.runtime-secrets/zitadel.env]
+    environment:
+      ZITADEL_EXTERNALDOMAIN: auth.jackharrhy.dev
+      ZITADEL_EXTERNALPORT: 443
+      ZITADEL_EXTERNALSECURE: "true"
+      ZITADEL_TLS_ENABLED: "false"
+      ZITADEL_SYSTEMDEFAULTS_PASSWORDHASHER_VERIFIERS: "pbkdf2"
+      ZITADEL_FIRSTINSTANCE_INSTANCENAME: Jack Auth spike
+      ZITADEL_FIRSTINSTANCE_ORG_NAME: Jack Auth
+      ZITADEL_FIRSTINSTANCE_PATPATH: /bootstrap/owner.pat
+      ZITADEL_FIRSTINSTANCE_ORG_MACHINE_MACHINE_USERNAME: bootstrap
+      ZITADEL_FIRSTINSTANCE_ORG_MACHINE_MACHINE_NAME: Spike bootstrap owner
+      ZITADEL_FIRSTINSTANCE_ORG_MACHINE_PAT_EXPIRATIONDATE: "2026-11-01T00:00:00Z"
+      ZITADEL_FIRSTINSTANCE_LOGINCLIENTPATPATH: /bootstrap/login.pat
+      ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_USERNAME: jack-auth-login
+      ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_NAME: Jack Auth login
+      ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_PAT_EXPIRATIONDATE: "2026-11-25T00:00:00Z"
+      ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_REQUIRED: "true"
+      ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_BASEURI: https://auth.jackharrhy.dev/
+      ZITADEL_OIDC_DEFAULTLOGINURLV2: https://auth.jackharrhy.dev/login?authRequest=
+      ZITADEL_OIDC_DEFAULTLOGOUTURLV2: https://auth.jackharrhy.dev/logout?post_logout_redirect=
+      ZITADEL_DEFAULTINSTANCE_LOGINPOLICY_ALLOWREGISTER: "false"
+      ZITADEL_DEFAULTINSTANCE_RESTRICTIONS_DISALLOWPUBLICORGREGISTRATION: "true"
+    volumes:
+      - /mnt/terrabud/docker-data/newport/jack-auth/bootstrap:/bootstrap
+    healthcheck:
+      test: [CMD, /app/zitadel, ready]
+      interval: 10s
+      timeout: 10s
+      retries: 15
+    labels:
+      - "traefik.enable=false"
+      - "com.centurylinklabs.watchtower.enable=false"
+
+  jack-auth-ui:
+    image: jack-auth:spike
+    pull_policy: never
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    networks: [jack_auth_backend, web]
+    ports: ["100.123.66.70:18086:3000/tcp"]
+    env_file: [./jack-auth/.runtime-secrets/ui.env]
+    volumes:
+      - ./jack-auth/.runtime-secrets/login-key.json:/run/secrets/login-token.json:ro
+      - ./jack-auth/.runtime-secrets/management-key.json:/run/secrets/management-token.json:ro
+    labels:
+      - "traefik.enable=false"
+      - "com.centurylinklabs.watchtower.enable=false"
+
 networks:
+  jack_auth_backend:
+    internal: true
   web:
   maps_backend:
     internal: true

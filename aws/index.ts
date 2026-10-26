@@ -418,3 +418,20 @@ new aws.iam.UserPolicy("lists-policy", {
       }),
     ),
 });
+
+const jackAuthMailUser = new aws.iam.User("jack-auth-mail", { name: "jack-auth-mail" });
+new aws.iam.UserPolicy("jack-auth-mail-send", {
+  user: jackAuthMailUser.name,
+  policy: pulumi.all([jackharrhyDevIdentity.arn, configSet.arn]).apply(([identityArn, configurationSetArn]) => JSON.stringify({
+    Version: "2012-10-17",
+    Statement: [{
+      Effect: "Allow",
+      Action: "ses:SendRawEmail",
+      Resource: [identityArn, configurationSetArn],
+      Condition: { StringEquals: { "ses:FromAddress": "auth@jackharrhy.dev" } },
+    }],
+  })),
+});
+const jackAuthMailKey = new aws.iam.AccessKey("jack-auth-mail-key", { user: jackAuthMailUser.name });
+export const jackAuthSmtpUsername = pulumi.secret(jackAuthMailKey.id);
+export const jackAuthSmtpPassword = pulumi.secret(jackAuthMailKey.sesSmtpPasswordV4);

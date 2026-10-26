@@ -1,0 +1,37 @@
+[server.quic]
+enabled = false
+
+[server.http]
+health_only = true
+host = "0.0.0.0"
+port = 41339
+
+[server.grpc]
+host = "0.0.0.0"
+port = 41337
+
+[immutable_store.local]
+path = "/data"
+flush_delay_seconds = 1
+
+[mutable_store.local]
+path = "/data"
+flush_delay_seconds = 1
+
+[lock_store]
+mode = "local"
+
+[server.auth]
+jwt_issuer = "https://auth.jackharrhy.dev"
+jwt_audience = ["396722776490115075"]
+permission_claim = "lore_roles"
+baseline_access = "reachable"
+repository_catalog = "baseline"
+
+[server.auth.jwk]
+endpoint = "https://auth.jackharrhy.dev/oauth/v2/keys"
+
+[server.auth.oidc]
+client_id = "396722776490115075"
+scopes = ["openid", "profile", "offline_access", "urn:zitadel:iam:org:project:id:396722776053907459:aud"]
+preferred = true
