@@ -6,6 +6,8 @@
 - `dns/`: octoDNS zones and configuration
 - `aws/`: Pulumi resources and mail setup
 - `docs/`: generated diagram, published by GitHub Pages
+- [`maintenance/github-actions/`](maintenance/github-actions/): standalone CI recipes
+  and the process for maintaining application workflows without central dependencies
 
 ## CLI
 
