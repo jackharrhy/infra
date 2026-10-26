@@ -1,4 +1,4 @@
-# Jack Auth spike
+# Jack Auth
 
 Public issuer and custom UI: https://auth.jackharrhy.dev.
 Source checkout on Newport: `~/repos/personal/jack-auth`; see its README for
@@ -20,7 +20,9 @@ committed. The UI uses separate service-account RSA keys to obtain short-lived A
 Encrypted login-key.json and management-key.json files are mounted read-only.
 Provisioned keys last one year; scheduled key rotation remains pending.
 Legacy acceptance/provisioning PATs expire2026-11-25UTC and the bootstrap owner
-PAT expires2026-11-01UTC; operational scripts still need migration.
+PAT expires2026-11-01UTC. Ongoing application provisioning now uses a separate
+operator key (encrypted, never mounted into the UI); remaining legacy scripts
+still need migration before retiring those PATs.
 
 SES SMTP is configured directly in ZITADEL using the dedicated jack-auth-mail IAM
 identity defined in aws/index.ts. It can send raw email only from
@@ -32,11 +34,22 @@ The existing lists campaign service and its subscriber store are not involved.
 
 Email verification and password recovery UI pass live disposable-account tests.
 PBKDF2 import verification is enabled for legacy 4orm hashes; new passwords keep
-the default bcrypt hasher. Only disposable migration accounts have been tested.
+the default bcrypt hasher. All 61 existing 4orm accounts have been imported or
+explicitly linked; browser login and member invites use the central issuer.
+Jack and Joel reached their original profiles through live OIDC and SSO checks.
+
+Artbin and Tea Maps have central OIDC/resource-server clients and per-app member/
+admin grants. Their encrypted environment handoffs are under ../secrets; Compose
+does not load them until the consumer code and ownership migrations are ready.
+A separate Maps machine identity has only Artbin asset-read roles. Real custom
+login/SSO and machine-token introspection passed, including admin and cross-app
+denial. The downstream apps still use 4orm OAuth pending their code cutovers.
 
 ZITADEL DB: /mnt/terrabud/docker-data/newport/jack-auth/postgres.
 Preserve the encrypted master key with PostgreSQL backups; losing it prevents
-recovery of encrypted provider data. Set up off-host retention before wider use.
+recovery of encrypted provider data. Encrypted provider/4orm snapshots also have
+off-host copies on Jack's Mac. Automated retention and full provider startup
+from restored data remain pending.
 
 ZITADEL core is AGPL; the separately authored UI is MIT and the Lore token action
 is AGPL. No ZITADEL source was modified. See upstream LICENSING.md at v4.20.0.
