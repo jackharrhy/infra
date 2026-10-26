@@ -10,10 +10,11 @@ from a template. A fork must not need this repository to build.
 Source: https://github.com/jackharrhy/8mb
 Deployment: `hosts/mug/compose.yml`, `ghcr.io/jackharrhy/8mb:main`.
 
-Its `.github/workflows/build.yml` checks workflow syntax/security, runs Node 24
-unit tests and the TypeScript/Vite build, builds a disposable production container,
-and runs the existing Chromium/media/edge/timeline checks against localhost.
-Only a push to main can publish, after all checks pass. The public image retains
+Its `.github/workflows/build.yml` checks workflow syntax/security and runs Node 24
+unit tests and the TypeScript/Vite build. Browser/media checks remain optional local
+checks: this small project does not install Chromium/FFmpeg or start a production
+container on every PR. Only a push to main builds and publishes the production
+image, after the lightweight checks pass. The public image retains
 `:main` and the commit-SHA tag. No central workflow or private token is required.
 The implementation lives in 8mb; this record is not a generated source of truth.
 
@@ -70,8 +71,10 @@ Dependabot updates action references, not version strings in arbitrary shell cod
 4. Apply a small policy/version change to selected repositories, adapting to their
    current files. Use these recipes as examples, not replacement generators. Read
    major-version release notes and verify tag-to-commit resolution.
-5. Run lint, application checks and container/browser checks. Open a per-repository
-   PR with results and publishing/tag implications. Keep required-check names in
+5. Run lint and the application's normal lightweight checks. Add container/browser
+   CI only when the project's risk justifies its cost; optional local suites need
+   not run on every PR. Open a per-repository PR with results and publishing/tag
+   implications. Keep required-check names in
    mind; changing branch protection is a separate decision.
 6. Do not merge or refresh production as a side effect of maintenance. A merge may
    publish an image that Watchtower deploys automatically.
