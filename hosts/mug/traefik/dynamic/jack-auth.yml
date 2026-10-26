@@ -1,7 +1,7 @@
 http:
   routers:
     jack-auth-ui:
-      rule: "Host(`auth.jackharrhy.dev`) && (Path(`/`) || PathPrefix(`/login`) || PathPrefix(`/device`) || PathPrefix(`/account`) || Path(`/manage`) || PathPrefix(`/manage/`) || PathPrefix(`/authorize`) || PathPrefix(`/logout`) || PathPrefix(`/assets/`) || Path(`/healthz`) || Path(`/forgot-password`) || Path(`/reset-password`) || Path(`/verify-email`))"
+      rule: "Host(`auth.jackharrhy.dev`) && (Path(`/`) || PathPrefix(`/login`) || PathPrefix(`/device`) || PathPrefix(`/account`) || Path(`/manage`) || PathPrefix(`/manage/`) || PathPrefix(`/authorize`) || PathPrefix(`/logout`) || PathPrefix(`/assets/`) || Path(`/healthz`) || Path(`/forgot-password`) || Path(`/reset-password`) || Path(`/verify-email`) || PathPrefix(`/enroll`))"
       priority: 200
       entryPoints: [websecure]
       service: jack-auth-ui

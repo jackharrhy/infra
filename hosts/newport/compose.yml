@@ -83,6 +83,11 @@ services:
     environment:
       - FOURM_ENV=production
       - SITE_URL=https://4orm.harrhy.xyz
+      - CENTRAL_AUTH_ENABLED=1
+      - OIDC_ISSUER=https://auth.jackharrhy.dev
+      - OIDC_CLIENT_ID=396747761673830403
+      - OIDC_REDIRECT_URI=https://4orm.harrhy.xyz/auth/callback
+      - CENTRAL_AUTH_ENROLLMENT_KEY_FILE=/run/secrets/enrollment.json
     healthcheck:
       test:
         - CMD
@@ -97,6 +102,7 @@ services:
       - /mnt/terrabud/docker-data/newport/4orm_data:/app/data
       - /mnt/terrabud/docker-data/newport/4orm_uploads:/app/uploads
       - /mnt/terrabud/docker-data/newport/4orm_backups:/app/backups
+      - ./jack-auth/.runtime-secrets/fourm-enrollment-key.json:/run/secrets/enrollment.json:ro
     labels:
       - "traefik.docker.network=newport_web"
       - "traefik.enable=true"
@@ -586,9 +592,12 @@ services:
     networks: [jack_auth_backend, web]
     ports: ["100.123.66.70:18086:3000/tcp"]
     env_file: [./jack-auth/.runtime-secrets/ui.env]
+    environment:
+      FOURM_ENROLLMENT_KEY_FILE: /run/secrets/fourm-enrollment-key.json
     volumes:
       - ./jack-auth/.runtime-secrets/login-key.json:/run/secrets/login-token.json:ro
       - ./jack-auth/.runtime-secrets/management-key.json:/run/secrets/management-token.json:ro
+      - ./jack-auth/.runtime-secrets/fourm-enrollment-key.json:/run/secrets/fourm-enrollment-key.json:ro
     labels:
       - "traefik.enable=false"
       - "com.centurylinklabs.watchtower.enable=false"
