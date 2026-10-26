@@ -129,6 +129,24 @@ services:
       - "traefik.http.routers.jackharrhy.tls.domains[2].main=jackharrhy.com"
       - "traefik.http.routers.jackharrhy.tls.domains[2].sans=*.jackharrhy.com"
 
+  8mb:
+    image: ghcr.io/jackharrhy/8mb:main
+    restart: unless-stopped
+    networks: [web]
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    labels:
+      - "traefik.docker.network=mug_web"
+      - "traefik.enable=true"
+      - "traefik.http.services.8mb.loadbalancer.server.port=8080"
+      - "traefik.http.routers.8mb.rule=Host(`jackharrhy.dev`) && (Path(`/8mb`) || PathPrefix(`/8mb/`))"
+      - "traefik.http.routers.8mb.priority=100"
+      - "traefik.http.routers.8mb.entrypoints=websecure"
+      - "traefik.http.routers.8mb.tls.certresolver=mugresolver"
+
   siliconharbour:
     image: ghcr.io/siliconharbour/siliconharbour.dev:main
     restart: unless-stopped
