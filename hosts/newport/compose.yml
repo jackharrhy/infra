@@ -39,6 +39,8 @@ services:
   watchtower:
     image: ghcr.io/nicholas-fedor/watchtower:1.17
     restart: unless-stopped
+    environment:
+      WATCHTOWER_CLEANUP: "true"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     env_file:
@@ -580,7 +582,7 @@ services:
     restart: unless-stopped
     read_only: true
     cap_drop: [ALL]
-    security_opt: [no-new-privileges:true]
+    security_opt: ["no-new-privileges:true"]
     networks: [jack_auth_backend, web]
     ports: ["100.123.66.70:18086:3000/tcp"]
     env_file: [./jack-auth/.runtime-secrets/ui.env]
