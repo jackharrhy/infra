@@ -70,11 +70,14 @@ services:
       - "traefik.http.routers.easter-egg.priority=1000"
 
   watchtower:
-    image: ghcr.io/nicholas-fedor/watchtower:1.17
+    image: ghcr.io/nicholas-fedor/watchtower:1.23.2
     restart: unless-stopped
     environment:
       DOCKER_CONFIG: /config
       WATCHTOWER_CLEANUP: "true"
+      # Offset from Newport's checks to avoid simultaneous registry bursts.
+      WATCHTOWER_SCHEDULE: "0 5-59/10 * * * *"
+      WATCHTOWER_ROLLING_RESTART: "true"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /home/jack/.docker:/config:ro
