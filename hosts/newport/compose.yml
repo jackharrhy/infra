@@ -37,12 +37,18 @@ services:
       - ./volumes/traefik_letsencrypt_data:/letsencrypt
 
   watchtower:
-    image: ghcr.io/nicholas-fedor/watchtower:1.17
+    image: ghcr.io/nicholas-fedor/watchtower:1.23.2
     restart: unless-stopped
     environment:
+      DOCKER_CONFIG: /config
       WATCHTOWER_CLEANUP: "true"
+      WATCHTOWER_SCHEDULE: "0 */10 * * * *"
+      WATCHTOWER_ROLLING_RESTART: "true"
+      # Keep the two unapproved Worker-image updates outside the Node rollout.
+      WATCHTOWER_DISABLE_CONTAINERS: "newport-maps-ui-1,newport-maps-collaboration-1"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - /home/jack/.docker:/config:ro
     env_file:
       - ./.runtime-secrets/watchtower.env
     labels:
