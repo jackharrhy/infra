@@ -46,8 +46,6 @@ services:
       WATCHTOWER_ROLLING_RESTART: "true"
       # Compose startup ordering is not a legacy Docker runtime link.
       WATCHTOWER_USE_COMPOSE_DEPENDS_ON: "false"
-      # Keep the two unapproved Worker-image updates outside the Node rollout.
-      WATCHTOWER_DISABLE_CONTAINERS: "newport-maps-ui-1,newport-maps-collaboration-1"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /home/jack/.docker:/config:ro
