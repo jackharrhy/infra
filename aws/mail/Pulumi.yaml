@@ -1,0 +1,6 @@
+name: jack-mail
+description: Jack's production mail infrastructure
+runtime:
+  name: nodejs
+  options:
+    packagemanager: pnpm

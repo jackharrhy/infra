@@ -1,0 +1,20 @@
+{
+  "name": "jack-mail",
+  "main": "index.ts",
+  "scripts": {
+    "check": "tsc --noEmit",
+    "pulumi:preview": "\"$HOME/.pulumi/bin/pulumi\" preview",
+    "pulumi:up": "\"$HOME/.pulumi/bin/pulumi\" up"
+  },
+  "dependencies": {
+    "@pulumi/aws": "^7.0.0",
+    "@pulumi/awsx": "^3.0.0",
+    "@pulumi/pulumi": "^3.113.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18",
+    "oxfmt": "^0.36.0",
+    "oxlint": "^1.51.0",
+    "typescript": "^5.0.0"
+  }
+}
