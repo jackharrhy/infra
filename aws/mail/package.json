@@ -7,14 +7,8 @@
     "pulumi:up": "\"$HOME/.pulumi/bin/pulumi\" up"
   },
   "dependencies": {
-    "@pulumi/aws": "^7.0.0",
-    "@pulumi/awsx": "^3.0.0",
-    "@pulumi/pulumi": "^3.113.0"
+    "@pulumi/aws": "7.21.0",
+    "@pulumi/pulumi": "3.225.1"
   },
-  "devDependencies": {
-    "@types/node": "^18",
-    "oxfmt": "^0.36.0",
-    "oxlint": "^1.51.0",
-    "typescript": "^5.0.0"
-  }
+  "private": true
 }

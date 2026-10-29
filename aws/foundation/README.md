@@ -12,8 +12,9 @@ export PULUMI_BACKEND_URL=file:///home/jack/infra/aws
 set -a
 . /home/jack/infra/aws/.env
 set +a
-cd ~/repos/personal/infra-aws-migration/aws/foundation
+cd ~/repos/personal/infra-aws-migration/aws
 pnpm install --frozen-lockfile
+cd foundation
 ```
 
 The preparation checkout has not initialized this stack or applied resources.

@@ -31,6 +31,24 @@ importers:
         specifier: ^5.0.0
         version: 5.9.3
 
+  foundation:
+    dependencies:
+      '@pulumi/aws':
+        specifier: 7.21.0
+        version: 7.21.0(typescript@5.9.3)
+      '@pulumi/pulumi':
+        specifier: 3.225.1
+        version: 3.225.1(typescript@5.9.3)
+
+  mail:
+    dependencies:
+      '@pulumi/aws':
+        specifier: 7.21.0
+        version: 7.21.0(typescript@5.9.3)
+      '@pulumi/pulumi':
+        specifier: 3.225.1
+        version: 3.225.1(typescript@5.9.3)
+
 packages:
 
   '@aws-crypto/sha256-browser@5.2.0':
@@ -308,6 +326,7 @@ packages:
   '@opentelemetry/propagator-jaeger@1.30.1':
     resolution: {integrity: sha512-Pj/BfnYEKIOImirH76M4hDaBSx6HyZ2CXUqk+Kj02m6BB80c/yo4BdWkn/1gDFfU+YPY+bPR2U0DKBfdxCKwmg==}
     engines: {node: '>=14'}
+    deprecated: Package no longer supported. See https://github.com/open-telemetry/opentelemetry-js/pull/7077
     peerDependencies:
       '@opentelemetry/api': '>=1.0.0 <1.10.0'
 
@@ -338,18 +357,21 @@ packages:
   '@opentelemetry/sdk-trace-base@1.28.0':
     resolution: {integrity: sha512-ceUVWuCpIao7Y5xE02Xs3nQi0tOGmMea17ecBdwtCvdo9ekmO+ijc9RFDgfifMl7XCBf41zne/1POM3LqSTZDA==}
     engines: {node: '>=14'}
+    deprecated: Use @opentelemetry/sdk-trace package
     peerDependencies:
       '@opentelemetry/api': '>=1.0.0 <1.10.0'
 
   '@opentelemetry/sdk-trace-base@1.30.1':
     resolution: {integrity: sha512-jVPgBbH1gCy2Lb7X0AVQ8XAfgg0pJ4nvl8/IiQA6nxOsPvS+0zMJaFSs2ltXe0J6C8dqjcnpyqINDJmU30+uOg==}
     engines: {node: '>=14'}
+    deprecated: Use @opentelemetry/sdk-trace package
     peerDependencies:
       '@opentelemetry/api': '>=1.0.0 <1.10.0'
 
   '@opentelemetry/sdk-trace-node@1.30.1':
     resolution: {integrity: sha512-cBjYOINt1JxXdpw1e5MlHmFRc5fgj4GW/86vsKFxJCJ8AL4PdVtYH41gWwl4qd4uQjqEL1oJVrXkSy5cnduAnQ==}
     engines: {node: '>=14'}
+    deprecated: Use @opentelemetry/sdk-trace package
     peerDependencies:
       '@opentelemetry/api': '>=1.0.0 <1.10.0'
 

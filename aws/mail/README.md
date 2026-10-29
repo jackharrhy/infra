@@ -27,7 +27,8 @@ initialize the `production` stack and set:
 | `accountId` | Same production ID |
 | `receiveEnabled` | `false` until the coordinated inbound cutover |
 
-Run `pnpm install --frozen-lockfile` and `pnpm run check`, then review
+Install once from the parent AWS workspace with `pnpm install --frozen-lockfile`;
+run `pnpm run check` in this project, then review
 `pnpm run pulumi:preview`. Expected replacements are account-bound resources
 created in this new state. The preview must not touch the old state/resources.
 
