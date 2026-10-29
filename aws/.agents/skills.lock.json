@@ -1,0 +1,113 @@
+{
+  "installed_at_utc": "2026-10-29T03:43:09.226141+00:00",
+  "sources": [
+    {
+      "repository": "aws/agent-toolkit-for-aws",
+      "revision": "b08b99f38098c30c0ee1a781accd8e349e5b145c",
+      "skills": [
+        {
+          "name": "aws-iam",
+          "path": "skills/core-skills/aws-iam",
+          "sha256": {
+            "SKILL.md": "27f4733539913bf46e6ab23cc4aee00e7973c15e876c25bf86bac6dc9cb5057f",
+            "references/aws-iam-policy-generation.md": "86a29411bcfad42be7e4fba1c5b1821404dcef7978f719dd318683d1da413971",
+            "references/aws-iam-role-management.md": "77be16ee747569264ed42bf9f8ce56641cc1eb9fa7aed7f438466939836d9518",
+            "references/common-pitfalls.md": "f8dcfbbc7b71d6b02c0f57822dc3b43bdca0b949abfea889f18ce2869a946c55",
+            "references/service-authorization.md": "0368bfcd3a30a438e47b81042a89746d5990298f599ac00400d4f7a90d6c24e8"
+          }
+        },
+        {
+          "name": "aws-security",
+          "path": "skills/core-skills/aws-security",
+          "sha256": {
+            "SKILL.md": "1967fdc122c2a1be247301a81e157eae52cf5a005936d4185a3d8e2d98a73624",
+            "references/detective-configuration.md": "f03ec398585f38d2cc8dee2ad0750e660b572d18bbec9a9dfd9405bc07cfd912",
+            "references/detective-investigations.md": "ab0fda7e5832e1bc95efe0a21e00bc347863afbad2cc4e4f483631d7f8f645e1",
+            "references/detective.md": "74a0d3c4025d11c7113e9bbab553985cedb353501d19efabfd19b58310688a54",
+            "references/guardduty-configuration.md": "9d7a375a57a5b5af823993a9a1e3e2dfc047eae1891ec7ec08daf88111ccfea9",
+            "references/guardduty-findings.md": "233a5798fa0105753b0d5cfe98e6acad8befff76f1d852e093e6a255c4a7d5c2",
+            "references/guardduty.md": "2806ccd564aec1a1da1b09152763f8eecd08a7d29c2c0c6f278b7340d0ab9e57",
+            "references/inspector-configuration.md": "10c1926f462bf9725da53cfc477af0eb2ffce0d71e85f0681cda382e159f16fc",
+            "references/inspector-findings.md": "58f0a4649e556da16e07c74e7bffaf15751b16cabe7e5aad08ae5b565e308f2a",
+            "references/inspector.md": "cc938dd5f3a746ee216b0614c9150e0b70241c7959d081fbedc89457e5027281",
+            "references/macie-configuration.md": "706c6bab901010291a42970b2cc84e606fcae775f46c3b183a5ebf0623db33df",
+            "references/macie-findings.md": "3992a538b1a0cc22ead7d81b858363c04109e1265baa5de098b686078449421a",
+            "references/macie.md": "60e7216af5a8fa328b9e4a6b632ca9af6f0b95075c621c95c7c14be0c87b36e4",
+            "references/organization-policies.md": "da0c2d7adf33a4d845b1535f17e94235c1ecbab3b41dd74d8e2790aeb639ba3d",
+            "references/security-hub-configuration.md": "97be5cff0182ad637f026e20d76c9588d01a46621480d99794f0403a86200bb7",
+            "references/security-hub-cspm-configuration.md": "5f375e8a99d0085b6547416e56caf45b66a1f9d7d54b96e018959fe35a7da972",
+            "references/security-hub-cspm-findings.md": "a3d38a4ae8017a1f17c0d313f0c0d6c7cfbaf2a14410d2b44e3f0164ca726436",
+            "references/security-hub-cspm.md": "67f0304757c19cfc1af2c1bbc456d0ebb7a97fc3bc54faf7f1e12bf4f4ea1a52",
+            "references/security-hub-findings.md": "dddfac48711d230e18e37900a12ee0f24f9cb57309df979bc21ccb82994512c8",
+            "references/security-hub.md": "a320a5efd7e069d72e581217ee0b1ab3170c0ca1e7a6661dcff488730e70ad74",
+            "references/security-lake-configuration.md": "535a5ea17e1bef36fd91ed52ef188849525816593d7b9fa578580c0310d50fe5",
+            "references/security-lake-sources.md": "7e6cd37d7852b5a914b27565f9f60d1f3c9f4ccc20d9edb3f6ec0e4169ae4e9a",
+            "references/security-lake.md": "8fc7596a22ec1b0148c7f1d11f802f18d4be3fe3e39bdc84f8410ce7e55f45c3",
+            "references/service-recommendations.md": "3d09c6ec272b7e759b69506bd520f2d316b9fc199cc5c28035762db4dfc23d7c",
+            "references/service-recommendations/application-security.md": "9774cb6809924baf63c784fb38dcae08c204f3da6a92082b4975d136fbe329c5",
+            "references/service-recommendations/certificates.md": "2f31a72e91c534d185e503860c303216cf9f5ac8ed26439332f8e278b174ea34",
+            "references/service-recommendations/data-discovery.md": "ec598a3f341d27c246009f16470081b50d60b4d936819e66c1ed14a8c1e8419b",
+            "references/service-recommendations/detection-and-vulnerability.md": "0219ab3a1b7affbdc4bb159ffba2d66cc602fa2bce80535fc09e2a6b80499c7c",
+            "references/service-recommendations/enablement-checks.md": "9ad744dae19b4e6b3d2b71c40393cfee80a3c25d41b9d76e77d7031ba03e3ea5",
+            "references/service-recommendations/iam-permissions.md": "a5cc7cb12432c3bcbf4b1a9776554dd3ba159cc5f6a4a22459364cb362889f0f",
+            "references/service-recommendations/inventory-commands.md": "349e49db856a09218b15ec6e3d7dfe86af44f60861f87c1bc645cfee176f7d6e",
+            "references/service-recommendations/network-firewall.md": "fb96e91087622c1cc9821665eac7ac8c4da0c1f51892b976b2427f9b537892b8",
+            "references/service-recommendations/network-protection.md": "46c6358a30c366f528219fe08ebcec95eb084365ef3b8c5a1b0b1f69f693295d",
+            "references/service-recommendations/posture-and-investigation.md": "47b397e12c434507c92524a4ff9166ff5b08395cd473a23338e6d76678c63810",
+            "references/service-recommendations/recommendation-matrix.md": "16fee46ab642cec26b3cae38563c26366cb82e82971d52c433a631a97408adc5",
+            "references/service-recommendations/web-protection.md": "949169d750babf8e32f5b86a94d04e40e362e97c8fcafeaab8ef0fd0be647083",
+            "references/services-overview.md": "f3dc488b3cf8368d353298f1e6d7d8b130039b8426bd12926c5be36103fc9228"
+          }
+        },
+        {
+          "name": "aws-billing-and-cost-management",
+          "path": "skills/core-skills/aws-billing-and-cost-management",
+          "sha256": {
+            "SKILL.md": "d631ab1017bb779fd0b00ddd8b032e18652f2fa2fc1c232b64335d383151bdd1",
+            "references/budgets.md": "357d1ffc4bdbc3815b411d430e1dee80b724b921d4fc9b083be99e23074acee3",
+            "references/cost-audit.md": "43f4114a18fb8770d66827369452d335e8eea88bbcf8b1898655d0e4dc926077",
+            "references/cost-explorer.md": "b6439c6f3e2d68c0cd6829dfb236584a496ed2fd4f62adc4a0d0f830a173021f",
+            "references/cost-optimization-hub.md": "e48cd5e0d70d33d7b3719609df8c5a903d4b92a669080c35aa321d0dcfb642e2",
+            "references/cur-athena.md": "2dfd047bb3d1c3c5f74b3eb5f4e4957a9caf7fad006f6fa4de396039a5c20aac",
+            "references/deterministic-calculations.md": "bb8d3df2c7beed78bd850f0d36bbe8ac34b66acd7e2d0e99d994932fd8e01c29",
+            "references/ebs-optimization.md": "38f2fce216ac3a6ee1801b6a5ffc4f3bdb433cc2df713ede6086a53903cc1ec3",
+            "references/ec2-rightsizing.md": "e858689e8a4b483bc10980d3c9b1c2b258b949de1923f526d06b23ce2283c41f",
+            "references/free-tier.md": "c68cec87943b9833f42903337f99873213ef866beb959defdd87fbbdcf7dad94",
+            "references/lambda-optimization.md": "374eaef74afc14913b96cf367860fdd70bc6fb0d4710dcd23ae7e380f3a9085a",
+            "references/pricing-lookup.md": "458b83abd58b4bd33836905c59ffe1f7dd606cb3f050c112d915006faeadc350",
+            "references/rds-optimization.md": "cd2f6fddcea40562b23898d1b7219543d728366f52bf977fe3ec8b88779c1450",
+            "references/reserved-instances.md": "c4fbb1eabc7e1b763e73a14cc776e8238d7e946e1055c9568be7a45e2637d909",
+            "references/savings-plans.md": "2b2f6569bf48a7896f41cbd09db94b2cdf5d38882bb2099e490ed061129ec9e6",
+            "references/service-optimization.md": "b21784bd033fe670724eaf35efecc3c5717ca79d463aa24e86d9b2f1af2246fd"
+          }
+        }
+      ]
+    },
+    {
+      "repository": "pulumi/agent-skills",
+      "revision": "2517e28e4bc029424e9c9ee48016394296be0f6a",
+      "skills": [
+        {
+          "name": "pulumi-best-practices",
+          "path": "pulumi/skills/pulumi-best-practices",
+          "sha256": {
+            "SKILL.md": "701bf94433f77f7851ed979ea74700a50dc69f958a20327f13da53d6a1468765",
+            "agents/openai.yaml": "2026466b871f83c3a00164eea9c20e3e913712faf56f76241be9d9fbd40bdf88",
+            "use_cases.yaml": "e3de56d96bd00a3c3a146e40a021ad03ca3d2e16319b00225deb4a8d708a0980"
+          }
+        },
+        {
+          "name": "provider-upgrade",
+          "path": "pulumi/skills/provider-upgrade",
+          "sha256": {
+            "SKILL.md": "8bd6c5bfcb5f3428a91f8e107c8c2c736c0e0d20074d25037d2f9a48fbf5c47b",
+            "agents/openai.yaml": "0619cf3d3aea8f7bbf0ff4c9d9955801ee9486f2c644f176aac9cb1dbfecc108",
+            "references/diagnostic-toolbox.md": "d97ec1df70be7d1e19c422f893273b851e23518dcb71dfb295692da2a057ac8c",
+            "references/gcp-v10.md": "963c8645071c53795fdc89e70ecb03d294a98253cb0bca9161e44bfd0529a7ea",
+            "use_cases.yaml": "983a9e35deb9a70ce2a50b173e38079067d344be3d833591613a4a4795a43c95"
+          }
+        }
+      ]
+    }
+  ]
+}

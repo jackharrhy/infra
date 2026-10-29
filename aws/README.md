@@ -1,5 +1,10 @@
 # AWS
 
+Account separation is prepared in [foundation](foundation/README.md) and
+[production mail](mail/README.md). These use separate project/stack states in
+the same local backend. The root project below remains the live mail owner
+until the reviewed migration and retirement are complete.
+
 Pulumi manages SES sending identities/events and inbound mail:
 SES → S3 → Lambda → SQS → the `lists` service on Mug. Campaign media uses a
 separate public S3 bucket. Resources are in `index.ts`.
