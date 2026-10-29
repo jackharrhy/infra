@@ -52,12 +52,20 @@ SES verification, shared DNS, and Lists deployment configuration. Auth alone
 promotes live Jack Auth SOPS/runtime/provider configuration and accepts its
 verification/recovery mail flow. Never edit that live configuration concurrently.
 
-Agree a separate encrypted staging path and key schema with Auth first. The
-proposed path is the private migration artifact directory's
-`staged/auth-smtp.enc.yaml`, outside live SOPS paths. Before the live switch,
-send Auth the target account/region, staged encrypted path, verified sender/SES
-readiness and a proposed window. Share paths and readiness, never secret values.
-Tea consumer cutover is independent.
+Auth agreed the private migration artifact path `staged/auth-smtp.enc.yaml`,
+outside live SOPS paths. Its top-level keys are `SMTP_HOST`, `SMTP_USER`,
+`SMTP_PASSWORD`, and `SMTP_FROM`. Encrypt all four values using the existing
+Infra age recipient selected explicitly: this artifact path does not match the
+current SOPS creation rules. Do not change those rules. Keep mode 0600 and pass
+plaintext only through memory/pipes, never a plaintext credential file.
+
+Use `email-smtp.us-east-1.amazonaws.com:587` with STARTTLS and sender
+`auth@jackharrhy.dev`. The password must be the target account's SES SMTP
+password (`jackAuthSmtpPassword`), never its AWS secret access key. Before the
+live switch, send Auth the target account/region, encrypted path, SES domain
+verification/production/simulator readiness and proposed window. Share paths and
+readiness, never secret values. Do not create a placeholder at the agreed path
+or infer readiness from path agreement. Tea consumer cutover is independent.
 
 ## Cutover
 
