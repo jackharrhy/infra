@@ -41,7 +41,7 @@ Jack and Joel reached their original profiles through live OIDC and SSO checks.
 
 Artbin and Tea Maps have central OIDC/resource-server clients and per-app member/
 admin grants. Artbin browser/CLI/API/MCP and the Maps-to-Artbin machine caller
-were cut over on Oct29 using Tea merge103d285205ca631415a4ebc86750c3c8ce2b1913.
+were cut over on Oct29 using Tea merge 103d285205ca631415a4ebc86750c3c8ce2b1913.
 Compose pins both target images to that merge SHA and excludes them from
 Watchtower; the normal updater runs for other services. Artbin loads
 artbin-central-auth.env. Maps loads maps-artbin-auth.env and AUTH_ISSUER for its
@@ -53,15 +53,15 @@ Consistent online and fresh stopped-app databases plus private rollback containe
 configuration were encrypted under
 /mnt/terrabud/backups/jack-auth/tea-cutover-20261029T143104Z/.
 Both stopped snapshots decrypted byte-identically; SQLite integrity passed.
-The reviewed mapping converted all36 Artbin subjects before migration0006 while
-preserving36 user IDs,1165 folder ownership records and72855 file records/FKs.
+The reviewed mapping converted all 36 Artbin subjects before migration 0006 while
+preserving 36 user IDs, 1165 folder ownership records and 72855 file records/FKs.
 No Maps browser identity rows changed.
 
 Live browser/CLI login for Jack and Joel preserves their original local accounts;
 admin/MCP denies Joel, CLI handoff replay is denied, and machine credentials can
 read catalog/content but cannot administer MCP or read content without its scope.
 A disposable dynamically registered client completed explicit Jack consent and
-called the real production MCP API. Maps browser login through4orm/central SSO and
+called the real production MCP API. Maps browser login through 4orm/central SSO and
 the new server-side Artbin catalog caller passed. No assets/projects were modified.
 Operational checkpoint (private, contains secrets):
 jack-auth/.runtime-secrets/tea-cutover.json; acceptance fixture is alongside it.
