@@ -56,6 +56,6 @@ corresponding account and permission set. Verify each with `aws sts
 get-caller-identity` and test actual CLI access. Existing root keys stay in place
 until working non-root access and recovery have been confirmed.
 
-The existing `jack` profile authenticates as root and cannot be used as a normal
-cross-account AssumeRole source. Do not pretend an assumed-role profile is ready
+The existing `jack` profile authenticates as root. Use the named non-root
+profiles for ongoing cross-account deployment; do not pretend a profile is ready
 until its STS check succeeds.
