@@ -1,8 +1,9 @@
 # Jack Auth
 
 Public issuer and custom UI: https://auth.jackharrhy.dev.
-Source checkout on Newport: `~/repos/personal/jack-auth`; see its README for
-scope, tests, credential lifetimes and deployment instructions.
+Git checkout on Newport: `~/repos/personal/auth`. The separate
+`~/repos/personal/jack-auth` directory is the deployment source copy. See the
+checkout's README for scope, tests, credentials and deployment instructions.
 
 Services in ../compose.yml: jack-auth-db (private PostgreSQL17), jack-auth-api
 (ZITADEL4.20.0 pinned by digest), jack-auth-ui (locally built jack-auth:spike).
@@ -44,6 +45,25 @@ does not load them until the consumer code and ownership migrations are ready.
 A separate Maps machine identity has only Artbin asset-read roles. Real custom
 login/SSO and machine-token introspection passed, including admin and cross-app
 denial. The downstream apps still use 4orm OAuth pending their code cutovers.
+
+Explicit third-party Artbin/Maps administrator consent is deployed as of Oct29.
+Open dynamic client registration is enabled behind Mug's watched registration
+router: 16KiB request bodies, six source requests/minute (burst3), and 30 total
+requests/hour (burst10). Source addresses come from the socket, not forwarded
+headers. Docker aggregates IPv6 sources under its bridge gateway; they share
+the source limit, while IPv4 sources are distinct. Registration management uses
+the same limits. `scripts/configure-dcr.py disabled` in the auth checkout
+disables registration while preserving iframe and impersonation settings.
+
+The dedicated ZITADEL DCR project defines the `admin` role so ZITADEL retains
+the explicit role scope in authorization requests. No DCR user grants were
+assigned; consent requires an existing active admin grant on the target app.
+Keep DCR automatic role assertion disabled. Disposable live checks passed
+approval/denial/CSRF, PKCE, signed ID token/nonce, exact project audiences/scopes/
+roles, code/decision replay, refresh/revocation and grant changes after viewing.
+This does not validate production consumer APIs before their code cutover.
+Provider backup before these changes:
+`/mnt/terrabud/backups/jack-auth/before-consent-2026-10-29.sql.age`.
 
 ZITADEL DB: /mnt/terrabud/docker-data/newport/jack-auth/postgres.
 Preserve the encrypted master key with PostgreSQL backups; losing it prevents
