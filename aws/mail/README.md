@@ -45,6 +45,20 @@ Access-key/SMTP outputs are secrets. Write them directly into staged SOPS files
 or a private process; never print decrypted outputs or put keys on command lines.
 Do not merge staged deployment-secret changes before their cutover is ready.
 
+## Cutover owners
+
+The AWS migration owner manages target resources, scoped IAM/SMTP credentials,
+SES verification, shared DNS, and Lists deployment configuration. Auth alone
+promotes live Jack Auth SOPS/runtime/provider configuration and accepts its
+verification/recovery mail flow. Never edit that live configuration concurrently.
+
+Agree a separate encrypted staging path and key schema with Auth first. The
+proposed path is the private migration artifact directory's
+`staged/auth-smtp.enc.yaml`, outside live SOPS paths. Before the live switch,
+send Auth the target account/region, staged encrypted path, verified sender/SES
+readiness and a proposed window. Share paths and readiness, never secret values.
+Tea consumer cutover is independent.
+
 ## Cutover
 
 1. Verify recoverable encrypted backups of local state plus `.env`, the Lists
@@ -65,15 +79,18 @@ Do not merge staged deployment-secret changes before their cutover is ready.
    consistent SQLite snapshot, and confirm the old queue/DLQ have drained.
    Disable the old receipt rule set before activating the new one: SES processes
    matching receipt rules in multiple accounts simultaneously.
-7. With Auth's owner, update its SOPS SMTP credentials and ZITADEL mail settings.
+7. Stage only the agreed encrypted Auth credentials. Auth's owner alone
+   promotes its SOPS/SMTP/provider configuration and switches ZITADEL.
    Preserve sender `auth@jackharrhy.dev`, `ses:SendRawEmail`-only permission,
-   the SES configuration set and STARTTLS on port 587. In the same window,
-   update Lists' AWS credentials, region, bucket names, queue URL, configuration
-   set and media base URL. Restart only the affected services.
+   the SES configuration set and STARTTLS on port 587. The AWS migration owner
+   updates Lists' credentials, region, buckets, queue URL, configuration set and
+   media base URL. Each owner restarts only their affected services.
 8. Test Lists health, one controlled simulator send/event, inbound processing,
    DMARC ingestion, and media upload/read/delete. Have Auth's owner verify its
    login/verification SMTP path. Check durable attempts/events and object keys,
-   not just HTTP health. Resume normal operation only after these pass.
+   not just HTTP health. Auth must explicitly accept its new provider and
+   verification/recovery flow before old SMTP credentials or sender resources
+   are retired. Resume normal operation only after these pass.
 9. Retire old owned mail resources deliberately from `jack-infra/dev`, after a
    reviewed destroy preview and data/queue verification. Back up its final state
    and remove only obsolete DNS/credentials. Inventory and remove the old Lists
@@ -82,9 +99,9 @@ Do not merge staged deployment-secret changes before their cutover is ready.
    CloudWatch log group after preserving useful evidence. Keep unrelated management/fleet
    infrastructure. Remove the root project's source only once its state is empty.
 
-Rollback restores the old encrypted runtime secrets and Auth SMTP config,
-disables the new receipt set, re-enables the old one, and restarts the affected
-consumers. Preserve new-account messages for replay; never discard a queue as
+For rollback, the AWS migration owner restores Lists' old encrypted runtime
+secrets, disables the new receipt set, re-enables the old one, and restarts Lists.
+Auth's owner alone restores its old SMTP/provider configuration. Preserve new-account messages for replay; never discard a queue as
 part of rollback. Existing source resources/keys remain until end-to-end proof
 and the explicit retirement step, not as permanent duplicate deployments.
 
