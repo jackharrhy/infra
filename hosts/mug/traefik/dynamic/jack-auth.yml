@@ -6,12 +6,40 @@ http:
       entryPoints: [websecure]
       service: jack-auth-ui
       tls: {certResolver: mugresolver}
+    jack-auth-registration:
+      rule: "Host(`auth.jackharrhy.dev`) && PathPrefix(`/oauth/v2/register`)"
+      priority: 300
+      entryPoints: [websecure]
+      middlewares: [jack-auth-registration-body, jack-auth-registration-bucket, jack-auth-registration-source, jack-auth-registration-total]
+      service: jack-auth-api
+      tls: {certResolver: mugresolver}
     jack-auth-api:
       rule: "Host(`auth.jackharrhy.dev`)"
       priority: 100
       entryPoints: [websecure]
       service: jack-auth-api
       tls: {certResolver: mugresolver}
+  middlewares:
+    jack-auth-registration-body:
+      buffering:
+        maxRequestBodyBytes: 16384
+        memRequestBodyBytes: 16384
+    jack-auth-registration-bucket:
+      headers:
+        customRequestHeaders:
+          X-Jack-Auth-Registration-Bucket: all
+    jack-auth-registration-total:
+      rateLimit:
+        average: 30
+        period: 1h
+        burst: 10
+        sourceCriterion:
+          requestHeaderName: X-Jack-Auth-Registration-Bucket
+    jack-auth-registration-source:
+      rateLimit:
+        average: 6
+        period: 1m
+        burst: 3
   services:
     jack-auth-ui:
       loadBalancer:
