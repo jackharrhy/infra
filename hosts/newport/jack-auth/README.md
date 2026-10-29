@@ -40,11 +40,35 @@ explicitly linked; browser login and member invites use the central issuer.
 Jack and Joel reached their original profiles through live OIDC and SSO checks.
 
 Artbin and Tea Maps have central OIDC/resource-server clients and per-app member/
-admin grants. Their encrypted environment handoffs are under ../secrets; Compose
-does not load them until the consumer code and ownership migrations are ready.
-A separate Maps machine identity has only Artbin asset-read roles. Real custom
-login/SSO and machine-token introspection passed, including admin and cross-app
-denial. The downstream apps still use 4orm OAuth pending their code cutovers.
+admin grants. Artbin browser/CLI/API/MCP and the Maps-to-Artbin machine caller
+were cut over on Oct29 using Tea merge 103d285205ca631415a4ebc86750c3c8ce2b1913.
+Compose pins both target images to that merge SHA and excludes them from
+Watchtower; the normal updater runs for other services. Artbin loads
+artbin-central-auth.env. Maps loads maps-artbin-auth.env and AUTH_ISSUER for its
+limited asset-read/content caller, while its browser/MCP still use 4orm.
+
+Before publication, Watchtower was stopped and old images tagged
+tea-artbin:before-jack-auth-20261029 and tea-maps-service:before-jack-auth-20261029.
+Consistent online and fresh stopped-app databases plus private rollback container
+configuration were encrypted under
+/mnt/terrabud/backups/jack-auth/tea-cutover-20261029T143104Z/.
+Both stopped snapshots decrypted byte-identically; SQLite integrity passed.
+The reviewed mapping converted all 36 Artbin subjects before migration 0006 while
+preserving 36 user IDs, 1165 folder ownership records and 72855 file records/FKs.
+No Maps browser identity rows changed.
+
+Live browser/CLI login for Jack and Joel preserves their original local accounts;
+admin/MCP denies Joel, CLI handoff replay is denied, and machine credentials can
+read catalog/content but cannot administer MCP or read content without its scope.
+A disposable dynamically registered client completed explicit Jack consent and
+called the real production MCP API. Maps browser login through 4orm/central SSO and
+the new server-side Artbin catalog caller passed. No assets/projects were modified.
+Operational checkpoint (private, contains secrets):
+jack-auth/.runtime-secrets/tea-cutover.json; acceptance fixture is alongside it.
+Stop both apps before rollback, preserve current databases for later reconciliation,
+and use the encrypted stopped snapshots, old image tags and original environment
+from that checkpoint together. Never start an old image against the new schema or
+restore identities independently of the image/environment.
 
 Explicit third-party Artbin/Maps administrator consent is deployed as of Oct29.
 Open dynamic client registration is enabled behind Mug's watched registration
@@ -61,7 +85,7 @@ assigned; consent requires an existing active admin grant on the target app.
 Keep DCR automatic role assertion disabled. Disposable live checks passed
 approval/denial/CSRF, PKCE, signed ID token/nonce, exact project audiences/scopes/
 roles, code/decision replay, refresh/revocation and grant changes after viewing.
-This does not validate production consumer APIs before their code cutover.
+Artbin production API/MCP acceptance now passes; Maps own central browser/MCP migration remains pending.
 Provider backup before these changes:
 `/mnt/terrabud/backups/jack-auth/before-consent-2026-10-29.sql.age`.
 
