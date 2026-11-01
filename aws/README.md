@@ -10,7 +10,7 @@ Pulumi manages accounts and mail in `us-east-1`:
 
 Lists runs on Mug with its SQLite database. Insta-game's Go CLI/CloudFormation
 owns game infrastructure separately. Each Pulumi project has its own state in
-the local backend. Back up that state and its passphrase together.
+the local backend.
 
 ## Commands
 
@@ -59,32 +59,10 @@ queue and object permissions. Auth's SMTP user can send only as
 `auth@jackharrhy.dev`, through STARTTLS at
 `email-smtp.us-east-1.amazonaws.com:587`.
 
-For an account cutover:
-
-1. Back up state, `.env`, a consistent Lists database snapshot, S3 objects with
-   metadata, DNS and encrypted runtime configuration. Retain working credentials
-   for rollback. Account-bound resources require a separate reviewed preview.
-2. Verify both SES domains, DKIM and production access/quota in the target
-   account. Preserve MAIL FROM/MX/SPF records until verified. Copy objects under
-   their existing keys and compare hashes/metadata; check stored media URLs.
-3. Confirm SNS and test simulator delivery/bounce events. Pause Lists, snapshot
-   its database and drain the old queue/DLQ. Disable the old receiving rule set
-   before enabling the new one to avoid duplicate cross-account receipt.
-4. Update Lists' encrypted credentials, region, queues, buckets, configuration
-   set and media URL. Auth alone promotes its live SMTP/provider configuration.
-   Stage Auth's four encrypted values (`SMTP_HOST`, `SMTP_USER`, `SMTP_PASSWORD`,
-   `SMTP_FROM`) in the agreed private `staged/auth-smtp.enc.yaml`, mode 0600,
-   using Infra's age recipient explicitly. Use the SES SMTP password output,
-   not the AWS secret key. Send Auth the target account/region, staged path,
-   verified SES readiness and cutover window before its switch.
-5. Verify inbound/DMARC processing, simulator events and media upload/read/delete.
-   Auth must accept verification/recovery delivery before credential retirement.
-   Retire obsolete resources only after a reviewed destroy preview, preserving
-   unrelated resources. Remove unmanaged old Lists keys and orphan Lambda logs.
-
-For rollback, disable new receiving rules, restore old rules and Lists secrets,
-then restart Lists. Auth restores its own SMTP configuration. Preserve queues
-and new messages for replay. Never test by sending campaigns to subscribers.
+`receiveEnabled` controls the active inbound receipt rule set and defaults to
+false. Auth alone promotes its live SMTP/SOPS/provider configuration and verifies
+its verification/recovery mail flow. The AWS owner manages shared resources,
+DNS, scoped credentials and Lists configuration.
 
 DNS uses DKIM, MAIL FROM and DMARC for `jackharrhy.dev` and `siliconharbour.dev`.
 `jackharrhy.com` uses Zoho; its domain settings supply the DKIM selector.
