@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-: "${SVENCOOP_PASSWORD:?Set SVENCOOP_PASSWORD in .runtime-secrets/server.env}"
+: "${SVENCOOP_PASSWORD:?Render secrets/server.enc.yaml into .runtime-secrets/server.env}"
 : "${SVENCOOP_DOWNLOAD_URL:?Set the public HTTP FastDL origin}"
 case "$SVENCOOP_PASSWORD" in
   *[!a-zA-Z0-9._-]*) echo 'Password must use letters, numbers, dot, underscore or dash.' >&2; exit 1 ;;

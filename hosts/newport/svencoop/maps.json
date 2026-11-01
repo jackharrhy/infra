@@ -15,14 +15,6 @@
       "archive": "fail-mountain.2026-05-31.zip",
       "sha256": "d4e8da2dc155292aead07e8afe6ebebd9239e76a4400c3b7cc46491300eac848",
       "strip_prefix": ""
-    },
-    "crimecity2": {
-      "title": "Crime City 2 e2",
-      "page": "https://scmapdb.wikidot.com/map:crime-city-2",
-      "url": "https://scmapdb.wdfiles.com/local--files/map:crime-city-2/crimecity2e2.zip",
-      "archive": "crimecity2e2.zip",
-      "sha256": "5abcafbb2bd4c4e32b083d7aafab6d3d5adc3eb77a55707b29ecad76099fd8f9",
-      "strip_prefix": "crimecity2/"
     }
   }
 }

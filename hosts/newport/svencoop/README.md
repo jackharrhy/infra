@@ -8,14 +8,13 @@ stay in `/mnt/terrabud/games/svencoop`. No game content belongs in Git.
 
 ## Prepare and run
 
-From this directory:
+From the repository root, using the same SOPS/age key as the parent Newport stack:
 
 ```sh
-install -d -m 700 .runtime-secrets
-cp server.env.example .runtime-secrets/server.env
-chmod 600 .runtime-secrets/server.env
-# Edit server.env: choose a password and set the public HTTP FastDL origin.
-python3 install-maps.py crimecity2
+sops hosts/newport/svencoop/secrets/server.enc.yaml
+(umask 077; ./scripts/render-secrets.sh newport/svencoop)
+cd hosts/newport/svencoop
+python3 install-maps.py ressya_no_tabi
 docker compose config --quiet
 docker compose up -d
 ```
@@ -24,32 +23,39 @@ The existing Newport configuration was migrated privately, so its password,
 FastDL origin and administrator IDs do not need recreating. It remains stopped
 until explicitly started.
 
-`server.env` is ignored plaintext runtime configuration, not something to commit.
-If sharing it through this public repository becomes necessary, use the existing
-SOPS convention. The entrypoint writes private game-owned config files at startup
+`secrets/server.enc.yaml` is the tracked, SOPS-encrypted source of truth for the
+join password, FastDL origin and administrator IDs. Edit it with `sops`, then
+render again; do not maintain a second hand-edited configuration. The existing
+repository age recipient and recursive renderer cover this nested project without
+new tooling. Rendering `newport/svencoop` scopes writes to this project; the normal
+`newport` render also includes it. `.runtime-secrets/server.env` remains an ignored
+mode600 plaintext runtime artifact, as in the parent stack.
+
+The entrypoint writes private game-owned config files at startup
 and then executes the original image launcher. This avoids giving the image's
 UID999 access to host-owned mode600 files. Passwords currently accept letters,
 numbers, dot, underscore and dash; FastDL uses HTTP, not HTTPS.
 
 The public `server.cfg` contains ordinary settings. `startup.cfg` selects the map;
-`mapcycle.txt` controls rotation. Both currently select Crime City2. Keep map names
+`mapcycle.txt` controls rotation. Both currently select The Train Travel (`ressya_no_tabi`). Keep map names
 quoted: direct startup `+map` mishandles hyphenated names in this engine.
-Administrator IDs come from `SVENCOOP_ADMINS` in the private environment file; a
-quoted multiline value supports multiple IDs. Existing admin-only cheats remain
+Administrator IDs come from `SVENCOOP_ADMINS` in the encrypted configuration.
+That value contains a dotenv-quoted string with escaped `\n` separators; preserve
+the quoting when editing multiple lines, because the shared renderer does not
+quote multiline values itself. Existing admin-only cheats remain
 configured; RCON is disabled.
 
 ## Maps
 
 `maps.json` records the source page, exact archive URL, SHA256 and packaging prefix
-for The Train Travel, Fail Mountain and Crime City2 e2. For example:
+for The Train Travel and Fail Mountain. For example:
 
 ```sh
-python3 install-maps.py ressya_no_tabi fail-mountain-20260531 crimecity2
+python3 install-maps.py ressya_no_tabi fail-mountain-20260531
 ```
 
 The installer reuses cached archives, verifies their hashes before installation,
-rejects traversal/symlink entries and preserves all public assets. Crime City2's
-extra `crimecity2/` packaging folder is stripped. A checksum mismatch stops rather
+rejects traversal/symlink entries and preserves other installed map assets. A checksum mismatch stops rather
 than replacing the expected hash or silently retrying; investigate/remove the bad
 cached archive before downloading again. Python3.11+ is required; no dependencies.
 
