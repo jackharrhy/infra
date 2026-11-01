@@ -53,3 +53,5 @@ jobs:
       - uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
       - name: CLI tests
         run: uv run python -m unittest discover -s tests -v
+      - name: Sven Co-op setup tests
+        run: uv run python -m unittest discover -s hosts/newport/svencoop -p test_setup.py -v

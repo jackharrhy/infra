@@ -1,0 +1,28 @@
+{
+  "maps": {
+    "ressya_no_tabi": {
+      "title": "The Train Travel",
+      "page": "https://scmapdb.wikidot.com/map:ressya-no-tabi-the-train-travel",
+      "url": "https://scmapdb.wdfiles.com/local--files/map:ressya-no-tabi-the-train-travel/ressya_no_tabi_20191012.zip",
+      "archive": "ressya_no_tabi_20191012.zip",
+      "sha256": "488f524b19b45e1b37cc7c740007eeb00ae47fd0a1534c60f2882db2aba6afb6",
+      "strip_prefix": ""
+    },
+    "fail-mountain-20260531": {
+      "title": "Fail Mountain (2026 revision)",
+      "page": "https://scmapdb.wikidot.com/map:fail-mountain",
+      "url": "https://scmapdb.wdfiles.com/local--files/map:fail-mountain/fail-mountain.2026-05-31.zip",
+      "archive": "fail-mountain.2026-05-31.zip",
+      "sha256": "d4e8da2dc155292aead07e8afe6ebebd9239e76a4400c3b7cc46491300eac848",
+      "strip_prefix": ""
+    },
+    "crimecity2": {
+      "title": "Crime City 2 e2",
+      "page": "https://scmapdb.wikidot.com/map:crime-city-2",
+      "url": "https://scmapdb.wdfiles.com/local--files/map:crime-city-2/crimecity2e2.zip",
+      "archive": "crimecity2e2.zip",
+      "sha256": "5abcafbb2bd4c4e32b083d7aafab6d3d5adc3eb77a55707b29ecad76099fd8f9",
+      "strip_prefix": "crimecity2/"
+    }
+  }
+}
