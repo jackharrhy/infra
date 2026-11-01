@@ -17,18 +17,18 @@ pnpm install --frozen-lockfile
 cd foundation
 ```
 
-The preparation checkout has not initialized this stack or applied resources.
-Once the exact recovery emails are supplied, initialize `management` with the
-existing passphrase provider and configure:
+The preparation checkout has initialized `management` with the existing
+passphrase provider for a preview only. No cloud resources have been applied.
+Its local configuration contains:
 
-| Key                     | Value                                           |
-| ----------------------- | ----------------------------------------------- |
-| `aws:profile`           | Existing management profile, later `jack-admin` |
-| `aws:region`            | `us-east-1`                                     |
-| `aws:allowedAccountIds` | Array containing only `047260868862`            |
-| `managementAccountId`   | `047260868862`                                  |
-| `productionEmail`       | Jack's production recovery address; secret      |
-| `sandboxEmail`          | Jack's sandbox recovery address; secret         |
+| Key                     | Value                                      |
+| ----------------------- | ------------------------------------------ |
+| `aws:profile`           | `jack-admin`                               |
+| `aws:region`            | `us-east-1`                                |
+| `aws:allowedAccountIds` | Array containing only `047260868862`       |
+| `managementAccountId`   | `047260868862`                             |
+| `productionEmail`       | Jack's production recovery address; secret |
+| `sandboxEmail`          | Jack's sandbox recovery address; secret    |
 
 Preview before applying. Initial expected changes are two protected member
 accounts and their provider; no existing organization, mail, or fleet replacement.
@@ -75,6 +75,19 @@ corresponding account and permission set. Verify each with `aws sts
 get-caller-identity` and test actual CLI access. Existing root keys stay in place
 until working non-root access and recovery have been confirmed.
 
-The existing `jack` profile authenticates as root. Use the named non-root
+The old root profile is now named `jack-root`; there is no `jack` profile. Use the named non-root
 profiles for ongoing cross-account deployment; do not pretend a profile is ready
 until its STS check succeeds.
+
+## Reviewed preview scope
+
+The November 1 preparation preview used `jack-admin` and matched this scope:
+
+- Create two protected member accounts and two owner assignments.
+- Import the existing permission set, policy attachment and management assignment.
+- Create the Pulumi stack record; no resource updates, replacements or deletions.
+
+The permission-set import preserves `JackAdministratorAccess` and `PT12H`.
+No mail, DNS, workload or root-key changes are included. The local encrypted
+`Pulumi.management.yaml`, preview log and saved plan remain outside Git.
+This is a preview result, not an applied deployment or approval to apply.
