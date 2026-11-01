@@ -66,8 +66,8 @@ if (instanceArn && ownerUserId && permissionSetArn) {
     "owner",
     {
       instanceArn,
-      name: "JackAdministrator",
-      sessionDuration: "PT4H",
+      name: "JackAdministratorAccess",
+      sessionDuration: "PT12H",
     },
     { protect: true, import: `${permissionSetArn},${instanceArn}` },
   );

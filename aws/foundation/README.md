@@ -43,27 +43,34 @@ Identity Center is active in `us-east-1`, using instance
 A portal login alone does not grant account access: it needs a permission set
 assigned to that user on an AWS account.
 
-Jack is bootstrapping `JackAdministrator` manually: four-hour sessions,
+Jack bootstrapped `JackAdministratorAccess` manually: twelve-hour sessions,
 AWS-managed `AdministratorAccess`, assigned only to his directory user on
 management account `047260868862`. Do not run a competing grant apply.
 Verify the permission set, policy attachment and successful management assignment
 before configuring all three keys together:
 
-| Key                     | Value                                              |
-| ----------------------- | -------------------------------------------------- |
-| `ssoInstanceArn`        | Instance ARN above                                 |
-| `ownerUserId`           | Directory user ID above                            |
-| `ownerPermissionSetArn` | ARN discovered from the completed manual bootstrap |
+| Key                     | Value                                                                     |
+| ----------------------- | ------------------------------------------------------------------------- |
+| `ssoInstanceArn`        | Instance ARN above                                                        |
+| `ownerUserId`           | Directory user ID above                                                   |
+| `ownerPermissionSetArn` | `arn:aws:sso:::permissionSet/ssoins-7223972f837dc154/ps-722356293836bfc8` |
 
 The next preview must import that permission set, policy attachment and management
 assignment, not create duplicates. Match the live name and session duration; stop
 if the import proposes changes to the bootstrap. Production and sandbox assignments
 are new resources, planned alongside the two protected member accounts. Omitting
 all three SSO keys previews accounts only; partial configuration fails closed.
-Do not use placeholder recovery emails for a real preview or apply. Confirm Jack's
-exact addresses, including any correction to the sandbox address, first.
+Jack confirmed both recovery addresses, including the corrected sandbox address.
+Store those exact values as secret configuration; do not use placeholders.
+The import preserves the existing name and twelve-hour session duration.
 
-Create CLI profiles `jack-admin`, `jack-prod`, and `jack-sandbox`, selecting the
+Jack must first run `aws configure sso --profile jack-admin` and complete SSO
+login. Profile configuration is operator-owned; do not work around a denied write
+to `~/.aws/config`. Verify `aws sts get-caller-identity --profile jack-admin`
+returns account `047260868862` with an assumed SSO role, not root, before running
+the foundation preview. No member accounts or member profiles exist yet.
+
+After account creation, create CLI profiles `jack-prod` and `jack-sandbox`, selecting the
 corresponding account and permission set. Verify each with `aws sts
 get-caller-identity` and test actual CLI access. Existing root keys stay in place
 until working non-root access and recovery have been confirmed.
