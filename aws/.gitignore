@@ -2,11 +2,5 @@
 /node_modules/
 .pulumi
 
-# Restored third-party skills and generated agent links.
-/.agents/
-/.claude/skills/
-/.codex/skills/
-/.cursor/skills/
-/.opencode/skills/
-/.gemini/skills/
-/.github/skills/
+# Restored third-party skills.
+/.agents/skills/
