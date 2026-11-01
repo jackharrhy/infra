@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "skills": {
+    "aws-billing-and-cost-management": {
+      "source": "aws/agent-toolkit-for-aws",
+      "ref": "b08b99f38098c30c0ee1a781accd8e349e5b145c",
+      "sourceType": "github",
+      "skillPath": "skills/core-skills/aws-billing-and-cost-management/SKILL.md",
+      "computedHash": "3ba0125ac6c2cf7487ae01a3b8e78b247fe227c2935c92e0284d5b2577c48844"
+    },
+    "aws-iam": {
+      "source": "aws/agent-toolkit-for-aws",
+      "ref": "b08b99f38098c30c0ee1a781accd8e349e5b145c",
+      "sourceType": "github",
+      "skillPath": "skills/core-skills/aws-iam/SKILL.md",
+      "computedHash": "30d11b97e9ade497d23f4f26da033accbe8c4a29c939e2820a996e88d8bcb59c"
+    },
+    "aws-security": {
+      "source": "aws/agent-toolkit-for-aws",
+      "ref": "b08b99f38098c30c0ee1a781accd8e349e5b145c",
+      "sourceType": "github",
+      "skillPath": "skills/core-skills/aws-security/SKILL.md",
+      "computedHash": "6e171c4f7c0472b7cf9ceaa9d9ff94aba6a18dce9ebee1623408d30b18680b14"
+    },
+    "provider-upgrade": {
+      "source": "pulumi/agent-skills",
+      "ref": "2517e28e4bc029424e9c9ee48016394296be0f6a",
+      "sourceType": "github",
+      "skillPath": "pulumi/skills/provider-upgrade/SKILL.md",
+      "computedHash": "0b2c53ea7585a8b7c704bf3cf35fd8097e98fa965c76fb32a3543b2ffa58b5b2"
+    },
+    "pulumi-best-practices": {
+      "source": "pulumi/agent-skills",
+      "ref": "2517e28e4bc029424e9c9ee48016394296be0f6a",
+      "sourceType": "github",
+      "skillPath": "pulumi/skills/pulumi-best-practices/SKILL.md",
+      "computedHash": "fe72db4c8d462495bcc5ca6ae5f5fd7ba05318f4668ccb011dce5a7c1c24fa6c"
+    }
+  }
+}
