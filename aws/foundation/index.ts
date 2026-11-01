@@ -17,9 +17,13 @@ if (!aws.config.profile || aws.config.region !== "us-east-1") {
 }
 const instanceArn = config.get("ssoInstanceArn");
 const ownerUserId = config.get("ownerUserId");
-if (Boolean(instanceArn) !== Boolean(ownerUserId)) {
+const permissionSetArn = config.get("ownerPermissionSetArn");
+if (
+  [instanceArn, ownerUserId, permissionSetArn].some(Boolean) &&
+  ![instanceArn, ownerUserId, permissionSetArn].every(Boolean)
+) {
   throw new Error(
-    "Set ssoInstanceArn and ownerUserId together after organization Identity Center is enabled",
+    "Set ssoInstanceArn, ownerUserId and ownerPermissionSetArn together to adopt the completed manual bootstrap",
   );
 }
 const emails = pulumi
@@ -57,16 +61,15 @@ const sandbox = new aws.organizations.Account(
   { protect: true },
 );
 
-if (instanceArn && ownerUserId) {
+if (instanceArn && ownerUserId && permissionSetArn) {
   const permission = new aws.ssoadmin.PermissionSet(
     "owner",
     {
       instanceArn,
       name: "JackAdministrator",
       sessionDuration: "PT4H",
-      description: "Jack's owner access, selected through an explicit account profile",
     },
-    { protect: true },
+    { protect: true, import: `${permissionSetArn},${instanceArn}` },
   );
   const policy = new aws.ssoadmin.ManagedPolicyAttachment(
     "owner-administrator",
@@ -75,7 +78,10 @@ if (instanceArn && ownerUserId) {
       permissionSetArn: permission.arn,
       managedPolicyArn: "arn:aws:iam::aws:policy/AdministratorAccess",
     },
-    { protect: true },
+    {
+      protect: true,
+      import: `arn:aws:iam::aws:policy/AdministratorAccess,${permissionSetArn},${instanceArn}`,
+    },
   );
   for (const [name, accountId] of [
     ["management", pulumi.output(managementId)],
@@ -92,7 +98,14 @@ if (instanceArn && ownerUserId) {
         targetId: accountId,
         targetType: "AWS_ACCOUNT",
       },
-      { protect: true, dependsOn: [policy] },
+      {
+        protect: true,
+        dependsOn: [policy],
+        import:
+          name === "management"
+            ? `${ownerUserId},USER,${managementId},AWS_ACCOUNT,${permissionSetArn},${instanceArn}`
+            : undefined,
+      },
     );
   }
 }
@@ -100,4 +113,4 @@ if (instanceArn && ownerUserId) {
 export const managementAccountId = managementId;
 export const productionAccountId = production.id;
 export const sandboxAccountId = sandbox.id;
-export const ownerAccessConfigured = Boolean(instanceArn && ownerUserId);
+export const ownerAccessConfigured = Boolean(instanceArn && ownerUserId && permissionSetArn);
