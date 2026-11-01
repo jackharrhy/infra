@@ -8,7 +8,8 @@ Use the official project-local skills in `.agents/skills` when relevant:
 - `pulumi-best-practices`: Pulumi authoring, dependencies, secrets, and aliases.
 - `provider-upgrade`: provider upgrades with a reviewed, explained preview.
 
-Upstream revisions, file hashes, and licenses are recorded under `.agents/`.
+Restore instructions are in `README.md`; pinned sources and folder hashes are
+recorded in `skills-lock.json`. Restored third-party files stay Git-ignored.
 Read only the relevant skill and references. Check current vendor documentation
 for API details, supported versions, and prices; pinned skills can become stale.
 Skills are guidance, not permission to execute every example or enable services.
