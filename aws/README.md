@@ -39,7 +39,8 @@ protected and `closeOnDeletion` is false. The foundation imports the existing
 AdministratorAccess attachment and management assignment.
 
 Configure each stack with an explicit AWS profile, `us-east-1`, and
-`aws:allowedAccountIds` containing only its target account ID:
+`aws:allowedAccountIds` containing only its target account ID as a string
+(use `pulumi config set --path 'aws:allowedAccountIds[0]' --type string ID`):
 
 - Foundation uses `jack-admin`, `managementAccountId`, `ssoInstanceArn`,
   `ownerUserId`, `ownerPermissionSetArn`, and secret `productionEmail` and

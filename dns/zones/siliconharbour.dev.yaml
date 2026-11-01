@@ -21,6 +21,10 @@
     values:
     - v=spf1 include:_spf.porkbun.com include:amazonses.com -all
     - google-site-verification=5q311nXABXQ_UGCXIuBA5rOm0fi5TBqESGXS_HOqbW0
+4z7sgn3ihxkl7767v6xmipf543qu7ksx._domainkey:
+  ttl: 300
+  type: CNAME
+  value: 4z7sgn3ihxkl7767v6xmipf543qu7ksx.dkim.amazonses.com.
 _dmarc:
   type: TXT
   value: v=DMARC1\; p=quarantine\; sp=quarantine\; np=reject\; rua=mailto:reports@dmarc.siliconharbour.dev\;
@@ -45,6 +49,10 @@ mail:
       preference: 10
   - type: TXT
     value: v=spf1 include:amazonses.com -all
+nokllh2nvfivbp5avyivvb7uousrfrpc._domainkey:
+  ttl: 300
+  type: CNAME
+  value: nokllh2nvfivbp5avyivvb7uousrfrpc.dkim.amazonses.com.
 ptabhbr7csgaaicxwz2dqnhtpnpdkkd5._domainkey:
   ttl: 43200
   type: CNAME
@@ -54,3 +62,7 @@ reply:
   value:
     exchange: inbound-smtp.us-east-1.amazonaws.com.
     preference: 10
+zsdsg63vhgr27h2falnmdkcvrlubxmdg._domainkey:
+  ttl: 300
+  type: CNAME
+  value: zsdsg63vhgr27h2falnmdkcvrlubxmdg.dkim.amazonses.com.

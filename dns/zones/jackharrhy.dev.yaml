@@ -14,6 +14,10 @@
   ttl: 43200
   type: CNAME
   value: 5yv7boeq7bxw5th2gvj7fshpb64tjscp.dkim.amazonses.com.
+7h6dhwrk74zirrg5qyqwq2e7egmw6cw3._domainkey:
+  ttl: 300
+  type: CNAME
+  value: 7h6dhwrk74zirrg5qyqwq2e7egmw6cw3.dkim.amazonses.com.
 '*':
 - type: A
   value: 142.93.144.29
@@ -33,6 +37,14 @@ dmarc:
   value:
     exchange: inbound-smtp.us-east-1.amazonaws.com.
     preference: 10
+gjlwqnv2ie3ck4oz3ilbe3dsz772spid._domainkey:
+  ttl: 300
+  type: CNAME
+  value: gjlwqnv2ie3ck4oz3ilbe3dsz772spid.dkim.amazonses.com.
+ipla44i2qmuf5zudrr7yoapiuzlhobhz._domainkey:
+  ttl: 300
+  type: CNAME
+  value: ipla44i2qmuf5zudrr7yoapiuzlhobhz.dkim.amazonses.com.
 leo6o3hye2ykivscjdoufsda4kz42boc._domainkey:
   ttl: 43200
   type: CNAME
