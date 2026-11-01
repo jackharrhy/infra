@@ -76,15 +76,16 @@ FastDL serves only `/mnt/terrabud/games/svencoop/custom`, never private settings
 
 For a live map change, install assets first, then use the existing Docker stdin
 console to issue `changelevel "BSP_NAME"`; don't recreate an occupied server just
-to change maps. Preserve author configs. Docker container names retain their old
-`svencoop-train` / `svencoop-train-downloads` names for continuity.
+to change maps. Preserve author configs. Containers are named `svencoop` and `svencoop-downloads`. Images track the
+publishers' `latest` tags; updates require an explicit
+pull/recreate, since Watchtower remains disabled.
 
 ## Stop and verify
 
 ```sh
 docker compose stop
 docker compose ps -a
-docker logs --tail 100 svencoop-train
+docker logs --tail 100 svencoop
 ```
 
 Stopping does not remove forwarding. Leave it in place unless explicitly asked

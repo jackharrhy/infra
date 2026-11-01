@@ -2,8 +2,8 @@ name: svencoop
 
 services:
   game:
-    image: lacledeslan/gamesvr-svencoop@sha256:8d51f666c5d4de3941d6afb1fa946b0d80f660aea3c6fee8166c989a19380e46
-    container_name: svencoop-train
+    image: lacledeslan/gamesvr-svencoop:latest
+    container_name: svencoop
     restart: unless-stopped
     stdin_open: true
     working_dir: /app/svencoop
@@ -35,8 +35,8 @@ services:
         max-file: "2"
 
   downloads:
-    image: nginx@sha256:785835ea65db4bba6f021acc0f3be91b0fef76a53fe41f8588c6698d2aed0606
-    container_name: svencoop-train-downloads
+    image: nginx:latest
+    container_name: svencoop-downloads
     restart: unless-stopped
     ports:
       - "27015:80/tcp"
