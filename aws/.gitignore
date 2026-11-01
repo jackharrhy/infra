@@ -1,3 +1,6 @@
 /bin/
 /node_modules/
 .pulumi
+
+# Restored third-party skills.
+/.agents/skills/

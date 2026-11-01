@@ -1,0 +1,14 @@
+{
+  "name": "jack-mail",
+  "main": "index.ts",
+  "scripts": {
+    "check": "tsc --noEmit",
+    "pulumi:preview": "\"$HOME/.pulumi/bin/pulumi\" preview",
+    "pulumi:up": "\"$HOME/.pulumi/bin/pulumi\" up"
+  },
+  "dependencies": {
+    "@pulumi/aws": "7.21.0",
+    "@pulumi/pulumi": "3.225.1"
+  },
+  "private": true
+}

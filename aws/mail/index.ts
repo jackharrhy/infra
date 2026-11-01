@@ -1,0 +1,532 @@
+import * as pulumi from "@pulumi/pulumi";
+import * as aws from "@pulumi/aws";
+
+const config = new pulumi.Config();
+const expectedAccountId = config.require("accountId");
+if (expectedAccountId === "047260868862") {
+  throw new Error(
+    "The mail project targets the production member account, not the existing management account",
+  );
+}
+if (
+  !/^\d{12}$/.test(expectedAccountId) ||
+  aws.config.allowedAccountIds?.length !== 1 ||
+  aws.config.allowedAccountIds[0] !== expectedAccountId
+) {
+  throw new Error(
+    "Set aws:allowedAccountIds to exactly the production accountId before running this project",
+  );
+}
+if (!aws.config.profile || aws.config.region !== "us-east-1") {
+  throw new Error("Select an explicit production AWS profile and us-east-1");
+}
+const { accountId } = aws.getCallerIdentityOutput();
+
+const configSet = new aws.sesv2.ConfigurationSet("jackharrhy-dev-config-set", {
+  configurationSetName: "jackharrhy-dev-config-set",
+  deliveryOptions: {
+    tlsPolicy: "OPTIONAL",
+  },
+  reputationOptions: {
+    reputationMetricsEnabled: true,
+  },
+  sendingOptions: {
+    sendingEnabled: true,
+  },
+});
+
+const jackharrhyDevIdentity = new aws.sesv2.EmailIdentity("jackharrhy-dev", {
+  emailIdentity: "jackharrhy.dev",
+  configurationSetName: configSet.configurationSetName,
+  dkimSigningAttributes: {
+    nextSigningKeyLength: "RSA_2048_BIT",
+  },
+});
+
+new aws.sesv2.EmailIdentityMailFromAttributes("jackharrhy-dev-mail-from", {
+  emailIdentity: jackharrhyDevIdentity.emailIdentity,
+  behaviorOnMxFailure: "USE_DEFAULT_VALUE",
+  mailFromDomain: "mail.jackharrhy.dev",
+});
+
+const siliconharbourDevIdentity = new aws.sesv2.EmailIdentity("siliconharbour-dev", {
+  emailIdentity: "siliconharbour.dev",
+  configurationSetName: configSet.configurationSetName,
+  dkimSigningAttributes: {
+    nextSigningKeyLength: "RSA_2048_BIT",
+  },
+});
+
+new aws.sesv2.EmailIdentityMailFromAttributes("siliconharbour-dev-mail-from", {
+  emailIdentity: siliconharbourDevIdentity.emailIdentity,
+  behaviorOnMxFailure: "USE_DEFAULT_VALUE",
+  mailFromDomain: "mail.siliconharbour.dev",
+});
+
+const sesEventsTopic = new aws.sns.Topic("ses-events", {
+  name: "ses-events",
+  policy: accountId.apply((id) =>
+    JSON.stringify({
+      Version: "2008-10-17",
+      Statement: [
+        {
+          Sid: "stmt1772834748858",
+          Effect: "Allow",
+          Principal: { Service: "ses.amazonaws.com" },
+          Action: "SNS:Publish",
+          Resource: `arn:aws:sns:us-east-1:${id}:ses-events`,
+          Condition: {
+            StringEquals: { "AWS:SourceAccount": id },
+            StringLike: { "AWS:SourceArn": "arn:aws:ses:*" },
+          },
+        },
+      ],
+    }),
+  ),
+});
+
+new aws.sns.TopicSubscription("ses-events-subscription", {
+  topic: sesEventsTopic.arn,
+  protocol: "https",
+  endpoint: "https://lists.jackharrhy.dev/webhooks/ses",
+  confirmationTimeoutInMinutes: 1,
+  endpointAutoConfirms: false,
+});
+
+new aws.sesv2.ConfigurationSetEventDestination("ses-events-destination", {
+  configurationSetName: configSet.configurationSetName,
+  eventDestinationName: "ses-events",
+  eventDestination: {
+    enabled: true,
+    matchingEventTypes: [
+      "SEND",
+      "DELIVERY",
+      "DELIVERY_DELAY",
+      "REJECT",
+      "RENDERING_FAILURE",
+      "BOUNCE",
+      "COMPLAINT",
+    ],
+    snsDestination: {
+      topicArn: sesEventsTopic.arn,
+    },
+  },
+});
+
+const inboundEmailBucket = new aws.s3.Bucket("ses-inbound-email", {
+  bucket: `jackharrhy-ses-inbound-email-${expectedAccountId}`,
+  forceDestroy: false,
+});
+
+new aws.s3.BucketPublicAccessBlock("ses-inbound-email-public-access-block", {
+  bucket: inboundEmailBucket.id,
+  blockPublicAcls: true,
+  blockPublicPolicy: true,
+  ignorePublicAcls: true,
+  restrictPublicBuckets: true,
+});
+
+const inboundBucketPolicy = new aws.s3.BucketPolicy("ses-inbound-email-policy", {
+  bucket: inboundEmailBucket.id,
+  policy: pulumi.all([inboundEmailBucket.arn, accountId]).apply(([bucketArn, id]) =>
+    JSON.stringify({
+      Version: "2012-10-17",
+      Statement: [
+        {
+          Sid: "AllowSESPut",
+          Effect: "Allow",
+          Principal: { Service: "ses.amazonaws.com" },
+          Action: "s3:PutObject",
+          Resource: `${bucketArn}/*`,
+          Condition: {
+            StringEquals: { "AWS:SourceAccount": id },
+          },
+        },
+      ],
+    }),
+  ),
+});
+
+const inboundEmailDLQ = new aws.sqs.Queue("ses-inbound-email-dlq", {
+  name: "ses-inbound-email-dlq",
+  messageRetentionSeconds: 1209600, // 14 days
+  sqsManagedSseEnabled: true,
+});
+
+const inboundEmailQueue = new aws.sqs.Queue("ses-inbound-email-queue", {
+  name: "ses-inbound-email-queue",
+  visibilityTimeoutSeconds: 60,
+  messageRetentionSeconds: 345600, // 4 days
+  sqsManagedSseEnabled: true,
+  redrivePolicy: inboundEmailDLQ.arn.apply((dlqArn) =>
+    JSON.stringify({
+      deadLetterTargetArn: dlqArn,
+      maxReceiveCount: 3,
+    }),
+  ),
+});
+
+const inboundEmailLambdaRole = new aws.iam.Role("ses-inbound-email-lambda-role", {
+  assumeRolePolicy: aws.iam.assumeRolePolicyForPrincipal({
+    Service: "lambda.amazonaws.com",
+  }),
+});
+
+new aws.iam.RolePolicyAttachment("ses-inbound-email-lambda-basic-execution", {
+  role: inboundEmailLambdaRole.name,
+  policyArn: aws.iam.ManagedPolicy.AWSLambdaBasicExecutionRole,
+});
+
+new aws.iam.RolePolicy("ses-inbound-email-lambda-policy", {
+  role: inboundEmailLambdaRole.name,
+  policy: pulumi
+    .all([inboundEmailQueue.arn, inboundEmailBucket.arn])
+    .apply(([queueArn, bucketArn]) =>
+      JSON.stringify({
+        Version: "2012-10-17",
+        Statement: [
+          {
+            Effect: "Allow",
+            Action: "sqs:SendMessage",
+            Resource: queueArn,
+          },
+          {
+            Effect: "Allow",
+            Action: ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"],
+            Resource: `${bucketArn}/*`,
+          },
+        ],
+      }),
+    ),
+});
+
+const inboundEmailLambda = new aws.lambda.CallbackFunction("ses-inbound-email-lambda", {
+  role: inboundEmailLambdaRole,
+  runtime: aws.lambda.Runtime.NodeJS24dX,
+  timeout: 30,
+  memorySize: 128,
+  environment: {
+    variables: {
+      SQS_QUEUE_URL: inboundEmailQueue.url,
+      S3_BUCKET: inboundEmailBucket.bucket,
+    },
+  },
+  callback: async (event: any) => {
+    const record = event.Records?.[0];
+    if (!record?.ses) {
+      console.error("No SES record found");
+      return { disposition: "STOP_RULE" };
+    }
+
+    const mail = record.ses.mail;
+    const receipt = record.ses.receipt;
+    const toAddrs: string[] = [...(mail.destination ?? []), ...(mail.commonHeaders?.to ?? [])];
+
+    const originalKey = `${receipt.action.objectKeyPrefix ?? "inbound/"}${mail.messageId}`;
+    let structuredKey = originalKey;
+    let kind: "reply" | "dmarc" = "reply";
+
+    const dmarcAddr = toAddrs.find((a: string) => a.includes("@dmarc."));
+    if (dmarcAddr) {
+      const match = dmarcAddr.match(/<?([^@<]+)@(dmarc\.[^>]+)>?/);
+      if (match) {
+        kind = "dmarc";
+        const localpart = match[1];
+        const domain = match[2];
+        structuredKey = `dmarc/${domain}/${localpart}/${mail.messageId}`;
+      }
+    } else {
+      const replyAddr = toAddrs.find((a: string) => a.includes("@reply."));
+      const match = replyAddr?.match(/<?([^@<]+)@(reply\.[^>]+)>?/);
+      if (match) {
+        const localpart = match[1];
+        const domain = match[2];
+        structuredKey = `inbound/${domain}/${localpart}/${mail.messageId}`;
+      }
+    }
+
+    if (structuredKey !== originalKey) {
+      const { S3Client, CopyObjectCommand, DeleteObjectCommand } = require("@aws-sdk/client-s3");
+      const s3 = new S3Client({});
+      const bucket = process.env.S3_BUCKET;
+
+      await s3.send(
+        new CopyObjectCommand({
+          Bucket: bucket,
+          CopySource: `${bucket}/${originalKey}`,
+          Key: structuredKey,
+        }),
+      );
+      await s3.send(
+        new DeleteObjectCommand({
+          Bucket: bucket,
+          Key: originalKey,
+        }),
+      );
+      console.log(`Moved ${originalKey} -> ${structuredKey}`);
+    }
+
+    const payload = {
+      kind,
+      messageId: mail.messageId,
+      rfc822MessageId: mail.commonHeaders?.messageId,
+      inReplyTo: mail.commonHeaders?.inReplyTo,
+      references: mail.commonHeaders?.references,
+      timestamp: mail.timestamp,
+      source: mail.source,
+      from: mail.commonHeaders?.from ?? [mail.source],
+      to: toAddrs,
+      subject: mail.commonHeaders?.subject ?? "",
+      spamVerdict: receipt.spamVerdict?.status,
+      virusVerdict: receipt.virusVerdict?.status,
+      spfVerdict: receipt.spfVerdict?.status,
+      dkimVerdict: receipt.dkimVerdict?.status,
+      dmarcVerdict: receipt.dmarcVerdict?.status,
+      s3Key: structuredKey,
+      action: receipt.action,
+    };
+
+    const { SQSClient, SendMessageCommand } = require("@aws-sdk/client-sqs");
+    const sqs = new SQSClient({});
+
+    await sqs.send(
+      new SendMessageCommand({
+        QueueUrl: process.env.SQS_QUEUE_URL,
+        MessageBody: JSON.stringify(payload),
+        MessageAttributes: {
+          messageId: {
+            DataType: "String",
+            StringValue: mail.messageId,
+          },
+        },
+      }),
+    );
+
+    console.log(`Queued message ${mail.messageId} (${structuredKey})`);
+    return { disposition: "CONTINUE" };
+  },
+});
+
+const inboundLambdaPermission = new aws.lambda.Permission("ses-invoke-inbound-email-lambda", {
+  action: "lambda:InvokeFunction",
+  function: inboundEmailLambda.name,
+  principal: "ses.amazonaws.com",
+  sourceAccount: accountId,
+});
+
+const inboundLogGroup = new aws.cloudwatch.LogGroup("ses-inbound-email-logs", {
+  name: pulumi.interpolate`/aws/lambda/${inboundEmailLambda.name}`,
+  retentionInDays: 14,
+});
+
+const inboundRuleSet = new aws.ses.ReceiptRuleSet("ses-inbound-rule-set", {
+  ruleSetName: "ses-inbound-rules",
+});
+
+const inboundReceiptRule = new aws.ses.ReceiptRule(
+  "ses-inbound-receipt-rule",
+  {
+    name: "store-and-forward",
+    ruleSetName: inboundRuleSet.ruleSetName,
+    recipients: [
+      "reply.jackharrhy.dev",
+      "reply.siliconharbour.dev",
+      "dmarc.jackharrhy.dev",
+      "dmarc.siliconharbour.dev",
+    ],
+    enabled: true,
+    scanEnabled: true,
+    s3Actions: [
+      {
+        bucketName: inboundEmailBucket.bucket,
+        objectKeyPrefix: "inbound/",
+        position: 1,
+      },
+    ],
+    lambdaActions: [
+      {
+        functionArn: inboundEmailLambda.arn,
+        invocationType: "Event",
+        position: 2,
+      },
+    ],
+  },
+  { dependsOn: [inboundBucketPolicy, inboundLambdaPermission, inboundLogGroup] },
+);
+
+if (config.getBoolean("receiveEnabled") ?? false) {
+  new aws.ses.ActiveReceiptRuleSet(
+    "ses-inbound-active-rule-set",
+    {
+      ruleSetName: inboundRuleSet.ruleSetName,
+    },
+    { dependsOn: [inboundReceiptRule] },
+  );
+}
+
+// Email clients need public campaign-image URLs.
+const mediaBucket = new aws.s3.Bucket("lists-media", {
+  bucket: `jackharrhy-lists-media-${expectedAccountId}`,
+  forceDestroy: false,
+});
+
+const mediaPublicAccessBlock = new aws.s3.BucketPublicAccessBlock(
+  "lists-media-public-access-block",
+  {
+    bucket: mediaBucket.id,
+    blockPublicAcls: true,
+    blockPublicPolicy: false,
+    ignorePublicAcls: true,
+    restrictPublicBuckets: false,
+  },
+);
+
+new aws.s3.BucketPolicy(
+  "lists-media-policy",
+  {
+    bucket: mediaBucket.id,
+    policy: mediaBucket.arn.apply((arn) =>
+      JSON.stringify({
+        Version: "2012-10-17",
+        Statement: [
+          {
+            Sid: "PublicRead",
+            Effect: "Allow",
+            Principal: "*",
+            Action: "s3:GetObject",
+            Resource: `${arn}/*`,
+          },
+        ],
+      }),
+    ),
+  },
+  { dependsOn: [mediaPublicAccessBlock] },
+);
+
+new aws.s3.BucketCorsConfiguration("lists-media-cors", {
+  bucket: mediaBucket.id,
+  corsRules: [
+    {
+      allowedHeaders: ["*"],
+      allowedMethods: ["GET"],
+      allowedOrigins: ["*"],
+      maxAgeSeconds: 3600,
+    },
+  ],
+});
+
+const listsUser = new aws.iam.User("lists", {
+  name: "lists",
+});
+
+new aws.iam.UserPolicy("lists-policy", {
+  user: listsUser.name,
+  policy: pulumi
+    .all([
+      inboundEmailQueue.arn,
+      inboundEmailDLQ.arn,
+      inboundEmailBucket.arn,
+      mediaBucket.arn,
+      jackharrhyDevIdentity.arn,
+      siliconharbourDevIdentity.arn,
+      configSet.arn,
+    ])
+    .apply(
+      ([
+        queueArn,
+        dlqArn,
+        inboundBucketArn,
+        mediaBucketArn,
+        jackIdentityArn,
+        siliconIdentityArn,
+        configurationSetArn,
+      ]) =>
+        JSON.stringify({
+          Version: "2012-10-17",
+          Statement: [
+            {
+              Sid: "SQSRead",
+              Effect: "Allow",
+              Action: [
+                "sqs:ReceiveMessage",
+                "sqs:DeleteMessage",
+                "sqs:GetQueueAttributes",
+                "sqs:ChangeMessageVisibility",
+              ],
+              Resource: [queueArn, dlqArn],
+            },
+            {
+              Sid: "S3InboundRead",
+              Effect: "Allow",
+              Action: ["s3:GetObject"],
+              Resource: `${inboundBucketArn}/*`,
+            },
+            {
+              Sid: "S3MediaWrite",
+              Effect: "Allow",
+              Action: ["s3:PutObject", "s3:DeleteObject"],
+              Resource: `${mediaBucketArn}/*`,
+            },
+            {
+              Sid: "S3MediaList",
+              Effect: "Allow",
+              Action: ["s3:ListBucket"],
+              Resource: mediaBucketArn,
+            },
+            {
+              Sid: "SESSend",
+              Effect: "Allow",
+              Action: ["ses:SendRawEmail", "ses:SendEmail"],
+              Resource: [jackIdentityArn, siliconIdentityArn, configurationSetArn],
+            },
+          ],
+        }),
+    ),
+});
+
+const jackAuthMailUser = new aws.iam.User("jack-auth-mail", { name: "jack-auth-mail" });
+new aws.iam.UserPolicy("jack-auth-mail-send", {
+  user: jackAuthMailUser.name,
+  policy: pulumi
+    .all([jackharrhyDevIdentity.arn, configSet.arn])
+    .apply(([identityArn, configurationSetArn]) =>
+      JSON.stringify({
+        Version: "2012-10-17",
+        Statement: [
+          {
+            Effect: "Allow",
+            Action: "ses:SendRawEmail",
+            Resource: [identityArn, configurationSetArn],
+            Condition: { StringEquals: { "ses:FromAddress": "auth@jackharrhy.dev" } },
+          },
+        ],
+      }),
+    ),
+});
+const jackAuthMailKey = new aws.iam.AccessKey("jack-auth-mail-key", {
+  user: jackAuthMailUser.name,
+});
+export const jackAuthSmtpUsername = pulumi.secret(jackAuthMailKey.id);
+export const jackAuthSmtpPassword = pulumi.secret(jackAuthMailKey.sesSmtpPasswordV4);
+
+const listsKey = new aws.iam.AccessKey("lists-key", { user: listsUser.name });
+export const listsAccessKeyId = pulumi.secret(listsKey.id);
+export const listsSecretAccessKey = pulumi.secret(listsKey.secret);
+export const region = aws.config.region;
+export const inboundBucket = inboundEmailBucket.bucket;
+export const mediaBucketName = mediaBucket.bucket;
+export const mediaBaseUrl = pulumi.interpolate`https://${mediaBucket.bucket}.s3.us-east-1.amazonaws.com`;
+export const queueUrl = inboundEmailQueue.url;
+export const deadLetterQueueUrl = inboundEmailDLQ.url;
+export const configurationSet = configSet.configurationSetName;
+export const receiptRuleSet = inboundRuleSet.ruleSetName;
+export const receiveEnabled = config.getBoolean("receiveEnabled") ?? false;
+export const dkimRecords = pulumi
+  .all([
+    jackharrhyDevIdentity.dkimSigningAttributes,
+    siliconharbourDevIdentity.dkimSigningAttributes,
+  ])
+  .apply(([jack, silicon]) => ({
+    "jackharrhy.dev": jack?.tokens,
+    "siliconharbour.dev": silicon?.tokens,
+  }));

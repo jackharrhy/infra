@@ -1,0 +1,6 @@
+name: jack-foundation
+description: Jack's AWS accounts and owner access
+runtime:
+  name: nodejs
+  options:
+    packagemanager: pnpm
