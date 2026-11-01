@@ -56,9 +56,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('maps', nargs='+', help='BSP names listed in maps.json')
     parser.add_argument('--data-dir', type=Path, default=Path('/mnt/terrabud/games/svencoop'))
-    parser.add_argument('--manifest', type=Path, default=Path(__file__).with_name('maps.json'))
     args = parser.parse_args()
-    manifest = json.loads(args.manifest.read_text())['maps']
+    manifest = json.loads(Path(__file__).with_name('maps.json').read_text())['maps']
     for name in args.maps:
         if name not in manifest:
             parser.error(f'Unknown map: {name}')
