@@ -97,3 +97,23 @@ from restored data remain pending.
 
 ZITADEL core is AGPL; the separately authored UI is MIT and the Lore token action
 is AGPL. No ZITADEL source was modified. See upstream LICENSING.md at v4.20.0.
+
+
+Auth SMTP moved to the production AWS account 714000190305 in us-east-1 on
+2026-11-04 after the migration driver confirmed production sending and both
+identities/DKIM/MAIL FROM readiness. The active ZITADEL SMTP provider and encrypted
+smtp.enc.yaml now use the staged target credentials. Sender auth@jackharrhy.dev
+and STARTTLS on email-smtp.us-east-1.amazonaws.com:587 are preserved. The sibling
+ignored smtp.env was rendered with mode600; no credentials were printed.
+
+Live acceptance used a disposable account and the owner's Gmail inbox. Both
+verification and recovery messages arrived in INBOX with SPF/DKIM/DMARC passing;
+both delivered links redeemed successfully, replay failed, the old password was
+rejected and the new password signed in. The test account and private test
+credentials/links were removed. The inactive old provider and encrypted rollback
+snapshots remain until the migration driver confirms coordinated old-key
+retirement; Auth has no remaining dependency on that old key. The private
+smtp-account-move.json checkpoint records provider IDs and the exact encrypted
+backup directory. Auth owns provider/SOPS promotion; the driver owns AWS, shared
+DNS and Lists. Do not run the legacy configure-mail.py to provision this switch:
+it reads the original Pulumi outputs and expired bootstrap PAT.
