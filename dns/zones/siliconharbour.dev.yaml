@@ -33,14 +33,6 @@ dmarc:
   value:
     exchange: inbound-smtp.us-east-1.amazonaws.com.
     preference: 10
-edhg5a3s7yztr6bwfk3lnuxhfq4kknxn._domainkey:
-  ttl: 43200
-  type: CNAME
-  value: edhg5a3s7yztr6bwfk3lnuxhfq4kknxn.dkim.amazonses.com.
-jixwdpdfq3y33tvthcezkaluoollukiy._domainkey:
-  ttl: 43200
-  type: CNAME
-  value: jixwdpdfq3y33tvthcezkaluoollukiy.dkim.amazonses.com.
 mail:
   - ttl: 14400
     type: MX
@@ -53,10 +45,6 @@ nokllh2nvfivbp5avyivvb7uousrfrpc._domainkey:
   ttl: 300
   type: CNAME
   value: nokllh2nvfivbp5avyivvb7uousrfrpc.dkim.amazonses.com.
-ptabhbr7csgaaicxwz2dqnhtpnpdkkd5._domainkey:
-  ttl: 43200
-  type: CNAME
-  value: ptabhbr7csgaaicxwz2dqnhtpnpdkkd5.dkim.amazonses.com.
 reply:
   type: MX
   value:

@@ -10,10 +10,6 @@
     - ns1.digitalocean.com.
     - ns2.digitalocean.com.
     - ns3.digitalocean.com.
-5yv7boeq7bxw5th2gvj7fshpb64tjscp._domainkey:
-  ttl: 43200
-  type: CNAME
-  value: 5yv7boeq7bxw5th2gvj7fshpb64tjscp.dkim.amazonses.com.
 7h6dhwrk74zirrg5qyqwq2e7egmw6cw3._domainkey:
   ttl: 300
   type: CNAME
@@ -45,10 +41,6 @@ ipla44i2qmuf5zudrr7yoapiuzlhobhz._domainkey:
   ttl: 300
   type: CNAME
   value: ipla44i2qmuf5zudrr7yoapiuzlhobhz.dkim.amazonses.com.
-leo6o3hye2ykivscjdoufsda4kz42boc._domainkey:
-  ttl: 43200
-  type: CNAME
-  value: leo6o3hye2ykivscjdoufsda4kz42boc.dkim.amazonses.com.
 mail:
 - ttl: 14400
   type: MX
@@ -72,7 +64,3 @@ send.resend:
     preference: 10
 - type: TXT
   value: v=spf1 include:amazonses.com ~all
-zoder23zaknzien6cajkkz4lfqdnlprw._domainkey:
-  ttl: 43200
-  type: CNAME
-  value: zoder23zaknzien6cajkkz4lfqdnlprw.dkim.amazonses.com.
