@@ -6,7 +6,6 @@ Pulumi manages accounts and mail in `us-east-1`:
 | ------------- | ---------------------------- | -------------------------------------------------------------------------------------- |
 | `foundation/` | `jack-foundation/management` | Protected production/sandbox accounts and Jack's Identity Center access                |
 | `mail/`       | `jack-mail/production`       | Production SES, SNS, inbound S3 → Lambda → SQS, campaign media and machine credentials |
-| `.`           | `jack-infra/dev`             | Mail resources in management account `047260868862`                                    |
 
 Lists runs on Mug with its SQLite database. Insta-game's Go CLI/CloudFormation
 owns game infrastructure separately. Each Pulumi project has its own state in
@@ -45,9 +44,12 @@ Configure each stack with an explicit AWS profile, `us-east-1`, and
 - Foundation uses `jack-admin`, `managementAccountId`, `ssoInstanceArn`,
   `ownerUserId`, `ownerPermissionSetArn`, and secret `productionEmail` and
   `sandboxEmail` values. Local `Pulumi.management.yaml` is ignored.
-- Mail uses `jack-prod`, `accountId`, and `receiveEnabled` (false until inbound
-  cutover). Initialize its stack with `pulumi stack init production`.
+- Mail uses `jack-prod`, `accountId`, and `receiveEnabled` (true for live inbound mail). Initialize its stack with `pulumi stack init production`.
 
+Owner profiles use Identity Center: `jack-admin` selects management
+`047260868862`, `jack-prod` production `714000190305`, and `jack-sandbox`
+sandbox `070786154596`. Configure profiles with `aws configure sso --profile NAME`
+or select an existing per-account configuration through `AWS_CONFIG_FILE`.
 Verify STS returns the intended account and an assumed SSO role. `jack-root` is
 the retained root profile; use SSO for deployment. Credential outputs are secret:
 pipe them into SOPS without plaintext files or terminal output.

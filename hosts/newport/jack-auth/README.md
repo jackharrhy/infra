@@ -26,7 +26,7 @@ operator key (encrypted, never mounted into the UI); remaining legacy scripts
 still need migration before retiring those PATs.
 
 SES SMTP is configured directly in ZITADEL using the dedicated jack-auth-mail IAM
-identity defined in aws/index.ts. It can send raw email only from
+identity defined in aws/mail/index.ts. It can send raw email only from
  auth@jackharrhy.dev through the verified jackharrhy.dev identity in us-east-1.
 The policy also permits the default SES configuration set. STARTTLS, SMTP login
 and simulator/real sends passed; Jack confirmed non-Gmail inbox delivery. Gmail
