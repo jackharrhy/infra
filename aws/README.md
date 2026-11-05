@@ -21,6 +21,7 @@ set -a
 . /home/jack/infra/aws/.env
 set +a
 export PULUMI_BACKEND_URL=file:///home/jack/infra/aws
+export AWS_CONFIG_FILE=/home/jack/infra/aws/.runtime-secrets/aws-config
 ```
 
 Choose the project directory and stack before running Pulumi:

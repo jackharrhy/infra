@@ -25,13 +25,13 @@ PAT expires2026-11-01UTC. Ongoing application provisioning now uses a separate
 operator key (encrypted, never mounted into the UI); remaining legacy scripts
 still need migration before retiring those PATs.
 
-SES SMTP is configured directly in ZITADEL using the dedicated jack-auth-mail IAM
-identity defined in aws/mail/index.ts. It can send raw email only from
- auth@jackharrhy.dev through the verified jackharrhy.dev identity in us-east-1.
-The policy also permits the default SES configuration set. STARTTLS, SMTP login
-and simulator/real sends passed; Jack confirmed non-Gmail inbox delivery. Gmail
-delivery and actual notification-link delivery are still being checked.
-The existing lists campaign service and its subscriber store are not involved.
+ZITADEL sends through SES in production account `714000190305`, `us-east-1`,
+using the dedicated SMTP identity in `aws/mail/index.ts`. It can send only as
+`auth@jackharrhy.dev`, with STARTTLS at `email-smtp.us-east-1.amazonaws.com:587`.
+The active provider uses `secrets/smtp.enc.yaml`; render its ignored runtime file
+with the existing secrets renderer. Auth owns provider and SMTP configuration.
+Real verification/recovery emails and redeemed links passed acceptance, including
+SPF, DKIM and DMARC. Lists and its subscriber store are independent.
 
 Email verification and password recovery UI pass live disposable-account tests.
 PBKDF2 import verification is enabled for legacy 4orm hashes; new passwords keep
@@ -97,23 +97,3 @@ from restored data remain pending.
 
 ZITADEL core is AGPL; the separately authored UI is MIT and the Lore token action
 is AGPL. No ZITADEL source was modified. See upstream LICENSING.md at v4.20.0.
-
-
-Auth SMTP moved to the production AWS account 714000190305 in us-east-1 on
-2026-11-04 after the migration driver confirmed production sending and both
-identities/DKIM/MAIL FROM readiness. The active ZITADEL SMTP provider and encrypted
-smtp.enc.yaml now use the staged target credentials. Sender auth@jackharrhy.dev
-and STARTTLS on email-smtp.us-east-1.amazonaws.com:587 are preserved. The sibling
-ignored smtp.env was rendered with mode600; no credentials were printed.
-
-Live acceptance used a disposable account and the owner's Gmail inbox. Both
-verification and recovery messages arrived in INBOX with SPF/DKIM/DMARC passing;
-both delivered links redeemed successfully, replay failed, the old password was
-rejected and the new password signed in. The test account and private test
-credentials/links were removed. The inactive old provider and encrypted rollback
-snapshots remain until the migration driver confirms coordinated old-key
-retirement; Auth has no remaining dependency on that old key. The private
-smtp-account-move.json checkpoint records provider IDs and the exact encrypted
-backup directory. Auth owns provider/SOPS promotion; the driver owns AWS, shared
-DNS and Lists. Do not run the legacy configure-mail.py to provision this switch:
-it reads the original Pulumi outputs and expired bootstrap PAT.

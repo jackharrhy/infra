@@ -7,9 +7,9 @@
     "check": "pnpm --dir foundation run check && pnpm --dir mail run check"
   },
   "devDependencies": {
-    "@types/node": "^18",
+    "@types/node": "^18.19.130",
     "oxfmt": "^0.36.0",
-    "oxlint": "^1.51.0",
-    "typescript": "^5.0.0"
+    "oxlint": "^1.91.0",
+    "typescript": "^5.9.3"
   }
 }
