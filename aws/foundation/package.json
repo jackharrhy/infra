@@ -1,5 +1,6 @@
 {
   "name": "jack-foundation",
+  "private": true,
   "main": "index.ts",
   "scripts": {
     "check": "tsc --noEmit",
@@ -9,6 +10,5 @@
   "dependencies": {
     "@pulumi/aws": "7.21.0",
     "@pulumi/pulumi": "3.225.1"
-  },
-  "private": true
+  }
 }
