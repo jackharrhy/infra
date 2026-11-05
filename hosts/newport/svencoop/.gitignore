@@ -1,0 +1,9 @@
+.runtime-secrets/
+__pycache__/
+custom/
+*.zip
+*.bsp
+*.wad
+*.mdl
+session.cfg
+jack-admins.txt

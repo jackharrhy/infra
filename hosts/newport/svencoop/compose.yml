@@ -1,0 +1,56 @@
+name: svencoop
+
+services:
+  game:
+    image: lacledeslan/gamesvr-svencoop:latest
+    container_name: svencoop
+    restart: unless-stopped
+    stdin_open: true
+    working_dir: /app/svencoop
+    stop_signal: SIGINT
+    stop_grace_period: 30s
+    env_file:
+      - ./.runtime-secrets/server.env
+    entrypoint: ["/bin/sh", "/app/configured-entrypoint.sh"]
+    command: ["/app/svends_run", "-console", "-game", "svencoop", "-port", "27015", "-num_edicts", "8192", "+maxplayers", "4", "-nodefaultmap", "+exec", "startup.cfg"]
+    ports:
+      - "27015:27015/udp"
+    volumes:
+      - type: bind
+        source: /mnt/terrabud/games/svencoop/custom
+        target: /app/svencoop_addon
+        read_only: true
+        bind:
+          create_host_path: false
+      - ./entrypoint.sh:/app/configured-entrypoint.sh:ro
+      - ./server.cfg:/app/svencoop/server.cfg:ro
+      - ./startup.cfg:/app/svencoop/startup.cfg:ro
+      - ./mapcycle.txt:/app/svencoop/mapcycle.txt:ro
+    labels:
+      com.centurylinklabs.watchtower.enable: "false"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "2"
+
+  downloads:
+    image: nginx:latest
+    container_name: svencoop-downloads
+    restart: unless-stopped
+    ports:
+      - "27015:80/tcp"
+    volumes:
+      - type: bind
+        source: /mnt/terrabud/games/svencoop/custom
+        target: /usr/share/nginx/html
+        read_only: true
+        bind:
+          create_host_path: false
+    labels:
+      com.centurylinklabs.watchtower.enable: "false"
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
