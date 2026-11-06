@@ -8,8 +8,8 @@ independently of Chum. The pinned release is `2.0.0-beta.37`.
 - Data: /mnt/terrabud/docker-data/newport/executor/data
 - Host-local health probe: http://127.0.0.1:4400/health
 
-The owner account has been created and initial setup is closed. Sign in with
-the account created during tailnet bootstrap. The temporary Serve endpoint at
+The existing owner is linked to Auth and initial setup is closed. Sign in through
+Auth; password authentication is disabled. The temporary Serve endpoint at
 port 8466 is retired; changing origins requires a fresh browser sign-in.
 
 ## Routing and authentication
@@ -21,10 +21,9 @@ which sends it over `newport_web` to container port 4400. The Mug route is
 
 `BETTER_AUTH_URL` must match the public HTTPS origin exactly. The whole hostname
 is forwarded, including `/mcp`, `/.well-known/*`, `/mcp/authorize`, and
-`/api/oauth/callback`. Executor owns password login, invitations, MCP OAuth, and
-PATs. Do not put another interactive forward-auth login in front of those paths.
-OIDC SSO is enabled in the linking stage; password access remains available until
-the existing owner completes explicit linking and fresh SSO acceptance.
+`/api/oauth/callback`. Executor owns local sessions, organization access, MCP
+OAuth, and PATs. Do not put another interactive forward-auth login in front of those paths.
+OIDC SSO is the only enabled sign-in method; `/login` starts it automatically.
 
 The generated Executor management app also embeds its installation origin in
 `index.ts`, `openapi.json`, and `provider.ts`. Changing `BETTER_AUTH_URL` does not
@@ -34,7 +33,7 @@ The public-origin repair is app source commit
 `2646b5bcdaca8a7d1f0d7780ea65b0b4d351d69e`, deployment
 `dpl_0656386c-3399-4d27-89c4-ad1937089cc6`; owner and app identity were retained.
 
-## SSO integration contract (cutover in preparation)
+## SSO integration contract
 
 Auth owns the dedicated Executor confidential OIDC web client, project eligibility
 and provisioning. Executor owns local accounts, organization roles, dashboard
@@ -53,8 +52,8 @@ subject and allowed domain before provisioning. The existing owner email has now
 been privately matched to the confirmed, active Auth subject with verified email;
 identity edits are unnecessary. The mode-600 reference is
 `.runtime-secrets/owner-alignment.json` (ignored by Git).
-Initial Auth eligibility is limited
-to the operator-confirmed existing owner subject; domain membership alone grants no access. Any further Auth eligibility
+Initial Auth eligibility is limited to the operator-confirmed existing owner
+subject; domain membership alone grants no access. Any further Auth eligibility
 grants require a separate access decision. Newly eligible verified identities
 within the allowed domain can natively join Executor as members, never owners.
 
@@ -74,8 +73,9 @@ Disabling the Auth client/grant blocks new SSO, not existing Executor sessions,
 MCP tokens or local credentials. The final SSO-only mode disables password access
 independently. MCP access tokens last one hour and refresh tokens 30 days in the
 pinned source. Dashboard sessions default to seven days, with a one-day update
-interval in Better Auth 1.7.16. The patch sets native `disableProviderLogout: true`: sign-out revokes the local
-session and returns to `/` without invoking provider logout. Auth cookies therefore remain independent.
+interval in Better Auth 1.7.16. The patch sets native
+`disableProviderLogout: true`: sign-out revokes the local session and returns to
+`/` without invoking provider logout. Auth cookies remain independent.
 Executor-local revocation is a separate operation.
 
 Before rollout, verify pinned client behavior for PKCE, state, nonce, ID-token
@@ -86,8 +86,8 @@ link-collision cases; password endpoints refused after cutover; grant revocation
 blocking new SSO; wrong-state/nonce/PKCE cases; and native public MCP
 consent/token/resource access. Record existing-session behavior rather than
 assuming global logout. Jack authorized implementation and the staged SSO-only
-cutover. Linking the
-existing owner and proving fresh sign-in are prerequisites to disabling passwords.
+cutover. Existing-owner linking and fresh sign-in were verified before disabling
+passwords. Remaining acceptance cases are listed below.
 No new identities or access grants may be guessed from an email domain.
 
 ## Auth-only build and cutover
@@ -96,6 +96,11 @@ No new identities or access grants may be guessed from an email domain.
 `b31108468cf5e3857f00788eac809480a7371466` plus `sso-only.patch`. The Dockerfile
 rebuilds the Worker/UI and retains the pinned upstream native runtime. No Chum
 code or proxy authentication layer is involved.
+
+The editable upstream checkout is `/home/jack/repos/contrib/executor`, branch
+`jack/sso-only`, local commit `657289a`. The deployment build uses a clean pinned
+checkout plus the exported patch; editing the development checkout alone does not
+change the running container.
 
 The patch adds `SSO_ONLY=true`: native password sign-in and password management
 endpoints are disabled, password-based setup/invitation registration is refused,
@@ -106,10 +111,19 @@ explicit signed-in linking keeps native verified-email and collision checks.
 Native provider logout is disabled so signing out here does not sign out other
 Auth consumers.
 
-Auth's known-client UI is live and the consumer linking stage is deployed with
-`SSO_ONLY=false`. Public health and native SSO start pass: exact callback, PKCE
-S256, state and nonce; password access remains available. Existing-owner linking
-and fresh SSO are awaiting the owner's browser action.
+Auth and the consumer are live with `SSO_ONLY=true`. Jack completed SSO. A fresh
+read-only database snapshot confirms exactly one user, the original owner and
+organization, the intended Auth subject linked to that owner, and the original
+management app under the same organization. A fresh session follows the provider
+account update. Native verified SSO changed the local email-verification flag;
+no identity or email flag was manually edited.
+
+Public browser checks confirm automatic Auth redirect with the exact callback,
+PKCE S256, state and nonce. Password endpoints return 404; public health and MCP
+discovery pass, and anonymous MCP remains rejected. Jack reported unreliable
+return navigation after central login across Executor, 4orm and Artbin; Auth owns
+that investigation. A full native MCP consent/token/resource round trip, live
+nonce/PKCE negatives and authenticated logout isolation remain unverified.
 
 The encrypted stopped-volume snapshot is
 `/mnt/terrabud/backups/executor/before-sso-20261106T192602Z.tar.gz.age`; decryption

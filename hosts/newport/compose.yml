@@ -13,8 +13,7 @@ services:
       EXECUTOR_DISABLE_ANALYTICS: "1"
       SSO_DISCOVERY_URL: https://auth.jackharrhy.dev/.well-known/openid-configuration
       SSO_ALLOWED_DOMAINS: jackharrhy.com
-      # Keep local owner access until explicit SSO linking and fresh sign-in pass.
-      SSO_ONLY: "false"
+      SSO_ONLY: "true"
     env_file:
       - .runtime-secrets/executor-sso.env
     volumes:
