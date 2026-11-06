@@ -9,5 +9,5 @@ git clone --quiet --depth 1 --branch executor@2.0.0-beta.37 \
   https://github.com/UsefulSoftwareCo/executor.git "$source_dir"
 test "$(git -C "$source_dir" rev-parse HEAD)" = b31108468cf5e3857f00788eac809480a7371466
 git -C "$source_dir" apply "$infra_root/hosts/newport/executor/sso-only.patch"
-docker build --tag local/executor:2.0.0-beta.37-auth-only.1 \
+docker build --tag local/executor:2.0.0-beta.37-auth-only.2 \
   --file "$infra_root/hosts/newport/executor/Dockerfile" "$source_dir"

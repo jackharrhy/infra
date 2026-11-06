@@ -1,6 +1,6 @@
 services:
   executor:
-    image: local/executor:2.0.0-beta.37-auth-only.1
+    image: local/executor:2.0.0-beta.37-auth-only.2
     pull_policy: never
     restart: unless-stopped
     init: true

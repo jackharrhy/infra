@@ -92,13 +92,13 @@ No new identities or access grants may be guessed from an email domain.
 
 ## Auth-only build and cutover
 
-`build.sh` builds `local/executor:2.0.0-beta.37-auth-only.1` from upstream commit
+`build.sh` builds `local/executor:2.0.0-beta.37-auth-only.2` from upstream commit
 `b31108468cf5e3857f00788eac809480a7371466` plus `sso-only.patch`. The Dockerfile
 rebuilds the Worker/UI and retains the pinned upstream native runtime. No Chum
 code or proxy authentication layer is involved.
 
 The editable upstream checkout is `/home/jack/repos/contrib/executor`, branch
-`jack/sso-only`, local commit `657289a`. The deployment build uses a clean pinned
+`jack/sso-only`, local commit `07fe185`. The deployment build uses a clean pinned
 checkout plus the exported patch; editing the development checkout alone does not
 change the running container.
 
@@ -120,9 +120,13 @@ no identity or email flag was manually edited.
 
 Public browser checks confirm automatic Auth redirect with the exact callback,
 PKCE S256, state and nonce. Password endpoints return 404; public health and MCP
-discovery pass, and anonymous MCP remains rejected. Jack reported unreliable
-return navigation after central login across Executor, 4orm and Artbin; Auth owns
-that investigation. A full native MCP consent/token/resource round trip, live
+discovery pass, and anonymous MCP remains rejected. Auth fixed a browser CSP redirect failure affecting Executor, 4orm and Artbin.
+A separate Executor race restarted SSO while provider navigation was pending,
+replacing the state cookie. Redirecting SSO starts now leave the local session
+query alone. The upstream owner-link browser test covers Auth-only sign-in with
+a delayed provider navigation and requires exactly one start and a signed-in owner.
+That regression and the packaged-image slow-navigation check pass. Unmodified
+live central-login acceptance is being repeated with Auth. A full native MCP consent/token/resource round trip, live
 nonce/PKCE negatives and authenticated logout isolation remain unverified.
 
 The encrypted stopped-volume snapshot is

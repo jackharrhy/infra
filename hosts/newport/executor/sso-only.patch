@@ -90,6 +90,30 @@ index 4118746..59f9fbf 100644
        ),
      },
    }) satisfies BetterAuthPlugin;
+diff --git a/apps/hosted/self-host/web/src/contracts/auth.ts b/apps/hosted/self-host/web/src/contracts/auth.ts
+index 8946e5f..1027849 100644
+--- a/apps/hosted/self-host/web/src/contracts/auth.ts
++++ b/apps/hosted/self-host/web/src/contracts/auth.ts
+@@ -100,11 +100,15 @@ export const selfHostSignInAtom = BrowserAtoms.fn((input: SelfHostSignIn, get) =
+           );
+   return action.pipe(
+     Effect.withSpan(`ui.auth.${input.kind}`),
++    // SSO leaves this document. Refreshing here remounts auto-login before navigation
++    // finishes, starting another transaction and replacing its state cookie.
+     Effect.tap(() =>
+-      Effect.sync(() => {
+-        invalidate(get, sessionAtom);
+-        get.refresh(configurationAtom);
+-      }),
++      input.kind === "sso"
++        ? Effect.void
++        : Effect.sync(() => {
++            invalidate(get, sessionAtom);
++            get.refresh(configurationAtom);
++          }),
+     ),
+     Effect.asVoid,
+   );
 diff --git a/apps/hosted/self-host/web/src/contracts/document.ts b/apps/hosted/self-host/web/src/contracts/document.ts
 index df6ffdb..1fe5fbf 100644
 --- a/apps/hosted/self-host/web/src/contracts/document.ts
@@ -232,3 +256,98 @@ index afe3461..152ed13 100644
    component: () => (
      <SecurityPage>
        <ChangePassword />
+diff --git a/e2e/support/managed-server.ts b/e2e/support/managed-server.ts
+index 74b9403..3145586 100644
+--- a/e2e/support/managed-server.ts
++++ b/e2e/support/managed-server.ts
+@@ -56,6 +56,7 @@ export const OperatorSettings = Schema.Struct({
+   SSO_CLIENT_ID: Schema.optionalKey(Schema.NonEmptyString),
+   SSO_CLIENT_SECRET: Schema.optionalKey(Schema.NonEmptyString),
+   SSO_ALLOWED_DOMAINS: Schema.optionalKey(Schema.NonEmptyString),
++  SSO_ONLY: Schema.optionalKey(Schema.Literals(["true", "false"])),
+   EXECUTOR_OAUTH_CLIENT_METADATA_URL: Schema.optionalKey(Schema.NonEmptyString),
+   /** The build an upgrade installs. */
+   EXECUTOR_BUILD_VERSION: Schema.optionalKey(Schema.NonEmptyString),
+diff --git a/e2e/tests/self-host-sso.spec.ts b/e2e/tests/self-host-sso.spec.ts
+index f4d3d0c..2ec885e 100644
+--- a/e2e/tests/self-host-sso.spec.ts
++++ b/e2e/tests/self-host-sso.spec.ts
+@@ -6,7 +6,7 @@
+  */
+ import { expect, layer } from "@effect/vitest";
+ import { Effect, FileSystem, Schema } from "effect";
+-import type { Page } from "playwright";
++import type { Page, Request, Route } from "playwright";
+ import { Browser } from "../support/browser.ts";
+ import { TestLive, withCase } from "../support/case.ts";
+ import { startControlledSelfHost } from "../support/managed-server.ts";
+@@ -73,7 +73,7 @@ const startSsoInstance = (mode: IdentityMode) =>
+           .then((response) => response.status()),
+       ),
+     ).toBe(200);
+-    return { idp, origin, log: `${instance.directory}/server.log` };
++    return { idp, origin, instance, log: `${instance.directory}/server.log` };
+   });
+ 
+ const session = (origin: string) =>
+@@ -282,7 +282,7 @@ layer(TestLive, { excludeTestServices: true })("Self-host SSO", (it) => {
+       Effect.gen(function* () {
+         const browser = yield* Browser;
+         // Setup leaves the password owner signed in.
+-        const { idp, origin } = yield* startSsoInstance("valid");
++        const { idp, origin, instance } = yield* startSsoInstance("valid");
+         const card = (page: Page) =>
+           page.getByRole("heading", { name: "Single sign-on", exact: true });
+         yield* browser.use("Open Security", (page) => page.goto(`${origin}/account/security`));
+@@ -337,6 +337,51 @@ layer(TestLive, { excludeTestServices: true })("Self-host SSO", (it) => {
+         expect(yield* session(origin)).toEqual({
+           user: expect.objectContaining({ email: "owner@sso.example.test", emailVerified: true }),
+         });
++
++        yield* Effect.gen(function* () {
++          yield* serverControl("stop");
++          yield* serverControl("environment", 200, { SSO_ONLY: "true" });
++          yield* serverControl("start");
++        }).pipe(Effect.provideService(Target, instance));
++        // Hold navigation after the start response: a session refresh used to remount
++        // auto-login here and overwrite the first transaction's signed state cookie.
++        const starts = yield* browser.use(
++          "Slow SSO navigation keeps a single transaction",
++          (page) =>
++            page
++              .context()
++              .clearCookies()
++              .then(() => {
++                let starts = 0;
++                const countStart = (request: Request) => {
++                  if (new URL(request.url()).pathname === "/api/auth/sign-in/social") starts++;
++                };
++                const delayAuthorization = (route: Route) =>
++                  new Promise((resolve) => setTimeout(resolve, 1500)).then(() => route.fallback());
++                const authorization = `${idp.issuer}/authorize*`;
++                page.on("request", countStart);
++                return page
++                  .route(authorization, delayAuthorization)
++                  .then(() => page.goto(`${origin}/login`))
++                  .then(() =>
++                    page.waitForURL(
++                      (url) =>
++                        url.origin === origin &&
++                        !url.pathname.startsWith("/login") &&
++                        !url.pathname.startsWith("/api/"),
++                    ),
++                  )
++                  .then(() => starts)
++                  .finally(() => {
++                    page.off("request", countStart);
++                    return page.unroute(authorization, delayAuthorization);
++                  });
++              }),
++        );
++        expect(starts).toBe(1);
++        expect(yield* session(origin)).toEqual({
++          user: expect.objectContaining({ email: "owner@sso.example.test", emailVerified: true }),
++        });
+       }),
+     ),
+   );
