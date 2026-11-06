@@ -23,7 +23,8 @@ which sends it over `newport_web` to container port 4400. The Mug route is
 is forwarded, including `/mcp`, `/.well-known/*`, `/mcp/authorize`, and
 `/api/oauth/callback`. Executor owns password login, invitations, MCP OAuth, and
 PATs. Do not put another interactive forward-auth login in front of those paths.
-OIDC SSO is not enabled yet. The agreed integration boundary is below.
+OIDC SSO is enabled in the linking stage; password access remains available until
+the existing owner completes explicit linking and fresh SSO acceptance.
 
 The generated Executor management app also embeds its installation origin in
 `index.ts`, `openapi.json`, and `provider.ts`. Changing `BETTER_AUTH_URL` does not
@@ -105,8 +106,12 @@ explicit signed-in linking keeps native verified-email and collision checks.
 Native provider logout is disabled so signing out here does not sign out other
 Auth consumers.
 
-Compose is prepared with SSO configured and `SSO_ONLY=false`; deployment waits
-for Auth's known-client UI rollout. The encrypted stopped-volume snapshot is
+Auth's known-client UI is live and the consumer linking stage is deployed with
+`SSO_ONLY=false`. Public health and native SSO start pass: exact callback, PKCE
+S256, state and nonce; password access remains available. Existing-owner linking
+and fresh SSO are awaiting the owner's browser action.
+
+The encrypted stopped-volume snapshot is
 `/mnt/terrabud/backups/executor/before-sso-20261106T192602Z.tar.gz.age`; decryption
 and archive integrity checks pass.
 
