@@ -125,8 +125,11 @@ A separate Executor race restarted SSO while provider navigation was pending,
 replacing the state cookie. Redirecting SSO starts now leave the local session
 query alone. The upstream owner-link browser test covers Auth-only sign-in with
 a delayed provider navigation and requires exactly one start and a signed-in owner.
-That regression and the packaged-image slow-navigation check pass. Unmodified
-live central-login acceptance is being repeated with Auth. A full native MCP consent/token/resource round trip, live
+That regression and the packaged-image slow-navigation check pass. The committed
+Auth `scripts/acceptance-browser.mjs`, run unchanged against production after both
+fixes, passes fresh login and existing central-session paths for 4orm, Artbin and
+Executor: six successful callbacks with authenticated consumer state and the
+original Executor owner ID. No response interception or identity edits are used. A full native MCP consent/token/resource round trip, live
 nonce/PKCE negatives and authenticated logout isolation remain unverified.
 
 The encrypted stopped-volume snapshot is
