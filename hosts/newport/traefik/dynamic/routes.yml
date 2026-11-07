@@ -1,0 +1,137 @@
+http:
+  routers:
+    eightball:
+      rule: Host(`8ball.jackharrhy.dev`)
+      entryPoints:
+      - web
+      service: eightball
+    cheesetown:
+      entryPoints:
+      - websecure
+      rule: Host(`cheesetown.rocks`)
+      service: cheesetown-static
+      tls:
+        certResolver: newporthttp
+        domains:
+        - main: cheesetown.rocks
+    cheesetown-map:
+      entryPoints:
+      - websecure
+      rule: Host(`cheesetown.rocks`) && (Path(`/map`) || PathPrefix(`/map/`))
+      middlewares:
+      - cheesetown-map-slash
+      - cheesetown-map-prefix
+      service: cheesetown-map
+      tls:
+        certResolver: newporthttp
+    cheesetown-item-sorter:
+      entryPoints:
+      - websecure
+      rule: Host(`cheesetown.rocks`) && (Path(`/item-sorter`) || PathPrefix(`/item-sorter/`))
+      middlewares:
+      - cheesetown-item-sorter-slash
+      - cheesetown-item-sorter-prefix
+      service: cheesetown-item-sorter
+      tls:
+        certResolver: newporthttp
+    cheesetown-storefront:
+      entryPoints:
+      - websecure
+      rule: Host(`cheesetown.rocks`) && (Path(`/storefront`) || PathPrefix(`/storefront/`))
+      middlewares:
+      - cheesetown-storefront-slash
+      - cheesetown-storefront-prefix
+      service: cheesetown-storefront
+      tls:
+        certResolver: newporthttp
+    direct-wan-guard:
+      entryPoints:
+      - web
+      rule: '!Host(`cheesetown.rocks`) && !(ClientIP(`127.0.0.0/8`) || ClientIP(`10.0.0.0/8`) || ClientIP(`172.16.0.0/12`)
+        || ClientIP(`192.168.0.0/16`) || ClientIP(`100.64.0.0/10`) || ClientIP(`::1/128`) || ClientIP(`fc00::/7`))'
+      priority: 1000000
+      service: noop@internal
+    hermes-webui:
+      entryPoints:
+      - web
+      rule: Host(`hermes.newport`)
+      middlewares:
+      - preview-tailnet-only
+      service: hermes-webui
+    newport-shell:
+      rule: Host(`jackharrhy.dev`) && (Path(`/mcp`) || Path(`/.well-known/oauth-protected-resource/mcp`))
+      priority: 200
+      entryPoints:
+      - web
+      service: newport-shell
+      middlewares:
+      - newport-shell-rate
+      - newport-shell-body
+  services:
+    eightball:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+        - url: http://127.0.0.1:5189
+    cheesetown-static:
+      loadBalancer:
+        servers:
+        - url: http://127.0.0.1:8089
+    cheesetown-map:
+      loadBalancer:
+        servers:
+        - url: http://127.0.0.1:8100
+    cheesetown-item-sorter:
+      loadBalancer:
+        servers:
+        - url: http://127.0.0.1:7001
+    cheesetown-storefront:
+      loadBalancer:
+        servers:
+        - url: http://127.0.0.1:8090
+    hermes-webui:
+      loadBalancer:
+        servers:
+        - url: http://127.0.0.1:8787
+    newport-shell:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+        - url: http://127.0.0.1:8796
+  middlewares:
+    cheesetown-storefront-slash:
+      redirectRegex:
+        regex: ^(https?://[^/]+/storefront)(\?.*)?$
+        replacement: ${1}/${2}
+        permanent: true
+    cheesetown-storefront-prefix:
+      stripPrefix:
+        prefixes:
+        - /storefront
+    cheesetown-item-sorter-slash:
+      redirectRegex:
+        regex: ^(https?://[^/]+/item-sorter)(\?.*)?$
+        replacement: ${1}/${2}
+        permanent: true
+    cheesetown-item-sorter-prefix:
+      stripPrefix:
+        prefixes:
+        - /item-sorter
+    cheesetown-map-slash:
+      redirectRegex:
+        regex: ^(https?://[^/]+/map)(\?.*)?$
+        replacement: ${1}/${2}
+        permanent: true
+    cheesetown-map-prefix:
+      stripPrefix:
+        prefixes:
+        - /map
+    newport-shell-rate:
+      rateLimit:
+        average: 10
+        period: 1s
+        burst: 20
+    newport-shell-body:
+      buffering:
+        maxRequestBodyBytes: 16384
+        memRequestBodyBytes: 16384

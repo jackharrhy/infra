@@ -17,7 +17,7 @@ port 8466 is retired; changing origins requires a fresh browser sign-in.
 Wildcard jackharrhy.dev DNS points to Mug. Mug terminates HTTPS using its
 existing certificate and forwards this host over Tailscale to Newport's Traefik,
 which sends it over `newport_web` to container port 4400. The Mug route is
-`hosts/mug/traefik/dynamic/executor.yml`. Docker publishes only loopback port 4400.
+`hosts/mug/traefik/dynamic/routes.yml`. Docker publishes only loopback port 4400.
 
 `BETTER_AUTH_URL` must match the public HTTPS origin exactly. The whole hostname
 is forwarded, including `/mcp`, `/.well-known/*`, `/mcp/authorize`, and

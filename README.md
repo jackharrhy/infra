@@ -27,6 +27,18 @@ separate (`hosts/newport/cheesetown/`).
 
 `diagram` writes `docs/infra.d2` and renders with `d2`; `--no-render` writes source only.
 
+## Routing
+
+Container routes use Compose labels. File-provider routes, services and middleware
+have one canonical file per host:
+
+- `hosts/mug/traefik/dynamic/routes.yml`
+- `hosts/newport/traefik/dynamic/routes.yml`
+
+Add file-based routing there, not in per-app fragments. Traefik watches these
+files for reloads; listener, provider and certificate-resolver settings live in
+each host's Compose configuration.
+
 ## Secrets and DNS
 
 Secrets are SOPS-encrypted YAML; rendering requires `sops` and an age key.

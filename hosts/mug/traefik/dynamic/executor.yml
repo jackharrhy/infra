@@ -1,8 +1,0 @@
-http:
-  routers:
-    executor-via-newport:
-      rule: Host(`executor.jackharrhy.dev`)
-      entryPoints: [websecure]
-      service: newport-origin
-      tls:
-        certResolver: mugresolver
