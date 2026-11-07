@@ -51,22 +51,6 @@ http:
         || ClientIP(`192.168.0.0/16`) || ClientIP(`100.64.0.0/10`) || ClientIP(`::1/128`) || ClientIP(`fc00::/7`))'
       priority: 1000000
       service: noop@internal
-    hermes-webui:
-      entryPoints:
-      - web
-      rule: Host(`hermes.newport`)
-      middlewares:
-      - preview-tailnet-only
-      service: hermes-webui
-    newport-shell:
-      rule: Host(`jackharrhy.dev`) && (Path(`/mcp`) || Path(`/.well-known/oauth-protected-resource/mcp`))
-      priority: 200
-      entryPoints:
-      - web
-      service: newport-shell
-      middlewares:
-      - newport-shell-rate
-      - newport-shell-body
   services:
     eightball:
       loadBalancer:
@@ -89,15 +73,6 @@ http:
       loadBalancer:
         servers:
         - url: http://127.0.0.1:8090
-    hermes-webui:
-      loadBalancer:
-        servers:
-        - url: http://127.0.0.1:8787
-    newport-shell:
-      loadBalancer:
-        passHostHeader: true
-        servers:
-        - url: http://127.0.0.1:8796
   middlewares:
     cheesetown-storefront-slash:
       redirectRegex:
@@ -126,12 +101,3 @@ http:
       stripPrefix:
         prefixes:
         - /map
-    newport-shell-rate:
-      rateLimit:
-        average: 10
-        period: 1s
-        burst: 20
-    newport-shell-body:
-      buffering:
-        maxRequestBodyBytes: 16384
-        memRequestBodyBytes: 16384

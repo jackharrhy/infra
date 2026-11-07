@@ -201,14 +201,6 @@ http:
       service: newport-origin
       tls:
         certResolver: mughttp
-    newport-shell-via-newport:
-      rule: Host(`jackharrhy.dev`) && (Path(`/mcp`) || Path(`/.well-known/oauth-protected-resource/mcp`))
-      priority: 200
-      entryPoints:
-      - websecure
-      service: newport-origin
-      tls:
-        certResolver: mugresolver
     teacms-andrew:
       rule: Host(`andrew.jackharrhy.dev`)
       entryPoints:
