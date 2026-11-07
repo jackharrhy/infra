@@ -1,0 +1,242 @@
+http:
+  routers:
+    4orm:
+      rule: Host(`4orm.harrhy.xyz`)
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
+    8ballworld:
+      rule: Host(`8ball.jackharrhy.dev`)
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
+    adam-eats:
+      rule: Host(`adam-eats.jackharrhy.dev`)
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
+    almanac:
+      rule: Host(`almanac.jackharrhy.dev`)
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
+    artbin:
+      rule: Host(`artbin.jackharrhy.dev`)
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
+    bar:
+      rule: Host(`jackharrhy.dev`) && PathPrefix(`/bar`)
+      entryPoints: [websecure]
+      priority: 100
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
+    cado:
+      rule: Host(`cado.jackharrhy.dev`)
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
+    cmd:
+      rule: Host(`cmd.softspark.dev`)
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mughttp
+    duaas:
+      rule: Host(`jackharrhy.dev`) && PathPrefix(`/urandom`)
+      entryPoints: [websecure]
+      priority: 100
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
+    executor:
+      rule: Host(`executor.jackharrhy.dev`)
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
+    jack-auth-api:
+      rule: Host(`auth.jackharrhy.dev`)
+      entryPoints: [websecure]
+      priority: 100
+      service: jack-auth-api
+      tls:
+        certResolver: mugresolver
+    jack-auth-registration:
+      rule: Host(`auth.jackharrhy.dev`) && PathPrefix(`/oauth/v2/register`)
+      entryPoints: [websecure]
+      priority: 300
+      middlewares: [jack-auth-registration-body, jack-auth-registration-bucket, jack-auth-registration-source, jack-auth-registration-total]
+      service: jack-auth-api
+      tls:
+        certResolver: mugresolver
+    jack-auth-ui:
+      rule: Host(`auth.jackharrhy.dev`) && (Path(`/`) || PathPrefix(`/login`) || PathPrefix(`/device`) || PathPrefix(`/account`)
+        || Path(`/manage`) || PathPrefix(`/manage/`) || PathPrefix(`/authorize`) || PathPrefix(`/logout`) || PathPrefix(`/assets/`)
+        || Path(`/healthz`) || Path(`/forgot-password`) || Path(`/reset-password`) || Path(`/verify-email`) || PathPrefix(`/enroll`))
+      entryPoints: [websecure]
+      priority: 200
+      service: jack-auth-ui
+      tls:
+        certResolver: mugresolver
+    lore:
+      rule: Host(`lore.jackharrhy.dev`)
+      entryPoints: [websecure]
+      service: lore
+      tls:
+        certResolver: mugresolver
+    maps:
+      rule: Host(`maps.jackharrhy.dev`)
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
+    marky:
+      rule: Host(`md.jackharrhy.dev`)
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
+    miniflux:
+      rule: Host(`miniflux.jackharrhy.dev`)
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
+    notscared:
+      rule: Host(`notsca.red`)
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
+    qbrain:
+      rule: Host(`qbrain.jackharrhy.dev`)
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
+    ref:
+      rule: Host(`ref.jackharrhy.dev`)
+      entryPoints: [websecure]
+      middlewares: [ref-strip-cloudflare-ip]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
+    ref-login:
+      rule: Host(`ref.jackharrhy.dev`) && Path(`/login`) && Method(`POST`)
+      entryPoints: [websecure]
+      priority: 100
+      middlewares: [ref-login-rate, ref-login-body, ref-strip-cloudflare-ip]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
+    rolie-polie-olie:
+      rule: Host(`rolie-polie-olie.fogo.sh`)
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mughttp
+    rotund:
+      rule: Host(`rotund.org`)
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
+    sluggers:
+      rule: Host(`lil-slug-crew.jackharrhy.dev`)
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
+    steve:
+      rule: Host(`steve-letter-writ.ing`)
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
+    stickertrade:
+      rule: Host(`stickertrade.ca`)
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
+    teacms-andrew:
+      rule: Host(`andrew.jackharrhy.dev`)
+      entryPoints: [websecure]
+      service: teacms@docker
+      tls:
+        certResolver: mugresolver
+    teacms-luke:
+      rule: Host(`luke.jackharrhy.dev`)
+      entryPoints: [websecure]
+      service: teacms@docker
+      tls:
+        certResolver: mugresolver
+    teacms-operator:
+      rule: Host(`teacms.jackharrhy.dev`)
+      entryPoints: [websecure]
+      service: teacms@docker
+      tls:
+        certResolver: mugresolver
+  middlewares:
+    jack-auth-registration-body:
+      buffering:
+        maxRequestBodyBytes: 16384
+        memRequestBodyBytes: 16384
+    jack-auth-registration-bucket:
+      headers:
+        customRequestHeaders:
+          X-Jack-Auth-Registration-Bucket: all
+    jack-auth-registration-source:
+      rateLimit:
+        average: 6
+        period: 1m
+        burst: 3
+    jack-auth-registration-total:
+      rateLimit:
+        average: 30
+        period: 1h
+        burst: 10
+        sourceCriterion:
+          requestHeaderName: X-Jack-Auth-Registration-Bucket
+    ref-login-body:
+      buffering:
+        maxRequestBodyBytes: 4096
+        memRequestBodyBytes: 4096
+    ref-login-rate:
+      rateLimit:
+        average: 6
+        period: 1m
+        burst: 6
+    ref-strip-cloudflare-ip:
+      headers:
+        customRequestHeaders:
+          CF-Connecting-IP: ''
+  services:
+    jack-auth-api:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+        - url: h2c://newport.hedgehog-python.ts.net:18085
+    jack-auth-ui:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+        - url: http://newport.hedgehog-python.ts.net:18086
+    lore:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+        - url: h2c://newport.hedgehog-python.ts.net:41337
+    newport-origin:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+        - url: http://newport.hedgehog-python.ts.net:80

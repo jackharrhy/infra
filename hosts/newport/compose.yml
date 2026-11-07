@@ -1,4 +1,31 @@
 services:
+  executor:
+    image: local/executor:2.0.0-beta.37-auth-only.2
+    pull_policy: never
+    restart: unless-stopped
+    init: true
+    networks: [web]
+    stop_grace_period: 30s
+    ports:
+      - "127.0.0.1:4400:4400"
+    environment:
+      BETTER_AUTH_URL: https://executor.jackharrhy.dev
+      EXECUTOR_DISABLE_ANALYTICS: "1"
+      SSO_DISCOVERY_URL: https://auth.jackharrhy.dev/.well-known/openid-configuration
+      SSO_ALLOWED_DOMAINS: jackharrhy.com
+      SSO_ONLY: "true"
+    env_file:
+      - .runtime-secrets/executor-sso.env
+    volumes:
+      - /mnt/terrabud/docker-data/newport/executor/data:/app/data
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=newport_web"
+      - "traefik.http.services.executor.loadbalancer.server.port=4400"
+      - "traefik.http.routers.executor.rule=Host(`executor.jackharrhy.dev`)"
+      - "traefik.http.routers.executor.entrypoints=web"
+      - "com.centurylinklabs.watchtower.enable=false"
+
   traefik:
     image: traefik:v3
     restart: unless-stopped

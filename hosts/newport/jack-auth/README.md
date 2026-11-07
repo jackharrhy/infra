@@ -7,7 +7,7 @@ checkout's README for scope, tests, credentials and deployment instructions.
 
 Services in ../compose.yml: jack-auth-db (private PostgreSQL17), jack-auth-api
 (ZITADEL4.20.0 pinned by digest), jack-auth-ui (locally built jack-auth:spike).
-Mug's watched Traefik file jack-auth.yml splits the custom UI and provider API.
+Mug's `traefik/dynamic/routes.yml` splits the custom UI and provider API.
 Published backend ports18085/18086 bind only Newport's Tailscale IP.
 
 Only secrets/*.enc.yaml is public-safe. scripts/render-secrets.sh newport decrypts
