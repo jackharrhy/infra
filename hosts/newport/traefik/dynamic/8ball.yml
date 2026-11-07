@@ -1,0 +1,12 @@
+http:
+  routers:
+    eightball:
+      rule: "Host(`8ball.jackharrhy.dev`)"
+      entryPoints: [web]
+      service: eightball
+  services:
+    eightball:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: "http://127.0.0.1:5189"
