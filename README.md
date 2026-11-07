@@ -39,6 +39,22 @@ Add file-based routing there, not in per-app fragments. Traefik watches these
 files for reloads; listener, provider and certificate-resolver settings live in
 each host's Compose configuration.
 
+Mug terminates public HTTPS and relays Newport applications through the shared
+`newport-origin` service, preserving the Host header. Newport selects the local
+backend. Auth and Lore use dedicated HTTP/h2c backends; Cheesetown terminates TLS
+on Newport itself. These are separate hops, not duplicate application backends.
+
+Name routers and services for the application (`8ballworld`, `executor`) or its
+role (`jack-auth-ui`, `cheesetown-site`), without host/transport suffixes. Keep
+individual hostname routers: combining their rules changes implicit priorities
+and ACME domain grouping. Reuse middleware for genuinely shared behavior, such
+as Cheesetown's ordered slash-redirect/strip-prefix chain; keep independent
+rate-limit buckets and certificate resolvers separate.
+
+Traefik references: [rules and priority](https://doc.traefik.io/traefik/reference/routing-configuration/http/routing/rules-and-priority/),
+[middleware chains](https://doc.traefik.io/traefik/reference/routing-configuration/http/middlewares/chain/),
+[TLS domains](https://doc.traefik.io/traefik/reference/routing-configuration/http/tls/overview/).
+
 ## Secrets and DNS
 
 Secrets are SOPS-encrypted YAML; rendering requires `sops` and an age key.
