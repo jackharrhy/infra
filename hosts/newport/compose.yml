@@ -6,6 +6,7 @@ services:
     networks: [web]
     stop_grace_period: 30s
     ports:
+      # Optional loopback diagnostics; Traefik uses the container network.
       - "127.0.0.1:5189:3188"
     environment:
       PUBLIC_ORIGIN: https://8ball.jackharrhy.dev
@@ -14,7 +15,12 @@ services:
     pids_limit: 128
     mem_limit: 512m
     labels:
-      - "traefik.enable=false"
+      - "traefik.enable=true"
+      - "traefik.docker.network=newport_web"
+      - "traefik.http.services.8ballworld.loadbalancer.server.port=3188"
+      - "traefik.http.routers.8ballworld.rule=Host(`8ball.jackharrhy.dev`)"
+      - "traefik.http.routers.8ballworld.entrypoints=web"
+      - "traefik.http.routers.8ballworld.service=8ballworld"
       - "com.centurylinklabs.watchtower.enable=true"
 
   executor:

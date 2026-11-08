@@ -1,9 +1,5 @@
 http:
   routers:
-    8ballworld:
-      rule: Host(`8ball.jackharrhy.dev`)
-      entryPoints: [web]
-      service: 8ballworld
     cheesetown-item-sorter:
       rule: Host(`cheesetown.rocks`) && (Path(`/item-sorter`) || PathPrefix(`/item-sorter/`))
       entryPoints: [websecure]
@@ -40,11 +36,6 @@ http:
       priority: 1000000
       service: noop@internal
   services:
-    8ballworld:
-      loadBalancer:
-        passHostHeader: true
-        servers:
-        - url: http://127.0.0.1:5189
     cheesetown-item-sorter:
       loadBalancer:
         servers:
