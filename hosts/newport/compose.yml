@@ -1,4 +1,22 @@
 services:
+  8ballworld:
+    image: ghcr.io/jackharrhy/8ballworld:latest
+    restart: unless-stopped
+    init: true
+    networks: [web]
+    stop_grace_period: 30s
+    ports:
+      - "127.0.0.1:5189:3188"
+    environment:
+      PUBLIC_ORIGIN: https://8ball.jackharrhy.dev
+    volumes:
+      - /mnt/terrabud/docker-data/newport/8ballworld:/app/data
+    pids_limit: 128
+    mem_limit: 512m
+    labels:
+      - "traefik.enable=false"
+      - "com.centurylinklabs.watchtower.enable=true"
+
   executor:
     image: local/executor:2.0.0-beta.37-auth-only.2
     pull_policy: never
