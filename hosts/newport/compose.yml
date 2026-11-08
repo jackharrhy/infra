@@ -132,7 +132,7 @@ services:
       - "traefik.http.routers.cado.entrypoints=web"
 
   4orm:
-    image: ghcr.io/jackharrhy/4orm@sha256:7e68880734e811509da22a5edca5c52ec2e621f124779393849390f6e374c6f4
+    image: ghcr.io/jackharrhy/4orm@sha256:9bd8163bb469f3bb6ccf3d502f7a9ac443b8a72f56e6add28103d8ead06e5729
     restart: unless-stopped
     networks: [web]
     env_file:
@@ -140,12 +140,10 @@ services:
     environment:
       - FOURM_ENV=production
       - SITE_URL=https://4orm.harrhy.xyz
-      - CENTRAL_AUTH_ENABLED=1
       - OIDC_ISSUER=https://auth.jackharrhy.dev
       - OIDC_CLIENT_ID=396747761673830403
       - OIDC_REDIRECT_URI=https://4orm.harrhy.xyz/auth/callback
       - CENTRAL_AUTH_ENROLLMENT_KEY_FILE=/run/secrets/enrollment.json
-      - CENTRAL_API_ENABLED=1
       - OIDC_PROJECT_ID=396747759928999939
       - OIDC_ORGANIZATION_ID=396722364273983491
       - OIDC_CLI_CLIENT_ID=398729205979873283
