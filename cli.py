@@ -683,19 +683,24 @@ def install():
     """Install an `infra` shortcut to ~/.local/bin."""
     bin_dir = Path.home() / ".local" / "bin"
     bin_dir.mkdir(parents=True, exist_ok=True)
-    target = bin_dir / "infra"
+    windows = sys.platform == "win32"
+    target = bin_dir / ("infra.ps1" if windows else "infra")
 
-    script = f"""#!/usr/bin/env bash
-exec uv run --project {REPO_ROOT} {REPO_ROOT / "cli.py"} "$@"
+    if windows:
+        root = str(REPO_ROOT).replace("'", "''")
+        script = f"& uv run --project '{root}' '{root}/cli.py' @args\nexit $LASTEXITCODE\n"
+    else:
+        script = f"""#!/usr/bin/env bash
+exec uv run --project {shlex.quote(str(REPO_ROOT))} {shlex.quote(str(REPO_ROOT / "cli.py"))} "$@"
 """
     target.write_text(script)
-    target.chmod(0o755)
+    if not windows:
+        target.chmod(0o755)
     click.echo(f"Installed: {target}")
 
     path_dirs = os.environ.get("PATH", "").split(os.pathsep)
     if str(bin_dir) not in path_dirs:
-        click.echo(f"Note: {bin_dir} is not on your PATH. Add it with:")
-        click.echo(f'  export PATH="{bin_dir}:$PATH"')
+        click.echo(f"Note: add {bin_dir} to your PATH.")
 
 
 def _decrypt_do_token() -> str:
