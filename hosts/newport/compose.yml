@@ -132,7 +132,7 @@ services:
       - "traefik.http.routers.cado.entrypoints=web"
 
   4orm:
-    image: ghcr.io/jackharrhy/4orm:main
+    image: ghcr.io/jackharrhy/4orm@sha256:b7390901f54e3fc2c645a99c15bbfd8bcf0f23068a09bf48e80397aaee7aa2a3
     restart: unless-stopped
     networks: [web]
     env_file:
@@ -145,6 +145,11 @@ services:
       - OIDC_CLIENT_ID=396747761673830403
       - OIDC_REDIRECT_URI=https://4orm.harrhy.xyz/auth/callback
       - CENTRAL_AUTH_ENROLLMENT_KEY_FILE=/run/secrets/enrollment.json
+      - CENTRAL_API_ENABLED=1
+      - OIDC_PROJECT_ID=396747759928999939
+      - OIDC_ORGANIZATION_ID=396722364273983491
+      - OIDC_CLI_CLIENT_ID=398729205979873283
+      - OIDC_API_CREDENTIALS_FILE=/run/secrets/fourm-api.json
     healthcheck:
       test:
         - CMD
@@ -160,6 +165,7 @@ services:
       - /mnt/terrabud/docker-data/newport/4orm_uploads:/app/uploads
       - /mnt/terrabud/docker-data/newport/4orm_backups:/app/backups
       - ./jack-auth/.runtime-secrets/fourm-enrollment-key.json:/run/secrets/enrollment.json:ro
+      - ./.runtime-secrets/fourm-api.json:/run/secrets/fourm-api.json:ro
     labels:
       - "traefik.docker.network=newport_web"
       - "traefik.enable=true"
