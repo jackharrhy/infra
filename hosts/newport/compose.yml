@@ -206,7 +206,7 @@ services:
       - "traefik.http.routers.artbin.entrypoints=web"
 
   maps-ui:
-    image: ghcr.io/jackharrhy/tea-maps:latest
+    image: ghcr.io/jackharrhy/tea-maps:sha-c4dc5db360f6529b721de6026de61f207c583958
     restart: unless-stopped
     networks: [web, maps_backend]
     environment:
@@ -233,20 +233,17 @@ services:
       - "traefik.http.middlewares.maps-public-origin.headers.customrequestheaders.X-Forwarded-Proto=https"
 
   maps-service:
-    image: ghcr.io/jackharrhy/tea-maps-service:sha-103d285205ca631415a4ebc86750c3c8ce2b1913
+    image: ghcr.io/jackharrhy/tea-maps-service:sha-c4dc5db360f6529b721de6026de61f207c583958
     restart: unless-stopped
     networks: [web, maps_backend]
     env_file:
       - ./.runtime-secrets/maps-ticket.env
       - ./.runtime-secrets/maps-service.env
       - ./.runtime-secrets/maps-artbin-auth.env
+      - ./.runtime-secrets/maps-central-auth.env
     environment:
       - TEA_MAPS_URL=https://maps.jackharrhy.dev
       - TEA_MAPS_COLLABORATION_URL=http://maps-collaboration:44100
-      - FOURM_URL=https://4orm.harrhy.xyz
-      - FOURM_CLIENT_ID=tea-maps
-      - TEA_MAPS_FOURM_INTROSPECTION_CLIENT_ID=tea-maps-server
-      - TEA_MAPS_MCP_SCOPE=maps:admin
       - TEA_MAPS_ARTBIN_URL=https://artbin.jackharrhy.dev
       - AUTH_ISSUER=https://auth.jackharrhy.dev
       - TEA_MAPS_QUAKE_COMPILER_URL=http://maps-compiler:8788
