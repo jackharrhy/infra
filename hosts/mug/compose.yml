@@ -222,14 +222,15 @@ services:
       - "com.centurylinklabs.watchtower.enable=true"
 
   burger:
-    image: ghcr.io/jackharrhy/burger:main
+    image: ghcr.io/jackharrhy/burger@sha256:dbfd9913d1b2b98a56ad4e71acdd72fd361af0e1ab072b2425ea1752ec9b127f
     restart: unless-stopped
     networks: [web]
     environment:
       - NODE_ENV=production
       - DB_PATH=/app/data/burger.db
-      - FOURM_URL=https://4orm.harrhy.xyz
-      - FOURM_CLIENT_ID=burger
+      - AUTH_ISSUER=https://auth.jackharrhy.dev
+      - AUTH_CLIENT_ID=398737918404919299
+      - AUTH_PROJECT_ID=398737915301068803
       - BURGER_URL=https://big.burger.beauty
     volumes:
       - ./volumes/burger_data:/app/data
