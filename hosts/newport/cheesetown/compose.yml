@@ -69,8 +69,21 @@ services:
       - ./fabric-config:/config:ro
       - ./assets/server-icon.png:/data/server-icon.png:ro
     labels:
-      traefik.enable: "false"
+      traefik.enable: "true"
       com.centurylinklabs.watchtower.enable: "false"
+      traefik.docker.network: cheesetown_default
+      traefik.http.routers.cheesetown-map.rule: Host(`cheesetown.rocks`) && (Path(`/map`) || PathPrefix(`/map/`))
+      traefik.http.routers.cheesetown-map.entrypoints: websecure
+      traefik.http.routers.cheesetown-map.service: cheesetown-map
+      traefik.http.routers.cheesetown-map.middlewares: cheesetown-app-path@file
+      traefik.http.routers.cheesetown-map.tls.certresolver: newporthttp
+      traefik.http.services.cheesetown-map.loadbalancer.server.port: "8100"
+      traefik.http.routers.cheesetown-item-sorter.rule: Host(`cheesetown.rocks`) && (Path(`/item-sorter`) || PathPrefix(`/item-sorter/`))
+      traefik.http.routers.cheesetown-item-sorter.entrypoints: websecure
+      traefik.http.routers.cheesetown-item-sorter.service: cheesetown-item-sorter
+      traefik.http.routers.cheesetown-item-sorter.middlewares: cheesetown-app-path@file
+      traefik.http.routers.cheesetown-item-sorter.tls.certresolver: newporthttp
+      traefik.http.services.cheesetown-item-sorter.loadbalancer.server.port: "7001"
 
   pack:
     image: nginx:stable-alpine
@@ -83,8 +96,15 @@ services:
       - ./site:/srv/site:ro
       - ./pack-nginx.conf:/etc/nginx/conf.d/default.conf:ro
     labels:
-      traefik.enable: "false"
+      traefik.enable: "true"
       com.centurylinklabs.watchtower.enable: "false"
+      traefik.docker.network: cheesetown_default
+      traefik.http.routers.cheesetown-site.rule: Host(`cheesetown.rocks`)
+      traefik.http.routers.cheesetown-site.entrypoints: websecure
+      traefik.http.routers.cheesetown-site.service: cheesetown-site
+      traefik.http.routers.cheesetown-site.tls.certresolver: newporthttp
+      traefik.http.routers.cheesetown-site.tls.domains[0].main: cheesetown.rocks
+      traefik.http.services.cheesetown-site.loadbalancer.server.port: "80"
 
   storefront:
     image: ghcr.io/jackharrhy/storefront-frontend:latest-storefront
@@ -97,8 +117,15 @@ services:
     ports:
       - "127.0.0.1:8090:80"
     labels:
-      traefik.enable: "false"
+      traefik.enable: "true"
       com.centurylinklabs.watchtower.enable: "false"
+      traefik.docker.network: cheesetown_default
+      traefik.http.routers.cheesetown-storefront.rule: Host(`cheesetown.rocks`) && (Path(`/storefront`) || PathPrefix(`/storefront/`))
+      traefik.http.routers.cheesetown-storefront.entrypoints: websecure
+      traefik.http.routers.cheesetown-storefront.service: cheesetown-storefront
+      traefik.http.routers.cheesetown-storefront.middlewares: cheesetown-app-path@file
+      traefik.http.routers.cheesetown-storefront.tls.certresolver: newporthttp
+      traefik.http.services.cheesetown-storefront.loadbalancer.server.port: "80"
 
   backup:
     image: itzg/mc-backup:latest
