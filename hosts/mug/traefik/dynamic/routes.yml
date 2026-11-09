@@ -175,6 +175,24 @@ http:
       service: newport-origin
       tls:
         certResolver: mugresolver
+    burger:
+      rule: Host(`big.burger.beauty`)
+      entryPoints:
+      - websecure
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
+        domains:
+        - main: burger.beauty
+          sans:
+          - '*.burger.beauty'
+    stackcoin:
+      rule: Host(`stackcoin.world`)
+      entryPoints:
+      - websecure
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
   middlewares:
     jack-auth-authorization-body:
       buffering:
