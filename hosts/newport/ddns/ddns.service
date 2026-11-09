@@ -1,0 +1,10 @@
+[Unit]
+Description=Synchronize Newport public-IP DNS records through octoDNS
+Documentation=https://github.com/octodns/octodns-ddns
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/infra
+ExecStart=%h/.local/bin/uv run --script %h/infra/cli.py dns auto-sync jackharrhy.dev. cheesetown.rocks.
+TimeoutStartSec=90
+SyslogIdentifier=ddns

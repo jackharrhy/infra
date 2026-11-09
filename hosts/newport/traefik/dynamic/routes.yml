@@ -1,0 +1,20 @@
+http:
+  routers:
+    direct-wan-guard:
+      rule: '!Host(`cheesetown.rocks`) && !(ClientIP(`127.0.0.0/8`) || ClientIP(`10.0.0.0/8`) || ClientIP(`172.16.0.0/12`)
+        || ClientIP(`192.168.0.0/16`) || ClientIP(`100.64.0.0/10`) || ClientIP(`::1/128`) || ClientIP(`fc00::/7`))'
+      entryPoints: [web]
+      priority: 1000000
+      service: noop@internal
+  middlewares:
+    cheesetown-app-path:
+      chain:
+        middlewares: [cheesetown-app-slash, cheesetown-app-strip-prefix]
+    cheesetown-app-slash:
+      redirectRegex:
+        regex: ^(https?://[^/]+/(map|item-sorter|storefront))(\?.*)?$
+        replacement: ${1}/${3}
+        permanent: true
+    cheesetown-app-strip-prefix:
+      stripPrefix:
+        prefixes: [/map, /item-sorter, /storefront]

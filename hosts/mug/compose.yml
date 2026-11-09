@@ -222,14 +222,15 @@ services:
       - "com.centurylinklabs.watchtower.enable=true"
 
   burger:
-    image: ghcr.io/jackharrhy/burger:main
+    image: ghcr.io/jackharrhy/burger@sha256:dbfd9913d1b2b98a56ad4e71acdd72fd361af0e1ab072b2425ea1752ec9b127f
     restart: unless-stopped
     networks: [web]
     environment:
       - NODE_ENV=production
       - DB_PATH=/app/data/burger.db
-      - FOURM_URL=https://4orm.harrhy.xyz
-      - FOURM_CLIENT_ID=burger
+      - AUTH_ISSUER=https://auth.jackharrhy.dev
+      - AUTH_CLIENT_ID=398737918404919299
+      - AUTH_PROJECT_ID=398737915301068803
       - BURGER_URL=https://big.burger.beauty
     volumes:
       - ./volumes/burger_data:/app/data
@@ -310,6 +311,18 @@ services:
       - "traefik.docker.network=mug_web"
       - "traefik.enable=true"
       - "traefik.http.services.teacms.loadbalancer.server.port=4351"
+      - "traefik.http.routers.teacms-andrew.rule=Host(`andrew.jackharrhy.dev`)"
+      - "traefik.http.routers.teacms-andrew.entrypoints=websecure"
+      - "traefik.http.routers.teacms-andrew.service=teacms"
+      - "traefik.http.routers.teacms-andrew.tls.certresolver=mugresolver"
+      - "traefik.http.routers.teacms-luke.rule=Host(`luke.jackharrhy.dev`)"
+      - "traefik.http.routers.teacms-luke.entrypoints=websecure"
+      - "traefik.http.routers.teacms-luke.service=teacms"
+      - "traefik.http.routers.teacms-luke.tls.certresolver=mugresolver"
+      - "traefik.http.routers.teacms-operator.rule=Host(`teacms.jackharrhy.dev`)"
+      - "traefik.http.routers.teacms-operator.entrypoints=websecure"
+      - "traefik.http.routers.teacms-operator.service=teacms"
+      - "traefik.http.routers.teacms-operator.tls.certresolver=mugresolver"
 
   andrewsite_astro:
     profiles: [legacy-andrew]

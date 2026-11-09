@@ -847,9 +847,9 @@ def auto_sync(zones: tuple[str, ...], force: bool):
     """Non-interactive sync for automation (systemd timer / cron).
 
     Applies directly without the interactive confirmation that `sync` uses.
-    Primarily for the octodns-ddns dynamic `craft` record: run on a schedule
-    from newport so the home WAN IP stays current. octoDNS only writes when
-    the value actually changes, so repeated runs are cheap no-ops.
+    The Newport ddns.timer passes the zones containing dynamic records.
+    octoDNS combines static YAML and octodns-ddns sources, writing only
+    changed records. Run dynamic zones from Newport to use its WAN IP.
     """
     env = _octodns_env()
 
