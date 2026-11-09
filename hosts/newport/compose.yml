@@ -659,6 +659,73 @@ services:
       - "traefik.enable=false"
       - "com.centurylinklabs.watchtower.enable=false"
 
+  stackcoin:
+    image: ghcr.io/stackcoin/stackcoin:main
+    restart: unless-stopped
+    env_file:
+    - ./.runtime-secrets/stackcoin.env
+    volumes:
+    - /mnt/terrabud/docker-data/newport/stackcoin:/data
+    networks:
+    - web
+    healthcheck:
+      test:
+      - CMD
+      - curl
+      - -fsS
+      - http://localhost:80/health
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+    labels:
+    - com.centurylinklabs.watchtower.enable=true
+    - traefik.docker.network=newport_web
+    - traefik.enable=true
+    - traefik.http.services.stackcoin.loadbalancer.server.port=80
+    - traefik.http.routers.stackcoin.rule=Host(`stackcoin.world`)
+    - traefik.http.routers.stackcoin.entrypoints=web
+
+  luckypot:
+    image: ghcr.io/stackcoin/luckypot:main
+    restart: unless-stopped
+    networks:
+    - web
+    env_file:
+    - ./.runtime-secrets/luckypot.env
+    environment:
+    - LUCKYPOT_DB_PATH=/app/data/luckypot.db
+    volumes:
+    - /mnt/terrabud/docker-data/newport/luckypot:/app/data
+    depends_on:
+      stackcoin:
+        condition: service_healthy
+    labels:
+    - com.centurylinklabs.watchtower.enable=true
+    - traefik.enable=false
+
+  burger:
+    image: ghcr.io/jackharrhy/burger:main
+    restart: unless-stopped
+    networks:
+    - web
+    environment:
+    - NODE_ENV=production
+    - DB_PATH=/app/data/burger.db
+    - AUTH_ISSUER=https://auth.jackharrhy.dev
+    - AUTH_CLIENT_ID=398737918404919299
+    - AUTH_PROJECT_ID=398737915301068803
+    - BURGER_URL=https://big.burger.beauty
+    volumes:
+    - /mnt/terrabud/docker-data/newport/burger_data:/app/data
+    labels:
+    - com.centurylinklabs.watchtower.enable=true
+    - traefik.docker.network=newport_web
+    - traefik.enable=true
+    - traefik.http.services.burger.loadbalancer.server.port=5000
+    - traefik.http.routers.burger.rule=Host(`big.burger.beauty`)
+    - traefik.http.routers.burger.entrypoints=web
+
 networks:
   jack_auth_backend:
     internal: true

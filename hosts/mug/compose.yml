@@ -221,30 +221,6 @@ services:
       - "traefik.http.middlewares.radio-login-rate.ratelimit.burst=10"
       - "com.centurylinklabs.watchtower.enable=true"
 
-  burger:
-    image: ghcr.io/jackharrhy/burger:main
-    restart: unless-stopped
-    networks: [web]
-    environment:
-      - NODE_ENV=production
-      - DB_PATH=/app/data/burger.db
-      - AUTH_ISSUER=https://auth.jackharrhy.dev
-      - AUTH_CLIENT_ID=398737918404919299
-      - AUTH_PROJECT_ID=398737915301068803
-      - BURGER_URL=https://big.burger.beauty
-    volumes:
-      - ./volumes/burger_data:/app/data
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
-      - "traefik.docker.network=mug_web"
-      - "traefik.enable=true"
-      - "traefik.http.services.burger.loadbalancer.server.port=5000"
-      - "traefik.http.routers.burger.rule=Host(`big.burger.beauty`)"
-      - "traefik.http.routers.burger.entrypoints=websecure"
-      - "traefik.http.routers.burger.tls.certresolver=mugresolver"
-      - "traefik.http.routers.burger.tls.domains[0].main=burger.beauty"
-      - "traefik.http.routers.burger.tls.domains[0].sans=*.burger.beauty"
-
   andrewsite_remix:
     image: ghcr.io/jackharrhy/andrew-gosse-site:latest
     restart: unless-stopped
@@ -364,42 +340,6 @@ services:
       - "traefik.http.routers.andrewsitestrapi.rule=Host(`api.andrewgossecomposer.com`)"
       - "traefik.http.routers.andrewsitestrapi.entrypoints=websecure"
       - "traefik.http.routers.andrewsitestrapi.tls.certresolver=mugresolver"
-
-  stackcoin:
-    image: ghcr.io/stackcoin/stackcoin:main
-    restart: unless-stopped
-    env_file:
-      - ./.runtime-secrets/stackcoin.env
-    volumes:
-      - ./volumes/stackcoin:/data
-    networks: [web]
-    healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:80/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 6
-      start_period: 30s
-    labels:
-      - "traefik.docker.network=mug_web"
-      - "traefik.enable=true"
-      - "traefik.http.services.stackcoin.loadbalancer.server.port=80"
-      - "traefik.http.routers.stackcoin.rule=Host(`stackcoin.world`)"
-      - "traefik.http.routers.stackcoin.entrypoints=websecure"
-      - "traefik.http.routers.stackcoin.tls.certresolver=mugresolver"
-
-  luckypot:
-    image: ghcr.io/stackcoin/luckypot:main
-    restart: unless-stopped
-    networks: [web]
-    env_file:
-      - ./.runtime-secrets/luckypot.env
-    environment:
-      - LUCKYPOT_DB_PATH=/app/data/luckypot.db
-    volumes:
-      - ./volumes/luckypot:/app/data
-    depends_on:
-      stackcoin:
-        condition: service_healthy
 
   lists:
     image: ghcr.io/jackharrhy/lists:main
