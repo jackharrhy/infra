@@ -93,6 +93,7 @@ services:
     environment:
       DOCKER_CONFIG: /config
       WATCHTOWER_CLEANUP: "true"
+      WATCHTOWER_LABEL_ENABLE: "true"
       WATCHTOWER_SCHEDULE: "0 */10 * * * *"
       WATCHTOWER_ROLLING_RESTART: "true"
       # Compose startup ordering is not a legacy Docker runtime link.

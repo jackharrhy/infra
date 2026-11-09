@@ -27,6 +27,15 @@ separate (`hosts/newport/cheesetown/`).
 
 `diagram` writes `docs/infra.d2` and renders with `d2`; `--no-render` writes source only.
 
+## Automatic updates
+
+Newport Watchtower is opt-in: only containers labeled
+`com.centurylinklabs.watchtower.enable=true` receive automatic image updates.
+Unlabeled containers, explicit `false` labels, and local development stacks stay
+manual. Checks run every ten minutes; immutable image pins remain pinned.
+Mug's updater policy is unchanged. Opt in a service only when unattended
+restarts are safe for its active work and persistent data.
+
 ## Routing
 
 Container routes use Compose labels. File-provider routes, services and middleware
