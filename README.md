@@ -68,6 +68,7 @@ infra dns sync jackharrhy.com.
 ```
 
 DNS uses DigitalOcean. `sync` asks before applying; `infra dns dump` pulls records.
+Newport's [generic DDNS timer](hosts/newport/ddns/README.md) keeps configured home-hosted names current through native octoDNS sources.
 Mail setup is in [aws/README.md](aws/README.md).
 
 ## NAS

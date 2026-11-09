@@ -1,0 +1,11 @@
+[Unit]
+Description=Refresh Newport dynamic DNS every five minutes
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+RandomizedDelaySec=30s
+AccuracySec=1s
+
+[Install]
+WantedBy=timers.target
