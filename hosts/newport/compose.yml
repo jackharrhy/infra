@@ -1,6 +1,6 @@
 services:
   8ballworld:
-    image: ghcr.io/jackharrhy/8ballworld:main
+    image: ghcr.io/jackharrhy/8ballworld@sha256:924f05462ab8d722b65c4d997bd36948d2bd3455ea469bd6596b31d24c62dec1
     restart: unless-stopped
     init: true
     networks: [web]
@@ -22,6 +22,7 @@ services:
       - "traefik.http.routers.8ballworld.entrypoints=web"
       - "traefik.http.routers.8ballworld.service=8ballworld"
       - "com.centurylinklabs.watchtower.enable=true"
+      - "com.centurylinklabs.watchtower.lifecycle.pre-update=/bin/sh -c 'bun /app/apps/server/dist/pre-update.js || exit 75'"
 
   executor:
     image: local/executor:2.0.0-beta.37-auth-only.2
@@ -94,6 +95,7 @@ services:
       DOCKER_CONFIG: /config
       WATCHTOWER_CLEANUP: "true"
       WATCHTOWER_LABEL_ENABLE: "true"
+      WATCHTOWER_LIFECYCLE_HOOKS: "true"
       WATCHTOWER_SCHEDULE: "0 */10 * * * *"
       WATCHTOWER_ROLLING_RESTART: "true"
       # Compose startup ordering is not a legacy Docker runtime link.
