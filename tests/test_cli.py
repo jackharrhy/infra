@@ -117,10 +117,14 @@ class IsLocalSshTargetTests(unittest.TestCase):
         )
 
     def test_scoped_refresh_rejects_missing_host_and_invalid_service(self):
-        for args in (["--service", "radio-celld"], ["mug", "--service", "--all"]):
+        for args, message in (
+            (["--service", "radio-celld"], "--service requires a host"),
+            (["mug", "--service", "radio;id"], "Invalid Compose service name"),
+        ):
             with self.subTest(args=args):
                 result = CliRunner().invoke(cli.cli, ["refresh", *args])
                 self.assertEqual(2, result.exit_code)
+                self.assertIn(message, result.output)
 
     @patch("cli.run_host_command", return_value=1)
     @patch("cli.get_deploy_hosts")

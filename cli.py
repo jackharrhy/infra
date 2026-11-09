@@ -177,9 +177,6 @@ def _d2_id(name: str) -> str:
 def _service_display_name(svc: Service) -> str:
     if svc.domains:
         primary = svc.domains[0]
-        # Only append path if there's exactly one domain and one path rule
-        # (indicates a path-based sub-route like jackharrhy.dev/bar).
-        # Multiple domains or paths means the paths are secondary routes.
         if len(svc.domains) == 1 and len(svc.path_rules) == 1:
             return f"{primary}{svc.path_rules[0]}"
         return primary
@@ -216,10 +213,6 @@ def generate_d2(hosts: list[Host], config: dict[str, Any]) -> str:
     extra_nodes = config.get("extra_nodes", {})
     connections = config.get("connections", [])
     host_specs = config.get("hosts", {})
-
-    provider_hosts: dict[str, list[str]] = {}
-    for provider_id, provider_conf in providers.items():
-        provider_hosts[provider_id] = provider_conf.get("hosts", [])
 
     host_paths: dict[str, str] = {}
     for provider_id, provider_conf in providers.items():
