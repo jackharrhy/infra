@@ -133,7 +133,7 @@ services:
       - "traefik.http.routers.cado.entrypoints=web"
 
   4orm:
-    image: ghcr.io/jackharrhy/4orm@sha256:9bd8163bb469f3bb6ccf3d502f7a9ac443b8a72f56e6add28103d8ead06e5729
+    image: ghcr.io/jackharrhy/4orm:main
     restart: unless-stopped
     networks: [web]
     env_file:
@@ -191,7 +191,7 @@ services:
       - "traefik.http.routers.adam_eats.entrypoints=web"
 
   artbin:
-    image: ghcr.io/jackharrhy/tea-artbin:sha-103d285205ca631415a4ebc86750c3c8ce2b1913
+    image: ghcr.io/jackharrhy/tea-artbin:latest
     restart: unless-stopped
     networks: [web]
     env_file:
@@ -203,7 +203,7 @@ services:
       - /mnt/terrabud/docker-data/newport/artbin_tea_data/uploads:/app/apps/artbin/public/uploads
       - /mnt/terrabud/docker-data/newport/artbin_tea_data/tmp:/app/apps/artbin/tmp/uploads
     labels:
-      - "com.centurylinklabs.watchtower.enable=false"
+      - "com.centurylinklabs.watchtower.enable=true"
       - "traefik.docker.network=newport_web"
       - "traefik.enable=true"
       - "traefik.http.services.artbin.loadbalancer.server.port=3000"
@@ -211,7 +211,7 @@ services:
       - "traefik.http.routers.artbin.entrypoints=web"
 
   maps-ui:
-    image: ghcr.io/jackharrhy/tea-maps@sha256:17b9e6ea56af6c0d8dcd5e0ed40a970dc0d8f08f624469ad0c83d59911b5188b
+    image: ghcr.io/jackharrhy/tea-maps:latest
     restart: unless-stopped
     networks: [web, maps_backend]
     environment:
@@ -238,7 +238,7 @@ services:
       - "traefik.http.middlewares.maps-public-origin.headers.customrequestheaders.X-Forwarded-Proto=https"
 
   maps-service:
-    image: ghcr.io/jackharrhy/tea-maps-service@sha256:1440ebfa546b3ff6467f7779eaff893d50684e2b709da0cc509cad8919c185a6
+    image: ghcr.io/jackharrhy/tea-maps-service:latest
     restart: unless-stopped
     networks: [web, maps_backend]
     env_file:
@@ -258,7 +258,7 @@ services:
     mem_limit: 2g
     cpus: 2
     labels:
-      - "com.centurylinklabs.watchtower.enable=false"
+      - "com.centurylinklabs.watchtower.enable=true"
 
   maps-collaboration:
     image: ghcr.io/jackharrhy/tea-maps-collaboration:latest
