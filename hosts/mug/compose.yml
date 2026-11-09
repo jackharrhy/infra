@@ -222,7 +222,7 @@ services:
       - "com.centurylinklabs.watchtower.enable=true"
 
   burger:
-    image: ghcr.io/jackharrhy/burger@sha256:dbfd9913d1b2b98a56ad4e71acdd72fd361af0e1ab072b2425ea1752ec9b127f
+    image: ghcr.io/jackharrhy/burger:main
     restart: unless-stopped
     networks: [web]
     environment:
@@ -235,6 +235,7 @@ services:
     volumes:
       - ./volumes/burger_data:/app/data
     labels:
+      - "com.centurylinklabs.watchtower.enable=true"
       - "traefik.docker.network=mug_web"
       - "traefik.enable=true"
       - "traefik.http.services.burger.loadbalancer.server.port=5000"
