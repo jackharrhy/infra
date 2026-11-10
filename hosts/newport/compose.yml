@@ -1,4 +1,189 @@
+x-media-auth: &media-auth
+  image: quay.io/oauth2-proxy/oauth2-proxy:v7.15.2
+  restart: unless-stopped
+  networks: [web]
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+  mem_limit: 128m
+  pids_limit: 64
+  environment: &media-auth-environment
+    OAUTH2_PROXY_PROVIDER: oidc
+    OAUTH2_PROXY_OIDC_ISSUER_URL: https://auth.jackharrhy.dev
+    OAUTH2_PROXY_HTTP_ADDRESS: 0.0.0.0:4180
+    OAUTH2_PROXY_UPSTREAMS: static://202
+    OAUTH2_PROXY_REVERSE_PROXY: "true"
+    OAUTH2_PROXY_SCOPE: openid email profile
+    # The signed immutable subject is the allowlist, not an email or global role.
+    OAUTH2_PROXY_OIDC_GROUPS_CLAIM: sub
+    OAUTH2_PROXY_CODE_CHALLENGE_METHOD: S256
+    OAUTH2_PROXY_INSECURE_OIDC_SKIP_NONCE: "false"
+    OAUTH2_PROXY_COOKIE_NAME: __Host-media_admin
+    OAUTH2_PROXY_COOKIE_SECURE: "true"
+    OAUTH2_PROXY_COOKIE_HTTPONLY: "true"
+    OAUTH2_PROXY_COOKIE_SAMESITE: lax
+    OAUTH2_PROXY_COOKIE_EXPIRE: 1h
+    OAUTH2_PROXY_COOKIE_REFRESH: 0s
+    OAUTH2_PROXY_EMAIL_DOMAINS: "*"
+    OAUTH2_PROXY_SKIP_PROVIDER_BUTTON: "true"
+    OAUTH2_PROXY_PASS_ACCESS_TOKEN: "false"
+    OAUTH2_PROXY_PASS_AUTHORIZATION_HEADER: "false"
+    OAUTH2_PROXY_PASS_USER_HEADERS: "false"
+    OAUTH2_PROXY_REQUEST_LOGGING: "false"
+    OAUTH2_PROXY_AUTH_LOGGING: "false"
+    OAUTH2_PROXY_SILENCE_PING_LOGGING: "true"
+
 services:
+  sonarr-auth:
+    <<: *media-auth
+    env_file: [.runtime-secrets/sonarr-auth.env]
+    # Traefik uses host networking; ForwardAuth reaches this loopback port.
+    ports: ["127.0.0.1:14181:4180"]
+    environment:
+      <<: *media-auth-environment
+      OAUTH2_PROXY_REDIRECT_URL: https://sonarr.rotund.org/oauth2/callback
+      OAUTH2_PROXY_WHITELIST_DOMAINS: sonarr.rotund.org
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=newport_web"
+      - "traefik.http.routers.sonarr-oauth.rule=Host(`sonarr.rotund.org`) && PathPrefix(`/oauth2/`)"
+      - "traefik.http.routers.sonarr-oauth.entrypoints=web"
+      - "traefik.http.routers.sonarr-oauth.service=sonarr-auth"
+      - "traefik.http.services.sonarr-auth.loadbalancer.server.port=4180"
+      - "traefik.http.middlewares.sonarr-auth.forwardauth.address=http://127.0.0.1:14181/"
+      - "traefik.http.middlewares.sonarr-auth.forwardauth.trustForwardHeader=true"
+      - "traefik.http.middlewares.sonarr-auth.forwardauth.authRequestHeaders=Cookie,Accept"
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  prowlarr-auth:
+    <<: *media-auth
+    env_file: [.runtime-secrets/prowlarr-auth.env]
+    ports: ["127.0.0.1:14182:4180"]
+    environment:
+      <<: *media-auth-environment
+      OAUTH2_PROXY_REDIRECT_URL: https://prowlarr.rotund.org/oauth2/callback
+      OAUTH2_PROXY_WHITELIST_DOMAINS: prowlarr.rotund.org
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=newport_web"
+      - "traefik.http.routers.prowlarr-oauth.rule=Host(`prowlarr.rotund.org`) && PathPrefix(`/oauth2/`)"
+      - "traefik.http.routers.prowlarr-oauth.entrypoints=web"
+      - "traefik.http.routers.prowlarr-oauth.service=prowlarr-auth"
+      - "traefik.http.services.prowlarr-auth.loadbalancer.server.port=4180"
+      - "traefik.http.middlewares.prowlarr-auth.forwardauth.address=http://127.0.0.1:14182/"
+      - "traefik.http.middlewares.prowlarr-auth.forwardauth.trustForwardHeader=true"
+      - "traefik.http.middlewares.prowlarr-auth.forwardauth.authRequestHeaders=Cookie,Accept"
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  qbittorrent-auth:
+    <<: *media-auth
+    env_file: [.runtime-secrets/qbittorrent-auth.env]
+    ports: ["127.0.0.1:14183:4180"]
+    environment:
+      <<: *media-auth-environment
+      OAUTH2_PROXY_REDIRECT_URL: https://qbittorrent.rotund.org/oauth2/callback
+      OAUTH2_PROXY_WHITELIST_DOMAINS: qbittorrent.rotund.org
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=newport_web"
+      - "traefik.http.routers.qbittorrent-oauth.rule=Host(`qbittorrent.rotund.org`) && PathPrefix(`/oauth2/`)"
+      - "traefik.http.routers.qbittorrent-oauth.entrypoints=web"
+      - "traefik.http.routers.qbittorrent-oauth.service=qbittorrent-auth"
+      - "traefik.http.services.qbittorrent-auth.loadbalancer.server.port=4180"
+      - "traefik.http.middlewares.qbittorrent-auth.forwardauth.address=http://127.0.0.1:14183/"
+      - "traefik.http.middlewares.qbittorrent-auth.forwardauth.trustForwardHeader=true"
+      - "traefik.http.middlewares.qbittorrent-auth.forwardauth.authRequestHeaders=Cookie,Accept"
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    restart: unless-stopped
+    networks: [web]
+    environment:
+      PUID: "1000"
+      PGID: "65536"
+      UMASK: "002"
+      TZ: America/St_Johns
+      WEBUI_PORT: "8087"
+      TORRENTING_PORT: "6881"
+    ports:
+      - "127.0.0.1:8087:8087"
+      - "192.168.2.30:6881:6881"
+      - "192.168.2.30:6881:6881/udp"
+    volumes:
+      - /mnt/terrabud/docker-data/newport/qbittorrent:/config
+      - ./qbittorrent/hooks:/infra:ro
+      - type: bind
+        source: /mnt/stash/newport/qbittorrent-backups
+        target: /backups
+        bind:
+          create_host_path: false
+      - type: bind
+        source: /mnt/stash/media/downloads/torrents
+        target: /data/downloads/torrents
+        bind:
+          create_host_path: false
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8087/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    stop_grace_period: 120s
+    cpus: 2
+    mem_limit: 2g
+    pids_limit: 256
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=newport_web"
+      - "traefik.http.services.qbittorrent.loadbalancer.server.port=8087"
+      - "traefik.http.routers.qbittorrent.rule=Host(`qbittorrent.rotund.org`)"
+      - "traefik.http.routers.qbittorrent.entrypoints=web"
+      - "traefik.http.routers.qbittorrent.service=qbittorrent"
+      - "traefik.http.routers.qbittorrent.middlewares=qbittorrent-auth@docker"
+      - "com.centurylinklabs.watchtower.enable=true"
+      - "com.centurylinklabs.watchtower.lifecycle.pre-update=python3 /infra/backup.py"
+      - "com.centurylinklabs.watchtower.lifecycle.pre-update-timeout=3"
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    restart: unless-stopped
+    networks: [web]
+    environment:
+      PUID: "1000"
+      PGID: "65536"
+      TZ: America/St_Johns
+    ports:
+      - "127.0.0.1:9696:9696"
+    volumes:
+      - /mnt/terrabud/docker-data/newport/prowlarr:/config
+      - ./prowlarr/hooks:/infra:ro
+      - type: bind
+        source: /mnt/stash/newport/prowlarr-backups
+        target: /config/Backups
+        bind:
+          create_host_path: false
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:9696/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    stop_grace_period: 60s
+    mem_limit: 1g
+    pids_limit: 256
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=newport_web"
+      - "traefik.http.services.prowlarr.loadbalancer.server.port=9696"
+      - "traefik.http.routers.prowlarr.rule=Host(`prowlarr.rotund.org`)"
+      - "traefik.http.routers.prowlarr.entrypoints=web"
+      - "traefik.http.routers.prowlarr.service=prowlarr"
+      - "traefik.http.routers.prowlarr.middlewares=prowlarr-auth@docker"
+      - "com.centurylinklabs.watchtower.enable=true"
+      - "com.centurylinklabs.watchtower.lifecycle.pre-update=/bin/sh /infra/backup.sh"
+      - "com.centurylinklabs.watchtower.lifecycle.pre-update-timeout=3"
+
   sonarr:
     image: lscr.io/linuxserver/sonarr:latest
     restart: unless-stopped
@@ -10,7 +195,6 @@ services:
       TZ: America/St_Johns
     ports:
       - "127.0.0.1:8989:8989"
-      - "100.123.66.70:8989:8989"
     volumes:
       - /mnt/terrabud/docker-data/newport/sonarr:/config
       - ./sonarr/hooks:/infra:ro
@@ -20,15 +204,17 @@ services:
         bind:
           create_host_path: false
       - type: bind
-        source: /mnt/stash/media/library/tv
-        target: /data/library/tv
+        source: /mnt/stash/media
+        target: /data
         bind:
           create_host_path: false
-      - type: bind
-        source: /mnt/stash/media/library/documentaries
-        target: /data/library/documentaries
-        bind:
-          create_host_path: false
+    tmpfs:
+      - /data/personal:mode=000,size=64k
+      - /data/.maintenance:mode=000,size=64k
+      - /data/library/movies:mode=000,size=64k
+      - /data/library/music:mode=000,size=64k
+      - /data/downloads/manual:mode=000,size=64k
+      - /data/downloads/soulseek:mode=000,size=64k
     healthcheck:
       test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8989/ping"]
       interval: 30s
@@ -40,7 +226,13 @@ services:
     mem_limit: 2g
     pids_limit: 256
     labels:
-      - "traefik.enable=false"
+      - "traefik.enable=true"
+      - "traefik.docker.network=newport_web"
+      - "traefik.http.services.sonarr.loadbalancer.server.port=8989"
+      - "traefik.http.routers.sonarr.rule=Host(`sonarr.rotund.org`)"
+      - "traefik.http.routers.sonarr.entrypoints=web"
+      - "traefik.http.routers.sonarr.service=sonarr"
+      - "traefik.http.routers.sonarr.middlewares=sonarr-auth@docker"
       - "com.centurylinklabs.watchtower.enable=true"
       - "com.centurylinklabs.watchtower.lifecycle.pre-update=/bin/sh /infra/backup.sh"
       - "com.centurylinklabs.watchtower.lifecycle.pre-update-timeout=3"
