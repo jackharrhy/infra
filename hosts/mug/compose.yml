@@ -75,6 +75,7 @@ services:
     environment:
       DOCKER_CONFIG: /config
       WATCHTOWER_CLEANUP: "true"
+      WATCHTOWER_LIFECYCLE_HOOKS: "true"
       # Offset from Newport's checks to avoid simultaneous registry bursts.
       WATCHTOWER_SCHEDULE: "0 5-59/10 * * * *"
       WATCHTOWER_ROLLING_RESTART: "true"
@@ -342,16 +343,20 @@ services:
       - "traefik.http.routers.andrewsitestrapi.tls.certresolver=mugresolver"
 
   lists:
-    image: ghcr.io/jackharrhy/lists:main
+    image: ghcr.io/jackharrhy/tea-lists:latest
     restart: unless-stopped
+    stop_grace_period: 45s
     networks: [web]
     env_file:
-      - ./.runtime-secrets/lists.env
-    environment:
-      - OAUTH_DYNAMIC_REGISTRATION_ENABLED=true
+      - ./.runtime-secrets/lists-tea.env
     volumes:
-      - ./volumes/lists_data:/data
+      - ./volumes/lists_tea_data:/data
+      - ./volumes/lists_tea_backups:/backups
+      - ./lists/hooks/backup.mjs:/scripts/lists-backup.mjs:ro
     labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+      - "com.centurylinklabs.watchtower.lifecycle.pre-update=bun /scripts/lists-backup.mjs"
+      - "com.centurylinklabs.watchtower.lifecycle.pre-update-timeout=3"
       - "traefik.docker.network=mug_web"
       - "traefik.enable=true"
       - "traefik.http.services.lists.loadbalancer.server.port=8080"
