@@ -158,7 +158,7 @@ services:
     restart: unless-stopped
     networks: [web]
     env_file:
-      - ./.runtime-secrets/siliconharbour.env
+      - ./.runtime-secrets/siliconharbour-tea.env
     volumes:
       - ./volumes/siliconharbour:/app/data
     labels:
