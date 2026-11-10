@@ -151,6 +151,12 @@ http:
       service: newport-origin
       tls:
         certResolver: mughttp
+    jellyfin:
+      rule: Host(`jellyfin.rotund.org`)
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
     rotund:
       rule: Host(`rotund.org`)
       entryPoints: [websecure]
