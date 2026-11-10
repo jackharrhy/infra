@@ -157,6 +157,24 @@ http:
       service: newport-origin
       tls:
         certResolver: mugresolver
+    sonarr:
+      rule: Host(`sonarr.rotund.org`)
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
+    prowlarr:
+      rule: Host(`prowlarr.rotund.org`)
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
+    qbittorrent:
+      rule: Host(`qbittorrent.rotund.org`)
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
     rotund:
       rule: Host(`rotund.org`)
       entryPoints: [websecure]
