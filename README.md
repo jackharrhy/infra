@@ -31,10 +31,19 @@ separate (`hosts/newport/cheesetown/`).
 
 Newport Watchtower is opt-in: only containers labeled
 `com.centurylinklabs.watchtower.enable=true` receive automatic image updates.
-Unlabeled containers, explicit `false` labels, and local development stacks stay
-manual. Checks run every ten minutes; immutable image pins remain pinned.
-Mug's updater policy is unchanged. Opt in a service only when unattended
-restarts are safe for its active work and persistent data.
+Unlabeled development containers and intentional `false` exclusions stay manual;
+Mug's updater policy is separate. Checks run every ten minutes.
+
+First-party applications normally follow their existing main-published tag (`main`
+or `latest`). Temporary rollout pins, exclusions and updater pauses must be removed
+when their release condition passes. Finish maintenance with Watchtower operational;
+if a real blocker remains, name the affected app, owner and next action rather than
+silently leaving the fleet frozen. Vendor version policy remains deliberate.
+
+Brief service-scoped maintenance downtime is acceptable. Check active use, warn and
+save Minecraft sessions before a graceful restart, and verify the service returns.
+Do not treat ordinary website traffic as a restart veto. Unrecoverable in-memory
+games/jobs need a drain or tested recovery gate, including for automatic updates.
 
 ## Routing
 
