@@ -361,7 +361,7 @@ services:
 
 
   gurgur:
-    image: ghcr.io/jackharrhy/gurgur:latest
+    image: ghcr.io/jackharrhy/tea-gurgur:latest
     restart: unless-stopped
     mem_limit: 256m
     networks: [web]
@@ -372,8 +372,9 @@ services:
     environment:
       - PUBLIC_ORIGIN=https://gurgur.rotund.org
       - RTC_ADDITIONAL_HOST_IPS=142.93.144.29
+      - DATABASE_PATH=/app/data/gurgur.sqlite
     volumes:
-      - ./volumes/gurgur_data:/data
+      - ./volumes/gurgur_data:/app/data
     healthcheck:
       test:
         [

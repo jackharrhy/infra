@@ -1,6 +1,6 @@
 services:
   8ballworld:
-    image: ghcr.io/jackharrhy/8ballworld:main
+    image: ghcr.io/jackharrhy/tea-pool:latest
     restart: unless-stopped
     init: true
     networks: [web]
@@ -22,7 +22,7 @@ services:
       - "traefik.http.routers.8ballworld.entrypoints=web"
       - "traefik.http.routers.8ballworld.service=8ballworld"
       - "com.centurylinklabs.watchtower.enable=true"
-      - "com.centurylinklabs.watchtower.lifecycle.pre-update=/bin/sh -c 'bun /app/apps/server/dist/pre-update.js || exit 75'"
+      - "com.centurylinklabs.watchtower.lifecycle.pre-update=/bin/sh -c 'bun /app/dist/server/pre-update.js || exit 75'"
 
   executor:
     image: local/executor:2.0.0-beta.37-auth-only.2
@@ -708,7 +708,7 @@ services:
     - traefik.enable=false
 
   burger:
-    image: ghcr.io/jackharrhy/burger:main
+    image: ghcr.io/jackharrhy/tea-burger:latest
     restart: unless-stopped
     networks:
     - web
