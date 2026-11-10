@@ -1,4 +1,50 @@
 services:
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    restart: unless-stopped
+    networks: [web]
+    environment:
+      PUID: "1000"
+      PGID: "65536"
+      UMASK: "002"
+      TZ: America/St_Johns
+    ports:
+      - "127.0.0.1:8989:8989"
+      - "100.123.66.70:8989:8989"
+    volumes:
+      - /mnt/terrabud/docker-data/newport/sonarr:/config
+      - ./sonarr/hooks:/infra:ro
+      - type: bind
+        source: /mnt/stash/newport/sonarr-backups
+        target: /config/Backups
+        bind:
+          create_host_path: false
+      - type: bind
+        source: /mnt/stash/media/library/tv
+        target: /data/library/tv
+        bind:
+          create_host_path: false
+      - type: bind
+        source: /mnt/stash/media/library/documentaries
+        target: /data/library/documentaries
+        bind:
+          create_host_path: false
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8989/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+    stop_grace_period: 60s
+    cpus: 2
+    mem_limit: 2g
+    pids_limit: 256
+    labels:
+      - "traefik.enable=false"
+      - "com.centurylinklabs.watchtower.enable=true"
+      - "com.centurylinklabs.watchtower.lifecycle.pre-update=/bin/sh /infra/backup.sh"
+      - "com.centurylinklabs.watchtower.lifecycle.pre-update-timeout=3"
+
   jellyfin:
     image: jellyfin/jellyfin:latest
     restart: unless-stopped
