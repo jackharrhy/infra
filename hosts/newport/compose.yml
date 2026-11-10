@@ -1,4 +1,76 @@
 services:
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    restart: unless-stopped
+    init: true
+    user: "1000:1000"
+    group_add: ["65536"]
+    networks: [web]
+    ports:
+      - "127.0.0.1:8096:8096"
+    environment:
+      TZ: America/St_Johns
+      JELLYFIN_PublishedServerUrl: https://jellyfin.rotund.org
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,video,utility
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    volumes:
+      - /mnt/terrabud/docker-data/newport/jellyfin/config:/config
+      - /mnt/terrabud/docker-data/newport/jellyfin/cache:/cache
+      - ./jellyfin/hooks:/infra:ro
+      - type: bind
+        source: /mnt/stash/newport/jellyfin-backups
+        target: /config/data/backups
+        bind:
+          create_host_path: false
+      - type: bind
+        source: /mnt/stash/media/library/movies
+        target: /data/library/movies
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: /mnt/stash/media/library/tv
+        target: /data/library/tv
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: /mnt/stash/media/library/documentaries
+        target: /data/library/documentaries
+        read_only: true
+        bind:
+          create_host_path: false
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8096/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+    stop_grace_period: 60s
+    cpus: 4
+    mem_limit: 8g
+    pids_limit: 512
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=newport_web"
+      - "traefik.http.services.jellyfin.loadbalancer.server.port=8096"
+      - "traefik.http.routers.jellyfin.rule=Host(`jellyfin.rotund.org`)"
+      - "traefik.http.routers.jellyfin.entrypoints=web"
+      - "com.centurylinklabs.watchtower.enable=true"
+      - "com.centurylinklabs.watchtower.lifecycle.pre-check=/bin/sh /infra/backup.sh daily"
+      - "com.centurylinklabs.watchtower.lifecycle.pre-update=/bin/sh /infra/backup.sh force"
+      - "com.centurylinklabs.watchtower.lifecycle.pre-check-timeout=6"
+      - "com.centurylinklabs.watchtower.lifecycle.pre-update-timeout=6"
+
   8ballworld:
     image: ghcr.io/jackharrhy/tea-pool:latest
     restart: unless-stopped
