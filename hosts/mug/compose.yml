@@ -204,6 +204,7 @@ services:
     networks: [web]
     env_file:
       - ./.runtime-secrets/radio-minio.env
+      - ./.runtime-secrets/radio-central-auth.env
     environment:
       - CELLD_BUCKET=sqlite:///app/.celld/object-store/objects.sqlite3
       - CELLD_DURABILITY=bucket
