@@ -181,6 +181,11 @@ services:
   plow:
     image: ghcr.io/jackharrhy/where-the-plow:main
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks: [web]
     volumes:
       - ./volumes/plow:/data
