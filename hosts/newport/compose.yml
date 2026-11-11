@@ -758,9 +758,9 @@ services:
     restart: unless-stopped
     networks: [web]
     env_file:
-      - ./.runtime-secrets/marky.env
+      - ./.runtime-secrets/marky-central-auth.env
     environment:
-      - MARKY_AUTH=discord
+      - MARKY_AUTH=central
       - MARKY_BASE_URL=https://md.jackharrhy.dev
       - MARKY_CONTENT_DIR=/app/data/content
       - MARKY_SESSION_DIR=/app/data/sessions
