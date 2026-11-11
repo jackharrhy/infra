@@ -114,15 +114,22 @@ services:
       - ./.runtime-secrets/beszel-agent.env
 
   jackharrhy:
-    image: ghcr.io/jackharrhy/jackharrhy.com:latest
+    image: ghcr.io/jackharrhy/tea-garden:latest
     restart: unless-stopped
     networks: [web]
     env_file:
       - ./.runtime-secrets/jackharrhy.env
+    environment:
+      GARDEN_CONTENT_PATH: /app/data/current
+      HOST: 0.0.0.0
+      PORT: "4322"
+      TRUST_PROXY: "true"
+    volumes:
+      - ./volumes/garden-content:/app/data:ro
     labels:
       - "traefik.docker.network=mug_web"
       - "traefik.enable=true"
-      - "traefik.http.services.jackharrhy.loadbalancer.server.port=80"
+      - "traefik.http.services.jackharrhy.loadbalancer.server.port=4322"
       - "traefik.http.routers.jackharrhy.rule=(Host(`jackharrhy.dev`) || Host(`jackharrhy.com`) || Host(`harrhy.xyz`) || Host(`jack.harrhy.xyz`) || Host(`jack.arthur.harrhy.xyz`) || Host(`jack.is.harrhy.xyz`))"
       - "traefik.http.routers.jackharrhy.priority=1"
       - "traefik.http.routers.jackharrhy.entrypoints=websecure"
