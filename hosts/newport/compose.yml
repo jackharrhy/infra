@@ -1042,10 +1042,12 @@ services:
     env_file: [./jack-auth/.runtime-secrets/ui.env]
     environment:
       FOURM_ENROLLMENT_KEY_FILE: /run/secrets/fourm-enrollment-key.json
+      RADIO_ENROLLMENT_DB_FILE: /data/radio-enrollment.sqlite
     volumes:
       - ./jack-auth/.runtime-secrets/login-key.json:/run/secrets/login-token.json:ro
       - ./jack-auth/.runtime-secrets/management-key.json:/run/secrets/management-token.json:ro
       - ./jack-auth/.runtime-secrets/fourm-enrollment-key.json:/run/secrets/fourm-enrollment-key.json:ro
+      - /mnt/terrabud/docker-data/newport/jack-auth/ui:/data
     labels:
       - "traefik.enable=false"
       - "com.centurylinklabs.watchtower.enable=false"

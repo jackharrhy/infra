@@ -95,5 +95,27 @@ recovery of encrypted provider data. Encrypted provider/4orm snapshots also have
 off-host copies on Jack's Mac. Automated retention and full provider startup
 from restored data remain pending.
 
+## Radio enrollment ledger
+
+The read-only UI has one dedicated writable mount:
+`/mnt/terrabud/docker-data/newport/jack-auth/ui:/data`.
+The host directory is UID1000 mode0700; `RADIO_ENROLLMENT_DB_FILE` points to
+`/data/radio-enrollment.sqlite`, mode0600. Preserve the directory across every
+recreation. Losing/resetting this ledger can lose enrollment-denial history;
+it is authorization state, not cache. Existing credential mounts stay read-only.
+
+`backup-radio-ledger.py` takes consistent SQLite snapshots, checks integrity and
+preserves all pending/granted/denied rows. Snapshots are mode0600 beneath the
+private `/mnt/terrabud/backups/jack-auth/radio-ledger` directory, without automatic
+deletion. `radio-ledger-backup.cron`, installed as `/etc/cron.d/jack-auth-radio-ledger`,
+runs daily at04:17 host time and logs failures in that private backup directory.
+Run the helper before scoped UI maintenance too. For recovery, stop the UI,
+preserve the current ledger, and restore the reviewed snapshot as UID1000
+mode0600 under the existing mode0700 parent. Recover with the matching provider
+checkpoint and credential configuration; do not replace a later denial ledger
+with an old empty copy or interpret a ledger-only snapshot as full issuer recovery.
+Verify SQLite integrity and membership states before restarting. Persistence
+configuration does not activate Radio or any held consumer client.
+
 ZITADEL core is AGPL; the separately authored UI is MIT and the Lore token action
 is AGPL. No ZITADEL source was modified. See upstream LICENSING.md at v4.20.0.

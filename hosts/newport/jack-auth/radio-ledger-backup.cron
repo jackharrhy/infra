@@ -1,0 +1,2 @@
+# Radio enrollment is durable authorization state, not a disposable cache.
+17 4 * * * jack umask 077; /usr/bin/python3 /home/jack/infra/hosts/newport/jack-auth/backup-radio-ledger.py >> /mnt/terrabud/backups/jack-auth/radio-ledger/backup.log 2>&1
