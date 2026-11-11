@@ -75,6 +75,26 @@ services:
       - "traefik.http.middlewares.prowlarr-auth.forwardauth.authRequestHeaders=Cookie,Accept"
       - "com.centurylinklabs.watchtower.enable=true"
 
+  radarr-auth:
+    <<: *media-auth
+    env_file: [.runtime-secrets/radarr-auth.env]
+    ports: ["127.0.0.1:14184:4180"]
+    environment:
+      <<: *media-auth-environment
+      OAUTH2_PROXY_REDIRECT_URL: https://radarr.rotund.org/oauth2/callback
+      OAUTH2_PROXY_WHITELIST_DOMAINS: radarr.rotund.org
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=newport_web"
+      - "traefik.http.routers.radarr-oauth.rule=Host(`radarr.rotund.org`) && PathPrefix(`/oauth2/`)"
+      - "traefik.http.routers.radarr-oauth.entrypoints=web"
+      - "traefik.http.routers.radarr-oauth.service=radarr-auth"
+      - "traefik.http.services.radarr-auth.loadbalancer.server.port=4180"
+      - "traefik.http.middlewares.radarr-auth.forwardauth.address=http://127.0.0.1:14184/"
+      - "traefik.http.middlewares.radarr-auth.forwardauth.trustForwardHeader=true"
+      - "traefik.http.middlewares.radarr-auth.forwardauth.authRequestHeaders=Cookie,Accept"
+      - "com.centurylinklabs.watchtower.enable=true"
+
   qbittorrent-auth:
     <<: *media-auth
     env_file: [.runtime-secrets/qbittorrent-auth.env]
@@ -227,7 +247,13 @@ services:
     mem_limit: 1g
     pids_limit: 256
     labels:
-      - "traefik.enable=false"
+      - "traefik.enable=true"
+      - "traefik.docker.network=newport_web"
+      - "traefik.http.services.radarr.loadbalancer.server.port=7878"
+      - "traefik.http.routers.radarr.rule=Host(`radarr.rotund.org`)"
+      - "traefik.http.routers.radarr.entrypoints=web"
+      - "traefik.http.routers.radarr.service=radarr"
+      - "traefik.http.routers.radarr.middlewares=radarr-auth@docker"
       - "com.centurylinklabs.watchtower.enable=true"
       - "com.centurylinklabs.watchtower.lifecycle.pre-update=/bin/sh /infra/backup.sh"
       - "com.centurylinklabs.watchtower.lifecycle.pre-update-timeout=3"
@@ -754,12 +780,16 @@ services:
     image: ghcr.io/jackharrhy/rotund.org:main
     restart: unless-stopped
     networks: [web]
+    env_file: [.runtime-secrets/rotund-portal.env]
+    mem_limit: 256m
+    pids_limit: 128
     labels:
       - "traefik.docker.network=newport_web"
       - "traefik.enable=true"
       - "traefik.http.services.rotund.loadbalancer.server.port=80"
       - "traefik.http.routers.rotund.rule=Host(`rotund.org`)"
       - "traefik.http.routers.rotund.entrypoints=web"
+      - "com.centurylinklabs.watchtower.enable=true"
 
   stickertrade:
     image: ghcr.io/fogo-sh/stickertrade:latest
