@@ -184,6 +184,54 @@ services:
       - "com.centurylinklabs.watchtower.lifecycle.pre-update=/bin/sh /infra/backup.sh"
       - "com.centurylinklabs.watchtower.lifecycle.pre-update-timeout=3"
 
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    restart: unless-stopped
+    networks: [web]
+    environment:
+      PUID: "1000"
+      PGID: "65536"
+      UMASK: "002"
+      TZ: America/St_Johns
+    ports:
+      - "127.0.0.1:7878:7878"
+    volumes:
+      - /mnt/terrabud/docker-data/newport/radarr:/config
+      - ./radarr/hooks:/infra:ro
+      - type: bind
+        source: /mnt/stash/newport/radarr-backups
+        target: /config/Backups
+        bind:
+          create_host_path: false
+      - type: bind
+        source: /mnt/stash/media
+        target: /data
+        bind:
+          create_host_path: false
+    tmpfs:
+      - /data/personal:mode=000,size=64k
+      - /data/.maintenance:mode=000,size=64k
+      - /data/library/tv:mode=000,size=64k
+      - /data/library/documentaries:mode=000,size=64k
+      - /data/library/music:mode=000,size=64k
+      - /data/downloads/manual:mode=000,size=64k
+      - /data/downloads/soulseek:mode=000,size=64k
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:7878/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+    stop_grace_period: 60s
+    cpus: 2
+    mem_limit: 1g
+    pids_limit: 256
+    labels:
+      - "traefik.enable=false"
+      - "com.centurylinklabs.watchtower.enable=true"
+      - "com.centurylinklabs.watchtower.lifecycle.pre-update=/bin/sh /infra/backup.sh"
+      - "com.centurylinklabs.watchtower.lifecycle.pre-update-timeout=3"
+
   sonarr:
     image: lscr.io/linuxserver/sonarr:latest
     restart: unless-stopped
