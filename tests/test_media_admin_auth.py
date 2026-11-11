@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 class MediaAdminAuthTest(unittest.TestCase):
     def test_every_media_app_requires_central_auth_including_api_paths(self):
         config = yaml.safe_load((ROOT / 'hosts/newport/compose.yml').read_text())
-        for name, port in [('sonarr',8989),('prowlarr',9696),('qbittorrent',8087)]:
+        for name, port in [('sonarr',8989),('prowlarr',9696),('qbittorrent',8087),('radarr',7878)]:
             with self.subTest(app=name):
                 service = config['services'][name]
                 labels = dict(label.split('=',1) for label in service['labels'])
@@ -22,7 +22,7 @@ class MediaAdminAuthTest(unittest.TestCase):
                 self.assertEqual(env['OAUTH2_PROXY_COOKIE_NAME'], '__Host-media_admin')
                 self.assertEqual(env['OAUTH2_PROXY_OIDC_GROUPS_CLAIM'], 'sub')
                 self.assertNotIn('OAUTH2_PROXY_COOKIE_DOMAINS', env)
-                auth_port = {'sonarr':14181,'prowlarr':14182,'qbittorrent':14183}[name]
+                auth_port = {'sonarr':14181,'prowlarr':14182,'qbittorrent':14183,'radarr':14184}[name]
                 self.assertEqual(proxy['ports'],[f'127.0.0.1:{auth_port}:4180'])
                 plabels = dict(label.split('=',1) for label in proxy['labels'])
                 address = plabels['traefik.http.middlewares.'+name+'-auth.forwardauth.address']
@@ -33,7 +33,7 @@ class MediaAdminAuthTest(unittest.TestCase):
 
     def test_public_edge_relays_only_the_named_apps(self):
         routers = yaml.safe_load((ROOT/'hosts/mug/traefik/dynamic/routes.yml').read_text())['http']['routers']
-        for name in ['sonarr','prowlarr','qbittorrent']:
+        for name in ['sonarr','prowlarr','qbittorrent','radarr']:
             self.assertEqual(routers.get(name,{}).get('rule'), f'Host(`{name}.rotund.org`)')
             self.assertEqual(routers[name]['service'], 'newport-origin')
             self.assertEqual(routers[name]['entryPoints'], ['websecure'])

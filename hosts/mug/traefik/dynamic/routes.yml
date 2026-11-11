@@ -157,6 +157,12 @@ http:
       service: newport-origin
       tls:
         certResolver: mugresolver
+    radarr:
+      rule: Host(`radarr.rotund.org`)
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
     sonarr:
       rule: Host(`sonarr.rotund.org`)
       entryPoints: [websecure]

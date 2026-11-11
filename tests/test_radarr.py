@@ -11,7 +11,8 @@ class RadarrConfigTest(unittest.TestCase):
         app=services['radarr']
         self.assertEqual(app['ports'],['127.0.0.1:7878:7878'])
         labels=dict(s.split('=',1)for s in app['labels'])
-        self.assertEqual(labels['traefik.enable'],'false')
+        self.assertEqual(labels['traefik.enable'],'true')
+        self.assertEqual(labels['traefik.http.routers.radarr.middlewares'],'radarr-auth@docker')
         self.assertEqual(labels['com.centurylinklabs.watchtower.enable'],'true')
         self.assertEqual(labels['com.centurylinklabs.watchtower.lifecycle.pre-update'],'/bin/sh /infra/backup.sh')
         roots=[v for v in app['volumes']if isinstance(v,dict)and v['target']=='/data']

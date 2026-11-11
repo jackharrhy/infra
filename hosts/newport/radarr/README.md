@@ -1,9 +1,11 @@
 # Radarr movie watchlist
 
-Private movie automation in the Newport Compose stack. Only loopback
-`127.0.0.1:7878` is published; there is no public/Tailnet UI route or new OIDC
-registration. Native Forms authentication and API authentication remain enabled.
-Credentials are in `../secrets/radarr.enc.yaml`; do not print them.
+Movie automation in the Newport Compose stack. Public `https://radarr.rotund.org`
+uses the same owner-only central ForwardAuth boundary as the other media admin
+apps. Direct `127.0.0.1:7878` is loopback-only; no Tailnet bypass is published.
+Native web authentication is external behind that boundary; API credentials remain
+in `../secrets/radarr.enc.yaml`, proxy credentials in `radarr-auth.enc.yaml`.
+Do not print them.
 
 Configuration/SQLite live on Newport. Movies and download payloads live on Stash.
 The shared `/data` mount supports hardlinks; tmpfs masks deny the application
@@ -30,7 +32,8 @@ Current CAM candidates were explicitly rejected by Radarr's own decision engine.
 
 The already queued Primetime request initially uses its separate bounded importer;
 Radarr must not grab it again or interfere with unrelated TV downloads. Registering
-more films or publishing a Radarr UI is separate scope.
+more films remains separate scope. The rotund.org portal is a permission-filtered
+directory, not an alternative authorization gate.
 
 ## Backups and verification
 
