@@ -122,6 +122,7 @@ services:
       - ./.runtime-secrets/jackharrhy.env
     environment:
       GARDEN_CONTENT_PATH: /app/data/current
+      NODE_ENV: production
       HOST: 0.0.0.0
       PORT: "4322"
       TRUST_PROXY: "true"
