@@ -934,7 +934,7 @@ services:
     restart: unless-stopped
     networks: [web]
     env_file:
-      - ./.runtime-secrets/steve-central-auth.env
+      - ./.runtime-secrets/steve.env
     environment:
       - DATABASE_PATH=/app/data/letters.sqlite
       - UPLOAD_DIRECTORY=/app/data/uploads
