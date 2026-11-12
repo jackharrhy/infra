@@ -20,10 +20,8 @@ The private provision.json checkpoint and jack/joel-login.txt files must never b
 committed. The UI uses separate service-account RSA keys to obtain short-lived API tokens.
 Encrypted login-key.json and management-key.json files are mounted read-only.
 Provisioned keys last one year; scheduled key rotation remains pending.
-Legacy acceptance/provisioning PATs expire2026-11-25UTC and the bootstrap owner
-PAT expires2026-11-01UTC. Ongoing application provisioning now uses a separate
-operator key (encrypted, never mounted into the UI); remaining legacy scripts
-still need migration before retiring those PATs.
+Application provisioning uses a separate encrypted operator key, never mounted
+into the UI. Historical PAT-based scripts are not the current provisioning path.
 
 ZITADEL sends through SES in production account `714000190305`, `us-east-1`,
 using the dedicated SMTP identity in `aws/mail/index.ts`. It can send only as
@@ -42,10 +40,11 @@ Jack and Joel reached their original profiles through live OIDC and SSO checks.
 Artbin and Tea Maps have central OIDC/resource-server clients and per-app member/
 admin grants. Artbin browser/CLI/API/MCP and the Maps-to-Artbin machine caller
 were cut over on Oct29 using Tea merge 103d285205ca631415a4ebc86750c3c8ce2b1913.
-Compose pins both target images to that merge SHA and excludes them from
-Watchtower; the normal updater runs for other services. Artbin loads
-artbin-central-auth.env. Maps loads maps-artbin-auth.env and AUTH_ISSUER for its
-limited asset-read/content caller, while its browser/MCP still use 4orm.
+That image pin was temporary. Artbin and Worldview now follow their canonical
+Harrhy `latest` images with Watchtower enabled; check Compose and the actual image
+revision rather than restoring the old cutover pin. Artbin loads
+artbin-central-auth.env. Worldview's service loads maps-artbin-auth.env for its
+limited asset-read/content caller; its browser/MCP now use Jack Auth directly.
 
 Before publication, Watchtower was stopped and old images tagged
 tea-artbin:before-jack-auth-20261029 and tea-maps-service:before-jack-auth-20261029.
@@ -85,7 +84,9 @@ assigned; consent requires an existing active admin grant on the target app.
 Keep DCR automatic role assertion disabled. Disposable live checks passed
 approval/denial/CSRF, PKCE, signed ID token/nonce, exact project audiences/scopes/
 roles, code/decision replay, refresh/revocation and grant changes after viewing.
-Artbin production API/MCP acceptance now passes; Maps own central browser/MCP migration remains pending.
+The initial Artbin production API/MCP acceptance passed. Worldview's later Jack
+Auth configuration is deployed at worldview.harrhy.xyz; genuine human/delegated
+acceptance must be read from current owner receipts, not inferred from redirects.
 Provider backup before these changes:
 `/mnt/terrabud/backups/jack-auth/before-consent-2026-10-29.sql.age`.
 
@@ -104,14 +105,37 @@ The host directory is UID1000 mode0700; `RADIO_ENROLLMENT_DB_FILE` points to
 recreation. Losing/resetting this ledger can lose enrollment-denial history;
 it is authorization state, not cache. Existing credential mounts stay read-only.
 
-`backup-radio-ledger.py` takes consistent SQLite snapshots, checks integrity and
-preserves all pending/granted/denied rows. Snapshots are mode0600 beneath the
-private `/mnt/terrabud/backups/jack-auth/radio-ledger` directory, without automatic
-deletion. `radio-ledger-backup.cron`, installed as `/etc/cron.d/jack-auth-radio-ledger`,
+The redesigned UI also stores groups, provenance, blocks and operations in
+`/data/access.sqlite` (UID1000, mode0600, DELETE journal), without passwords. It
+shares the existing writable mount. The deployed, disabled support-login code can
+also store encrypted lifecycle/token material there when separately configured;
+that future activation requires its matching sealed configuration/encryption key
+in recovery. The paired database helper alone does not back up that new key.
+`ACCESS_DB_FILE`, when set, overrides that path; otherwise the UI derives it from
+the parent of `RADIO_ENROLLMENT_DB_FILE`.
+
+`backup-radio-ledger.py` snapshots the Radio ledger and its sibling `access.sqlite`
+when present, using SQLite's online backup API and integrity checks. An optional
+`--access-source` supplies an overridden host path. Radio keeps the existing
+`<run>.sqlite` filename; access uses `<run>.access.sqlite`. A completed `<run>.json`
+manifest identifies the recovery set. Source database bytes/inodes are not replaced.
+Before first adoption, the manifest explicitly records access as absent; that is
+only a legacy baseline, not a complete redesigned-UI checkpoint. Once access has
+been captured, `.access-required` makes later missing access fail closed instead
+of silently producing a Radio-only checkpoint. Preserve that marker with recovery
+history. Snapshots/manifests are mode0600 beneath the private mode0700
+`/mnt/terrabud/backups/jack-auth/radio-ledger` directory, without automatic deletion.
+Each database is individually SQLite-consistent online; for one logical point
+across both files, the Auth runtime owner must quiesce UI writes while running the
+helper. Primary must not stop/recreate the UI during Auth's exclusive writer lane.
+
+`radio-ledger-backup.cron`, installed as `/etc/cron.d/jack-auth-radio-ledger`,
 runs daily at04:17 host time and logs failures in that private backup directory.
 Run the helper before scoped UI maintenance too. For recovery, stop the UI,
-preserve the current ledger, and restore the reviewed snapshot as UID1000
-mode0600 under the existing mode0700 parent. Recover with the matching provider
+preserve the current files, and restore both members of the reviewed manifest as
+UID1000 mode0600 under the existing mode0700 parent. Restore access groups,
+provenance, blocks and operations together with the corresponding Radio history;
+do not silently replace adopted access state with a pre-adoption absent baseline. Recover with the matching provider
 checkpoint and credential configuration; do not replace a later denial ledger
 with an old empty copy or interpret a ledger-only snapshot as full issuer recovery.
 Verify SQLite integrity and membership states before restarting. Persistence
