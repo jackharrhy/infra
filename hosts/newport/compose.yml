@@ -34,6 +34,183 @@ x-media-auth: &media-auth
     OAUTH2_PROXY_SILENCE_PING_LOGGING: "true"
 
 services:
+  cleanuparr-auth:
+    <<: *media-auth
+    env_file: [.runtime-secrets/cleanuparr-auth.env]
+    ports: ["127.0.0.1:14187:4180"]
+    environment:
+      <<: *media-auth-environment
+      OAUTH2_PROXY_REDIRECT_URL: https://cleanuparr.rotund.org/oauth2/callback
+      OAUTH2_PROXY_WHITELIST_DOMAINS: cleanuparr.rotund.org,auth.jackharrhy.dev
+      OAUTH2_PROXY_COOKIE_NAME: __Host-cleanuparr_auth
+      OAUTH2_PROXY_COOKIE_REFRESH: "0"
+      OAUTH2_PROXY_PROVIDER_DISPLAY_NAME: Jack Auth
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=newport_web"
+      - "traefik.http.routers.cleanuparr-oauth.rule=Host(`cleanuparr.rotund.org`) && PathPrefix(`/oauth2/`)"
+      - "traefik.http.routers.cleanuparr-oauth.entrypoints=web"
+      - "traefik.http.routers.cleanuparr-oauth.service=cleanuparr-auth"
+      - "traefik.http.services.cleanuparr-auth.loadbalancer.server.port=4180"
+      - "traefik.http.middlewares.cleanuparr-auth.forwardauth.address=http://127.0.0.1:14187/"
+      - "traefik.http.middlewares.cleanuparr-auth.forwardauth.trustForwardHeader=true"
+      - "traefik.http.middlewares.cleanuparr-auth.forwardauth.authRequestHeaders=Cookie,Accept"
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  adguardhome:
+    image: adguard/adguardhome:latest
+    restart: unless-stopped
+    init: true
+    networks: [dns]
+    ports:
+      - "192.168.2.30:53:5353/udp"
+      - "192.168.2.30:53:5353/tcp"
+      - "127.0.0.1:11300:3000"
+    user: "1000:1000"
+    read_only: true
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=16m,mode=1777"]
+    command: ["--no-check-update", "--web-addr", "0.0.0.0:3000", "-c", "/opt/adguardhome/conf/AdGuardHome.yaml", "-w", "/opt/adguardhome/work"]
+    volumes:
+      - /mnt/terrabud/docker-data/newport/adguardhome/conf:/opt/adguardhome/conf
+      - /mnt/terrabud/docker-data/newport/adguardhome/work:/opt/adguardhome/work
+      - ./adguardhome/backup.sh:/infra/backup.sh:ro
+      - type: bind
+        source: /mnt/terrabud/docker-data/newport/adguardhome/backups
+        target: /backups
+        bind:
+          create_host_path: false
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:3000/login.html"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    cpus: 0.5
+    mem_limit: 256m
+    pids_limit: 128
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]
+    security_opt: ["no-new-privileges:true"]
+    labels:
+      - "traefik.enable=false"
+      - "com.centurylinklabs.watchtower.enable=true"
+      - "com.centurylinklabs.watchtower.lifecycle.pre-check=/bin/sh -c '/bin/sh /infra/backup.sh daily || exit 75'"
+      - "com.centurylinklabs.watchtower.lifecycle.pre-update=/bin/sh -c '/bin/sh /infra/backup.sh || exit 75'"
+      - "com.centurylinklabs.watchtower.lifecycle.pre-check-timeout=3"
+      - "com.centurylinklabs.watchtower.lifecycle.pre-update-timeout=3"
+
+  cleanuparr:
+    image: ghcr.io/cleanuparr/cleanuparr:latest
+    restart: unless-stopped
+    init: true
+    user: "1000:1000"
+    group_add: ["65536"]
+    networks: [web]
+    ports: ["127.0.0.1:11011:11011"]
+    environment:
+      TZ: America/St_Johns
+      PORT: "11011"
+      UMASK: "077"
+    volumes:
+      - /mnt/terrabud/docker-data/newport/cleanuparr:/config
+      - ./cleanuparr/backup.py:/infra/backup.py:ro
+      - type: bind
+        source: /mnt/stash/newport/cleanuparr-backups
+        target: /backups
+        bind:
+          create_host_path: false
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:11011/health/ready"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    stop_grace_period: 30s
+    cpus: 1
+    mem_limit: 512m
+    pids_limit: 128
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=newport_web"
+      - "traefik.http.services.cleanuparr.loadbalancer.server.port=11011"
+      - "traefik.http.routers.cleanuparr.rule=Host(`cleanuparr.rotund.org`)"
+      - "traefik.http.routers.cleanuparr.entrypoints=web"
+      - "traefik.http.routers.cleanuparr.service=cleanuparr"
+      - "traefik.http.routers.cleanuparr.middlewares=cleanuparr-auth"
+      - "com.centurylinklabs.watchtower.enable=true"
+      - "com.centurylinklabs.watchtower.lifecycle.pre-check=/bin/sh -c 'python3 /infra/backup.py daily || exit 75'"
+      - "com.centurylinklabs.watchtower.lifecycle.pre-update=/bin/sh -c 'python3 /infra/backup.py || exit 75'"
+      - "com.centurylinklabs.watchtower.lifecycle.pre-check-timeout=3"
+      - "com.centurylinklabs.watchtower.lifecycle.pre-update-timeout=3"
+
+  seerr:
+    image: ghcr.io/seerr-team/seerr:latest
+    restart: unless-stopped
+    init: true
+    user: "1000:1000"
+    group_add: ["65536"]
+    networks: [web]
+    ports: ["127.0.0.1:5055:5055"]
+    environment:
+      TZ: America/St_Johns
+      LOG_LEVEL: info
+      PORT: "5055"
+    volumes:
+      - /mnt/terrabud/docker-data/newport/seerr:/app/config
+      - ./seerr/backup.mjs:/infra/backup.mjs:ro
+      - type: bind
+        source: /mnt/stash/newport/seerr-backups
+        target: /backups
+        bind:
+          create_host_path: false
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5055/api/v1/settings/public"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    stop_grace_period: 30s
+    cpus: 2
+    mem_limit: 1g
+    pids_limit: 256
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=newport_web"
+      - "traefik.http.services.seerr.loadbalancer.server.port=5055"
+      - "traefik.http.routers.seerr.rule=Host(`seerr.rotund.org`)"
+      - "traefik.http.routers.seerr.entrypoints=web"
+      - "com.centurylinklabs.watchtower.enable=true"
+      - "com.centurylinklabs.watchtower.lifecycle.pre-check=/bin/sh -c 'node /infra/backup.mjs daily || exit 75'"
+      - "com.centurylinklabs.watchtower.lifecycle.pre-update=/bin/sh -c 'node /infra/backup.mjs || exit 75'"
+      - "com.centurylinklabs.watchtower.lifecycle.pre-check-timeout=3"
+      - "com.centurylinklabs.watchtower.lifecycle.pre-update-timeout=3"
+
+  navidrome-auth:
+    <<: *media-auth
+    env_file: [.runtime-secrets/navidrome-auth.env]
+    ports: ["127.0.0.1:14185:4180"]
+    environment:
+      <<: *media-auth-environment
+      OAUTH2_PROXY_REDIRECT_URL: https://music.rotund.org/oauth2/callback
+      OAUTH2_PROXY_WHITELIST_DOMAINS: music.rotund.org,auth.jackharrhy.dev
+      OAUTH2_PROXY_COOKIE_NAME: __Host-navidrome_auth
+      OAUTH2_PROXY_PROVIDER_DISPLAY_NAME: Jack Auth
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=newport_web"
+      - "traefik.http.routers.navidrome-oauth.rule=Host(`music.rotund.org`) && PathPrefix(`/oauth2/`)"
+      - "traefik.http.routers.navidrome-oauth.entrypoints=web"
+      - "traefik.http.routers.navidrome-oauth.service=navidrome-auth"
+      - "traefik.http.services.navidrome-auth.loadbalancer.server.port=4180"
+      - "traefik.http.middlewares.navidrome-auth.forwardauth.address=http://127.0.0.1:14185/"
+      - "traefik.http.middlewares.navidrome-auth.forwardauth.trustForwardHeader=true"
+      - "traefik.http.middlewares.navidrome-auth.forwardauth.authRequestHeaders=Cookie,Accept"
+      - "com.centurylinklabs.watchtower.enable=true"
+
   sonarr-auth:
     <<: *media-auth
     env_file: [.runtime-secrets/sonarr-auth.env]
@@ -311,6 +488,81 @@ services:
       - "com.centurylinklabs.watchtower.lifecycle.pre-update=/bin/sh /infra/backup.sh"
       - "com.centurylinklabs.watchtower.lifecycle.pre-update-timeout=3"
 
+  navidrome:
+    image: navidrome/navidrome:latest
+    restart: unless-stopped
+    init: true
+    user: "1000:1000"
+    group_add: ["65536"]
+    networks: [navidrome_backend]
+    ports: ["127.0.0.1:4533:4533"]
+    environment:
+      TZ: America/St_Johns
+      ND_MUSICFOLDER: /music
+      ND_DATAFOLDER: /data
+      ND_CACHEFOLDER: /data/cache
+      ND_BASEURL: https://music.rotund.org
+      ND_ENFORCENONROOTUSER: "true"
+      ND_EXTAUTH_TRUSTEDSOURCES: 172.30.33.1/32
+      ND_EXTAUTH_USERHEADER: X-Navidrome-User
+      ND_EXTAUTH_LOGOUTURL: https://music.rotund.org/oauth2/sign_out?rd=https%3A%2F%2Fauth.jackharrhy.dev%2F
+      ND_ENABLEINSIGHTSCOLLECTOR: "false"
+      ND_ENABLESHARING: "false"
+      ND_SCANNER_SCHEDULE: "@every 1h"
+      ND_SCANNER_WATCHERWAIT: "0"
+      ND_SCANNER_FOLLOWSYMLINKS: "false"
+      ND_SCANNER_PURGEMISSING: never
+      ND_TRANSCODING_MAXCONCURRENT: "2"
+      ND_TRANSCODINGCACHESIZE: 1GB
+      ND_BACKUP_PATH: /backups
+      ND_BACKUP_SCHEDULE: "@every 24h"
+      ND_BACKUP_COUNT: "14"
+    volumes:
+      - /mnt/terrabud/docker-data/newport/navidrome:/data
+      - type: bind
+        source: /mnt/stash/media/library/music
+        target: /music
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: /mnt/stash/newport/navidrome-backups
+        target: /backups
+        bind:
+          create_host_path: false
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "--quiet", "http://localhost:4533/ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 120s
+    stop_grace_period: 30s
+    cpus: 2
+    mem_limit: 1g
+    pids_limit: 256
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=newport_navidrome_backend"
+      - "traefik.http.services.navidrome.loadbalancer.server.port=4533"
+      - "traefik.http.routers.navidrome.rule=Host(`music.rotund.org`)"
+      - "traefik.http.routers.navidrome.entrypoints=web"
+      - "traefik.http.routers.navidrome.middlewares=navidrome-strip-user,navidrome-auth,navidrome-user"
+      - "traefik.http.routers.navidrome-subsonic.rule=Host(`music.rotund.org`) && PathPrefix(`/rest/`)"
+      - "traefik.http.routers.navidrome-subsonic.entrypoints=web"
+      - "traefik.http.routers.navidrome-subsonic.service=navidrome"
+      - "traefik.http.routers.navidrome-subsonic.middlewares=navidrome-strip-user"
+      - "traefik.http.middlewares.navidrome-strip-user.headers.customrequestheaders.X-Navidrome-User="
+      - "traefik.http.middlewares.navidrome-strip-user.headers.customrequestheaders.Remote-User="
+      - "traefik.http.middlewares.navidrome-strip-user.headers.customrequestheaders.X-Forwarded-User="
+      - "traefik.http.middlewares.navidrome-strip-user.headers.customrequestheaders.X-Auth-Request-User="
+      # The fixed existing-account mapping is reached only after the Jack-subject allowlist passes.
+      - "traefik.http.middlewares.navidrome-user.headers.customrequestheaders.X-Navidrome-User=jack"
+      - "com.centurylinklabs.watchtower.enable=true"
+      - "com.centurylinklabs.watchtower.lifecycle.pre-update=/bin/sh -c '/app/navidrome backup create --backup-dir /backups || exit 75'"
+      - "com.centurylinklabs.watchtower.lifecycle.pre-update-timeout=3"
+
   jellyfin:
     image: jellyfin/jellyfin:latest
     restart: unless-stopped
@@ -376,7 +628,12 @@ services:
       - "traefik.docker.network=newport_web"
       - "traefik.http.services.jellyfin.loadbalancer.server.port=8096"
       - "traefik.http.routers.jellyfin.rule=Host(`jellyfin.rotund.org`)"
-      - "traefik.http.routers.jellyfin.entrypoints=web"
+      - "traefik.http.routers.jellyfin.entrypoints=websecure"
+      - "traefik.http.routers.jellyfin.service=jellyfin"
+      - "traefik.http.routers.jellyfin.tls.certresolver=newporthttp"
+      - "traefik.http.routers.jellyfin-origin.rule=Host(`jellyfin.rotund.org`) && ClientIP(`100.124.6.111/32`)"
+      - "traefik.http.routers.jellyfin-origin.entrypoints=web"
+      - "traefik.http.routers.jellyfin-origin.service=jellyfin"
       - "com.centurylinklabs.watchtower.enable=true"
       - "com.centurylinklabs.watchtower.lifecycle.pre-check=/bin/sh /infra/backup.sh daily"
       - "com.centurylinklabs.watchtower.lifecycle.pre-update=/bin/sh /infra/backup.sh force"
@@ -384,7 +641,7 @@ services:
       - "com.centurylinklabs.watchtower.lifecycle.pre-update-timeout=6"
 
   8ballworld:
-    image: ghcr.io/jackharrhy/tea-pool:latest
+    image: ghcr.io/jackharrhy/pool:latest
     restart: unless-stopped
     init: true
     networks: [web]
@@ -409,7 +666,7 @@ services:
       - "com.centurylinklabs.watchtower.lifecycle.pre-update=/bin/sh -c 'bun /app/dist/server/pre-update.js || exit 75'"
 
   executor:
-    image: local/executor:2.0.0-beta.37-auth-only.2
+    image: local/executor:2.0.0-beta.41-auth-only.1
     pull_policy: never
     restart: unless-stopped
     init: true
@@ -577,7 +834,7 @@ services:
       - "traefik.http.routers.adam_eats.entrypoints=web"
 
   artbin:
-    image: ghcr.io/jackharrhy/tea-artbin:latest
+    image: ghcr.io/jackharrhy/artbin:latest
     restart: unless-stopped
     networks: [web]
     env_file:
@@ -597,7 +854,7 @@ services:
       - "traefik.http.routers.artbin.entrypoints=web"
 
   maps-ui:
-    image: ghcr.io/jackharrhy/tea-maps:latest
+    image: ghcr.io/jackharrhy/worldview:latest
     restart: unless-stopped
     networks: [web, maps_backend]
     environment:
@@ -617,14 +874,14 @@ services:
       - "traefik.docker.network=newport_web"
       - "traefik.enable=true"
       - "traefik.http.services.maps-ui.loadbalancer.server.port=8790"
-      - "traefik.http.routers.maps-ui.rule=Host(`maps.jackharrhy.dev`)"
+      - "traefik.http.routers.maps-ui.rule=Host(`worldview.harrhy.xyz`)"
       - "traefik.http.routers.maps-ui.entrypoints=web"
       - "traefik.http.routers.maps-ui.middlewares=maps-public-origin"
-      - "traefik.http.middlewares.maps-public-origin.headers.customrequestheaders.X-Forwarded-Host=maps.jackharrhy.dev"
+      - "traefik.http.middlewares.maps-public-origin.headers.customrequestheaders.X-Forwarded-Host=worldview.harrhy.xyz"
       - "traefik.http.middlewares.maps-public-origin.headers.customrequestheaders.X-Forwarded-Proto=https"
 
   maps-service:
-    image: ghcr.io/jackharrhy/tea-maps-service:latest
+    image: ghcr.io/jackharrhy/worldview-service:latest
     restart: unless-stopped
     stop_grace_period: 90s
     networks: [web, maps_backend]
@@ -633,7 +890,7 @@ services:
       - ./.runtime-secrets/maps-artbin-auth.env
       - ./.runtime-secrets/maps-central-auth.env
     environment:
-      - TEA_MAPS_URL=https://maps.jackharrhy.dev
+      - TEA_MAPS_URL=https://worldview.harrhy.xyz
       - TEA_MAPS_COLLABORATION_URL=http://maps-collaboration:44100
       - TEA_MAPS_ARTBIN_URL=https://artbin.jackharrhy.dev
       - AUTH_ISSUER=https://auth.jackharrhy.dev
@@ -648,7 +905,7 @@ services:
       - "com.centurylinklabs.watchtower.enable=true"
 
   maps-collaboration:
-    image: ghcr.io/jackharrhy/tea-maps-collaboration:latest
+    image: ghcr.io/jackharrhy/worldview-collaboration:latest
     restart: unless-stopped
     networks: [maps_backend]
     environment:
@@ -664,14 +921,14 @@ services:
       - "com.centurylinklabs.watchtower.enable=true"
 
   maps-compiler:
-    image: ghcr.io/jackharrhy/tea-maps-compiler:latest
+    image: ghcr.io/jackharrhy/worldview-compiler:latest
     restart: unless-stopped
     networks: [maps_backend]
     read_only: true
     tmpfs:
       - /tmp:size=512m,mode=1777
     environment:
-      - TEA_MAPS_COMPILER_ORIGINS=https://maps.jackharrhy.dev
+      - TEA_MAPS_COMPILER_ORIGINS=https://worldview.harrhy.xyz
       - TEA_MAPS_COMPILER_MAX_CONCURRENT=1
       - TEA_MAPS_COMPILER_THREADS=2
       - TEA_MAPS_COMPILER_TIMEOUT_MS=60000
@@ -694,7 +951,7 @@ services:
       - "com.centurylinklabs.watchtower.enable=true"
 
   maps-gower-compiler:
-    image: ghcr.io/jackharrhy/tea-maps-compiler:latest
+    image: ghcr.io/jackharrhy/worldview-compiler:latest
     restart: unless-stopped
     networks: [maps_backend]
     read_only: true
@@ -702,7 +959,7 @@ services:
       - /tmp:size=512m,mode=1777
     environment:
       - TEA_MAPS_GAME_PROFILE=gower
-      - TEA_MAPS_COMPILER_ORIGINS=https://maps.jackharrhy.dev
+      - TEA_MAPS_COMPILER_ORIGINS=https://worldview.harrhy.xyz
       - TEA_MAPS_COMPILER_MAX_CONCURRENT=1
       - TEA_MAPS_COMPILER_THREADS=6
       - TEA_MAPS_COMPILER_TIMEOUT_MS=1800000
@@ -726,7 +983,7 @@ services:
       - "com.centurylinklabs.watchtower.enable=true"
 
   ref-celld:
-    image: ghcr.io/jackharrhy/tea-ref:latest
+    image: ghcr.io/jackharrhy/ref:latest
     restart: unless-stopped
     networks: [web]
     ports:
@@ -754,7 +1011,7 @@ services:
       - "traefik.http.middlewares.ref-public-origin.headers.customrequestheaders.X-Forwarded-Proto=https"
 
   marky:
-    image: ghcr.io/jackharrhy/tea-marky:latest
+    image: ghcr.io/jackharrhy/marky:latest
     restart: unless-stopped
     networks: [web]
     env_file:
@@ -777,10 +1034,16 @@ services:
       - "com.centurylinklabs.watchtower.enable=true"
 
   rotund_org:
-    image: ghcr.io/jackharrhy/rotund.org:main
+    image: ghcr.io/jackharrhy/rotund:latest
     restart: unless-stopped
     networks: [web]
     env_file: [.runtime-secrets/rotund-portal.env]
+    user: "1000:1000"
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=32m
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
     mem_limit: 256m
     pids_limit: 128
     labels:
@@ -833,61 +1096,6 @@ services:
     labels:
       - "com.centurylinklabs.watchtower.enable=false"
 
-  cmd:
-    image: ghcr.io/s0ftspark/cmd:latest
-    restart: unless-stopped
-    networks: [web, cmd_db]
-    env_file:
-      - ./.runtime-secrets/cmd.env
-    environment:
-      - PHX_HOST=cmd.softspark.dev
-      - MIGRATE_ON_BOOT=1
-      # Traefik reaches this service through the newport_web bridge gateway.
-      - OAUTH_TRUSTED_PROXIES=172.21.0.1/32
-      - GITHUB_APP_PRIVATE_KEY_PATH=/run/secrets/cmd_github_app.pem
-      - OAUTH_SIGNING_PRIVATE_KEY_PATH=/run/secrets/cmd_oauth_signing.pem
-    volumes:
-      # Generated document PDFs are cached here.
-      - /mnt/terrabud/docker-data/newport/cmd_data:/data
-      - ./.runtime-secrets/cmd_github_app.pem:/run/secrets/cmd_github_app.pem:ro
-      - ./.runtime-secrets/cmd_oauth_signing.pem:/run/secrets/cmd_oauth_signing.pem:ro
-    labels:
-      - "traefik.docker.network=newport_web"
-      - "traefik.enable=true"
-      - "traefik.http.services.cmd.loadbalancer.server.port=4000"
-      - "traefik.http.routers.cmd.rule=Host(`cmd.softspark.dev`)"
-      - "traefik.http.routers.cmd.entrypoints=web"
-
-  # cmd's Postgres + pgvector. Internal-only (cmd_db network, no published
-  # ports); cmd reaches it at cmd_postgres:5432 (its DATABASE_URL). Data on
-  # the big terrabud disk.
-  cmd_postgres:
-    image: pgvector/pgvector:pg17
-    restart: unless-stopped
-    networks: [cmd_db]
-    env_file:
-      - ./.runtime-secrets/cmd_postgres.env
-    volumes:
-      - /mnt/terrabud/docker-data/newport/cmd_postgres:/var/lib/postgresql/data
-
-  # Object storage (S3-compatible) for cmd: finance source documents + the
-  # docs typst import surface (Cmd.ObjectStore.S3 → http://garage:3900).
-  # Internal-only (cmd_db, no published ports). rpc_secret + admin_token come
-  # from the env (cmd_garage.enc.yaml), not garage.toml. The bucket + access
-  # key were bootstrapped via `docker exec ... /garage {layout,bucket,key}`
-  # (the distroless image has no /bin/sh); OBJECT_STORE_* live in cmd.enc.yaml.
-  cmd_garage:
-    image: dxflrs/garage:v1.0.1
-    restart: unless-stopped
-    networks:
-      cmd_db:
-        aliases: [garage]
-    env_file:
-      - ./.runtime-secrets/cmd_garage.env
-    volumes:
-      - /mnt/terrabud/docker-data/newport/cmd_garage/meta:/var/lib/garage/meta
-      - /mnt/terrabud/docker-data/newport/cmd_garage/data:/var/lib/garage/data
-      - ./cmd_garage/garage.toml:/etc/garage.toml:ro
 
   bar:
     image: ghcr.io/jackharrhy/bar:main
@@ -930,7 +1138,7 @@ services:
       - ./volumes/incydecy:/app/data
 
   steve:
-    image: ghcr.io/jackharrhy/tea-letters-to-steve:latest
+    image: ghcr.io/jackharrhy/letters-to-steve:latest
     restart: unless-stopped
     networks: [web]
     env_file:
@@ -1098,7 +1306,7 @@ services:
     - traefik.enable=false
 
   burger:
-    image: ghcr.io/jackharrhy/tea-burger:latest
+    image: ghcr.io/jackharrhy/burger:latest
     restart: unless-stopped
     networks:
     - web
@@ -1120,6 +1328,12 @@ services:
     - traefik.http.routers.burger.entrypoints=web
 
 networks:
+  dns:
+  navidrome_backend:
+    ipam:
+      config:
+        - subnet: 172.30.33.0/29
+          gateway: 172.30.33.1
   jack_auth_backend:
     internal: true
   web:
@@ -1128,6 +1342,3 @@ networks:
 
   miniflux:
   sluggers_super_draft:
-  cmd_db:
-    external: true
-    name: newport_cmd_db

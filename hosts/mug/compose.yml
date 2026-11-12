@@ -115,7 +115,7 @@ services:
       - ./.runtime-secrets/beszel-agent.env
 
   jackharrhy:
-    image: ghcr.io/jackharrhy/tea-garden:latest
+    image: ghcr.io/jackharrhy/garden:latest
     restart: unless-stopped
     networks: [web]
     env_file:
@@ -144,18 +144,38 @@ services:
       - "traefik.http.routers.jackharrhy.tls.domains[2].sans=*.jackharrhy.com"
 
   8mb:
-    image: ghcr.io/jackharrhy/8mb:main
+    image: ghcr.io/jackharrhy/8mb:latest
     restart: unless-stopped
     networks: [web]
+    user: "1000:1000"
+    command: ["/bin/sh", "-c", "umask 077; exec node --env-file-if-exists=.env --import remix/node-tsx server.ts"]
+    environment:
+      APP_ORIGIN: https://jackharrhy.dev
+      DIAGNOSTICS_DB_FILE: /app/data/diagnostics.sqlite
+    volumes:
+      - type: bind
+        source: ./volumes/8mb-diagnostics
+        target: /app/data
+        bind:
+          create_host_path: false
     read_only: true
     tmpfs:
-      - /tmp:rw,noexec,nosuid,size=16m
+      - /tmp:rw,noexec,nosuid,size=64m
     cap_drop: [ALL]
     security_opt: ["no-new-privileges:true"]
+    cpus: 1.0
+    mem_limit: 512m
+    pids_limit: 128
+    stop_grace_period: 15s
+    logging:
+      driver: json-file
+      options:
+        max-size: "1m"
+        max-file: "2"
     labels:
       - "traefik.docker.network=mug_web"
       - "traefik.enable=true"
-      - "traefik.http.services.8mb.loadbalancer.server.port=8080"
+      - "traefik.http.services.8mb.loadbalancer.server.port=5188"
       - "traefik.http.routers.8mb.rule=Host(`jackharrhy.dev`) && (Path(`/8mb`) || PathPrefix(`/8mb/`))"
       - "traefik.http.routers.8mb.priority=100"
       - "traefik.http.routers.8mb.entrypoints=websecure"
@@ -199,7 +219,7 @@ services:
 
   # Radio uses the fork's single-node SQLite object store on this host.
   radio-celld:
-    image: ghcr.io/jackharrhy/tea-radio:latest
+    image: ghcr.io/jackharrhy/radio:latest
     restart: unless-stopped
     networks: [web]
     env_file:
@@ -281,7 +301,7 @@ services:
       - "traefik.http.routers.andrewsitemedia.tls.certresolver=mugresolver"
 
   teacms:
-    image: ghcr.io/jackharrhy/tea-cms:latest
+    image: ghcr.io/jackharrhy/teacms:latest
     restart: unless-stopped
     networks: [web]
     environment:
@@ -357,7 +377,7 @@ services:
       - "traefik.http.routers.andrewsitestrapi.tls.certresolver=mugresolver"
 
   lists:
-    image: ghcr.io/jackharrhy/tea-lists:latest
+    image: ghcr.io/jackharrhy/lists:latest
     restart: unless-stopped
     stop_grace_period: 45s
     networks: [web]
@@ -380,7 +400,7 @@ services:
 
 
   gurgur:
-    image: ghcr.io/jackharrhy/tea-gurgur:latest
+    image: ghcr.io/jackharrhy/gurgur:latest
     restart: unless-stopped
     mem_limit: 256m
     networks: [web]

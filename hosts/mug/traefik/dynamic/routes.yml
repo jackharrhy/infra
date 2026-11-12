@@ -1,5 +1,11 @@
 http:
   routers:
+    cleanuparr:
+      rule: Host(`cleanuparr.rotund.org`)
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
     4orm:
       rule: Host(`4orm.harrhy.xyz`)
       entryPoints: [websecure]
@@ -43,12 +49,6 @@ http:
       service: newport-origin
       tls:
         certResolver: mugresolver
-    cmd:
-      rule: Host(`cmd.softspark.dev`)
-      entryPoints: [websecure]
-      service: newport-origin
-      tls:
-        certResolver: mughttp
     duaas:
       rule: Host(`jackharrhy.dev`) && PathPrefix(`/urandom`)
       entryPoints: [websecure]
@@ -101,7 +101,7 @@ http:
       tls:
         certResolver: mugresolver
     maps:
-      rule: Host(`maps.jackharrhy.dev`)
+      rule: Host(`worldview.harrhy.xyz`)
       entryPoints: [websecure]
       service: newport-origin
       tls:
@@ -153,6 +153,18 @@ http:
         certResolver: mughttp
     jellyfin:
       rule: Host(`jellyfin.rotund.org`)
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
+    seerr:
+      rule: Host(`seerr.rotund.org`)
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
+    navidrome:
+      rule: Host(`music.rotund.org`)
       entryPoints: [websecure]
       service: newport-origin
       tls:
