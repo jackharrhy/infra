@@ -839,6 +839,7 @@ services:
     networks: [web]
     env_file:
       - ./.runtime-secrets/artbin-central-auth.env
+      - ./.runtime-secrets/artbin-support.env
     environment:
       - ARTBIN_URL=https://artbin.jackharrhy.dev
     volumes:
@@ -1251,7 +1252,9 @@ services:
     environment:
       FOURM_ENROLLMENT_KEY_FILE: /run/secrets/fourm-enrollment-key.json
       RADIO_ENROLLMENT_DB_FILE: /data/radio-enrollment.sqlite
+      AUTH_SUPPORT_CONFIG_FILE: /run/secrets/artbin-support.json
     volumes:
+      - ./jack-auth/.runtime-secrets/artbin-support.json:/run/secrets/artbin-support.json:ro
       - ./jack-auth/.runtime-secrets/login-key.json:/run/secrets/login-token.json:ro
       - ./jack-auth/.runtime-secrets/management-key.json:/run/secrets/management-token.json:ro
       - ./jack-auth/.runtime-secrets/fourm-enrollment-key.json:/run/secrets/fourm-enrollment-key.json:ro

@@ -91,6 +91,22 @@ lifecycle material additionally requires its matching sealed configuration/key;
 the paired-DB helper does not capture that key. Do not replace newer denials with
 an old empty ledger. Verify integrity and membership/block states before restart.
 
+## Artbin support configuration
+
+Support login is an explicit capability for the reviewed immutable Jack identity,
+not a permission inherited by ordinary application administrators. Its supported
+consumer is Artbin; native end-user impersonation is not an app-only capability.
+The Auth config/key is sealed in
+`hosts/newport/jack-auth/secrets/artbin-support.json.enc.yaml` and rendered to
+`jack-auth/.runtime-secrets/artbin-support.json`, mounted read-only. Artbin receives
+only the separate transport/client/origin settings from `artbin-support.enc.yaml`;
+its existing resource credentials and data stay separate. Both inputs start disabled.
+
+Enable only with actor-bound Auth source and a paired UI database checkpoint linked
+to the matching sealed config/key. Disabling must retain that config, key, client
+and sweeper until issued tokens are inactive; deleting the config is not a safe
+kill switch. The routine database backup does not capture the encryption key.
+
 ## Garden: code and public writing are separate releases
 
 The personal site is Harrhy's `apps/garden`, workspace `@harrhy/garden`.
