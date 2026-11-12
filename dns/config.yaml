@@ -12,7 +12,7 @@ providers:
 
   # octodns-ddns uses its provider ID as the record name; '' means apex.
   # Run from Newport: the HTTP IP lookup must see its public WAN address.
-  craft:
+  home:
     class: octodns_ddns.DdnsSource
     types: [A]
     ttl: 300
@@ -26,7 +26,7 @@ zones:
   # exist for these names. Other records remain managed by the YAML source.
   "jackharrhy.dev.":
     glob: "jackharrhy.dev."
-    sources: [config, craft]
+    sources: [config, home]
     targets: [digitalocean]
 
   "cheesetown.rocks.":

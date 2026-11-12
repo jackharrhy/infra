@@ -1,7 +1,7 @@
 # Executor
 
 Executor's self-host server runs as `executor` in Newport's main Compose project,
-independently of Chum. The pinned release is `2.0.0-beta.37`.
+independently of Chum. The pinned release is `2.0.0-beta.41`.
 
 - Dashboard: https://executor.jackharrhy.dev
 - MCP: https://executor.jackharrhy.dev/mcp
@@ -92,8 +92,8 @@ No new identities or access grants may be guessed from an email domain.
 
 ## Auth-only build and cutover
 
-`build.sh` builds `local/executor:2.0.0-beta.37-auth-only.2` from upstream commit
-`b31108468cf5e3857f00788eac809480a7371466` plus `sso-only.patch`. The Dockerfile
+`build.sh` builds `local/executor:2.0.0-beta.41-auth-only.1` from upstream commit
+`6b15de8db0d96e5662c225328a1ff8177cc4db8f` plus `sso-only.patch`. The Dockerfile
 rebuilds the Worker/UI and retains the pinned upstream native runtime. No Chum
 code or proxy authentication layer is involved.
 
@@ -111,7 +111,10 @@ explicit signed-in linking keeps native verified-email and collision checks.
 Native provider logout is disabled so signing out here does not sign out other
 Auth consumers.
 
-Auth and the consumer are live with `SSO_ONLY=true`. Jack completed SSO. A fresh
+The following acceptance records describe the initial SSO-only cutover, before
+the beta.41 upgrade; they are not a fresh full beta.41 acceptance claim.
+
+Auth and the consumer were verified with `SSO_ONLY=true`. Jack completed SSO. A fresh
 read-only database snapshot confirms exactly one user, the original owner and
 organization, the intended Auth subject linked to that owner, and the original
 management app under the same organization. A fresh session follows the provider
@@ -190,9 +193,9 @@ Private-network fetch stays disabled by upstream default. Enable
 `EXECUTOR_APPS_ALLOW_PRIVATE_FETCH=true` when an integration needs a private
 MCP/API service; every app in the instance then has that network position.
 
-## Verification and references
+## Historical SSO-only verification and references
 
-The Auth-only image passes isolated container/browser checks: password routes
+The initial Auth-only image passed isolated container/browser checks: password routes
 return 404, setup and invitation registration return 403, invalid SSO callback
 state creates no session, and login automatically starts one PKCE S256/state/nonce
 transaction. A callback refusal shows a retry without password inputs or a redirect

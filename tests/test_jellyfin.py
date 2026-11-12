@@ -7,6 +7,23 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class JellyfinConfigTest(unittest.TestCase):
+    def test_direct_https_preserves_private_origin_fallback(self):
+        service = yaml.safe_load((ROOT / "hosts/newport/compose.yml").read_text())["services"]["jellyfin"]
+        labels = dict(label.split("=", 1) for label in service["labels"])
+        self.assertEqual(labels["traefik.http.routers.jellyfin.entrypoints"], "websecure")
+        self.assertEqual(labels["traefik.http.routers.jellyfin.tls.certresolver"], "newporthttp")
+        self.assertEqual(labels["traefik.http.routers.jellyfin-origin.service"], "jellyfin")
+        self.assertIn("ClientIP(`100.124.6.111/32`)", labels["traefik.http.routers.jellyfin-origin.rule"])
+        zone = yaml.safe_load((ROOT / "dns/zones/rotund.org.yaml").read_text())
+        self.assertEqual(zone["jellyfin"]["value"], "home.jackharrhy.dev.")
+        config = yaml.safe_load((ROOT / "dns/config.yaml").read_text())
+        self.assertEqual(config["zones"]["jackharrhy.dev."]["sources"], ["config", "home"])
+        self.assertEqual(config["providers"]["home"]["class"], "octodns_ddns.DdnsSource")
+        home_zone = yaml.safe_load((ROOT / "dns/zones/jackharrhy.dev.yaml").read_text())
+        self.assertNotIn("home", home_zone)
+        self.assertEqual(home_zone["craft"]["type"], "CNAME")
+        self.assertEqual(home_zone["craft"]["value"], "home.jackharrhy.dev.")
+
     def test_only_curated_media_is_exposed_read_only(self):
         service = yaml.safe_load((ROOT / "hosts/newport/compose.yml").read_text())["services"]["jellyfin"]
         mounts = [v for v in service["volumes"] if isinstance(v, dict) and (v["source"].startswith("/mnt/stash/media") or v["target"].startswith("/data"))]

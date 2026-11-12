@@ -1,8 +1,12 @@
 # Jellyfin
 
-Runs in the Newport Compose stack at https://jellyfin.rotund.org. Mug terminates
-TLS and forwards to Newport's Docker-discovered route. Port 8096 is loopback-only;
-Jellyfin handles authentication directly so TV/mobile clients work normally.
+Runs in the Newport Compose stack at https://jellyfin.rotund.org. Public DNS
+aliases the canonical home address, `home.jackharrhy.dev`; Newport Traefik
+terminates HTTPS directly. AdGuard Home resolves the same Jellyfin hostname to
+`192.168.2.30` for opt-in LAN clients. Mug's old HTTPS route remains a compatible
+fallback for cached DNS, with its origin restricted to Mug's tailnet address.
+Port 8096 is loopback-only; Jellyfin handles authentication directly so TV/mobile
+clients work normally.
 
 ## Storage and access
 

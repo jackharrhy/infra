@@ -7,12 +7,17 @@ the service has a 90-second timeout. No separate DNS writer or cached IP file.
 
 Current names:
 
-- `craft.jackharrhy.dev`
+- `home.jackharrhy.dev` (canonical home WAN address)
 - `cheesetown.rocks` (zone apex)
+
+`craft.jackharrhy.dev` and `jellyfin.rotund.org` are CNAMEs to
+`home.jackharrhy.dev`. Point future home-hosted subdomains there rather than
+coupling them to Minecraft's hostname. Cheesetown keeps its own dynamic A record
+because a zone apex cannot be an ordinary CNAME alongside its NS records.
 
 `dns/config.yaml` combines each zone's static YAML source with the native
 `octodns_ddns.DdnsSource`. That package uses its provider ID as the record name:
-`craft` for the subdomain, `''` for an apex. The IPv4 lookup uses api.ipify.org;
+`home` for the subdomain, `''` for an apex. The IPv4 lookup uses api.ipify.org;
 IPv6 is deliberately not published. Static zone files must not also define
 these A records. Normal `dns diff` / `dns sync` use the same dynamic sources,
 so a later static synchronization won't put an obsolete address back.
