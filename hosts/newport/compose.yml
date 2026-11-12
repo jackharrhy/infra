@@ -993,7 +993,7 @@ services:
       - CELLD_TRUST_FORWARDED_HEADERS=1
     volumes:
       - /mnt/terrabud/docker-data/newport/ref_celld_tea:/app/.celld
-      - ./.runtime-secrets/ref-central-auth.env:/run/secrets/ref.env:ro
+      - ./.runtime-secrets/ref.env:/run/secrets/ref.env:ro
     pids_limit: 128
     mem_limit: 512m
     cpus: 1
@@ -1142,7 +1142,7 @@ services:
     restart: unless-stopped
     networks: [web]
     env_file:
-      - ./.runtime-secrets/steve-central-auth.env
+      - ./.runtime-secrets/steve.env
     environment:
       - DATABASE_PATH=/app/data/letters.sqlite
       - UPLOAD_DIRECTORY=/app/data/uploads

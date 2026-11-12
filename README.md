@@ -1,107 +1,30 @@
 # infra
 
-![Infrastructure diagram](https://jackharrhy.github.io/infra/infra.svg)
+Compose stacks, routing, DNS and operational tooling for Mug and Newport.
 
-- `hosts/`: Compose stacks and service-specific operating notes
-- `dns/`: octoDNS zones and configuration
-- `aws/`: Pulumi resources and mail setup
-- `docs/`: generated diagram, published by GitHub Pages
-- [`maintenance/github-actions/`](maintenance/github-actions/): standalone CI recipes
-  and the process for maintaining application workflows without central dependencies
+- [Operations](docs/operations.md): scoped maintenance, updates, routing, SOPS, DNS and NAS.
+- [Applications](docs/applications.md): Auth, sites, publishing and application recovery.
+- [Media](docs/media.md): playback, requests, acquisition and protected administration.
+- [Games](docs/games.md): Cheesetown, Sven Co-op and world/asset backups.
+- [AWS](aws/README.md): infrastructure and mail configuration.
+- [Application CI guidance](maintenance/github-actions/README.md).
 
-## CLI
+`hosts/` contains deployment configuration and helpers; current operating notes live
+in `docs/`, not beside each service. Application repositories own application development
+instructions. `dns/` contains octoDNS configuration; `aws/` contains Pulumi resources.
+
+From `~/infra`:
 
 ```sh
 uv run cli.py install
 infra status newport
-infra update newport
 infra refresh mug --service radio-celld
-infra diagram
 ```
 
-`status` compares Git revisions, not service health. `update` pulls Git only.
-Repeated `--service NAME` options refresh selected services without starting
-dependencies or pruning images. An unscoped `refresh HOST` refreshes the whole
-host stack and prunes all unused images. Nested projects such as Cheesetown are
-separate (`hosts/newport/cheesetown/`).
+`status` compares Git revisions, not health. Refresh only explicitly selected
+services; an unscoped refresh also prunes unused images. Read the operations
+policy before deployment. Nested game projects are separate Compose stacks.
 
-`diagram` writes `docs/infra.d2` and renders with `d2`; `--no-render` writes source only.
+![Infrastructure diagram](https://jackharrhy.github.io/infra/infra.svg)
 
-## Automatic updates
-
-Newport Watchtower is opt-in: only containers labeled
-`com.centurylinklabs.watchtower.enable=true` receive automatic image updates.
-Unlabeled development containers and intentional `false` exclusions stay manual;
-Mug's updater policy is separate. Checks run every ten minutes.
-
-First-party applications normally follow their existing main-published tag (`main`
-or `latest`). Temporary rollout pins, exclusions and updater pauses must be removed
-when their release condition passes. Finish maintenance with Watchtower operational;
-if a real blocker remains, name the affected app, owner and next action rather than
-silently leaving the fleet frozen. Vendor version policy remains deliberate.
-
-Brief service-scoped maintenance downtime is acceptable. Check active use, warn and
-save Minecraft sessions before a graceful restart, and verify the service returns.
-Do not treat ordinary website traffic as a restart veto. Unrecoverable in-memory
-games/jobs need a drain or tested recovery gate, including for automatic updates.
-
-## Routing
-
-Container routes use Compose labels. File-provider routes, services and middleware
-have one canonical file per host:
-
-- `hosts/mug/traefik/dynamic/routes.yml`
-- `hosts/newport/traefik/dynamic/routes.yml`
-
-Add file-based routing there, not in per-app fragments. Traefik watches these
-files for reloads; listener, provider and certificate-resolver settings live in
-each host's Compose configuration.
-
-Mug terminates public HTTPS and relays Newport applications through the shared
-`newport-origin` service, preserving the Host header. Newport selects the local
-backend. Auth and Lore use dedicated HTTP/h2c backends; Cheesetown terminates TLS
-on Newport itself. These are separate hops, not duplicate application backends.
-
-Name routers and services for the application (`8ballworld`, `executor`) or its
-role (`jack-auth-ui`, `cheesetown-site`), without host/transport suffixes. Keep
-individual hostname routers: combining their rules changes implicit priorities
-and ACME domain grouping. Reuse middleware for genuinely shared behavior, such
-as Cheesetown's ordered slash-redirect/strip-prefix chain; keep independent
-rate-limit buckets and certificate resolvers separate.
-
-Traefik references: [rules and priority](https://doc.traefik.io/traefik/reference/routing-configuration/http/routing/rules-and-priority/),
-[middleware chains](https://doc.traefik.io/traefik/reference/routing-configuration/http/middlewares/chain/),
-[TLS domains](https://doc.traefik.io/traefik/reference/routing-configuration/http/tls/overview/).
-
-## Secrets and DNS
-
-Secrets are SOPS-encrypted YAML; rendering requires `sops` and an age key.
-Rendered `.runtime-secrets/` files stay out of Git.
-
-```sh
-sops hosts/{host}/secrets/{service}.enc.yaml
-./scripts/render-secrets.sh newport
-infra dns diff jackharrhy.com.
-infra dns sync jackharrhy.com.
-```
-
-DNS uses DigitalOcean. `sync` asks before applying; `infra dns dump` pulls records.
-Newport's [generic DDNS timer](hosts/newport/ddns/README.md) keeps configured home-hosted names current through native octoDNS sources.
-Mail setup is in [aws/README.md](aws/README.md).
-
-## NAS
-
-Credentials: `nas/secrets/synology.enc.yaml`.
-
-```sh
-infra nas login-check
-infra nas shares
-infra nas search 'whitelist.json' --name-only
-infra nas search minecraft --limit 50 --offset 0 --json
-infra nas nfs list SHARE
-infra nas nfs grant SHARE CLIENT_PATTERN
-infra nas nfs revoke SHARE CLIENT_PATTERN --yes
-```
-
-Search uses DSM's index and account permissions, not a local crawl. Returned NAS
-paths are not local mount paths. See `infra nas search --help` for options.
+`infra diagram` regenerates the diagram in `docs/` (`--no-render` writes D2 only).

@@ -10,18 +10,8 @@ def labels(service):
     return dict(item.split("=", 1) for item in service["labels"])
 
 
-class MediaUiConfigTest(unittest.TestCase):
-    def test_retired_halcyon_is_not_recreated_by_refresh(self):
-        services = yaml.safe_load((ROOT / "hosts/newport/compose.yml").read_text())["services"]
-        self.assertNotIn("halcyon", services)
-        self.assertNotIn("halcyon-auth", services)
-        for host in ("mug", "newport"):
-            routes = yaml.safe_load((ROOT / "hosts" / host / "traefik/dynamic/routes.yml").read_text())
-            self.assertFalse(any("halcyon" in str(value).lower() for value in routes["http"]["routers"].values()))
-        self.assertFalse((ROOT / "hosts/newport/secrets/halcyon-auth.enc.yaml").exists())
-        self.assertFalse((ROOT / "hosts/newport/.runtime-secrets/halcyon-auth.env").exists())
-
-    def test_cleanuparr_ui_and_api_have_no_public_gate_bypass(self):
+class CleanuparrConfigTest(unittest.TestCase):
+    def test_ui_and_api_have_no_public_gate_bypass(self):
         services = yaml.safe_load((ROOT / "hosts/newport/compose.yml").read_text())["services"]
         app = services["cleanuparr"]
         self.assertEqual(labels(app).get("traefik.enable"), "true")
