@@ -51,6 +51,11 @@ mail:
     preference: 10
 - type: TXT
   value: v=spf1 include:amazonses.com -all
+# Explicit owner name suppresses the public wildcard, including its AAAA.
+pi:
+  ttl: 300
+  type: A
+  value: 100.123.66.70
 reply:
   type: MX
   value:

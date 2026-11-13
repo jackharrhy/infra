@@ -21,12 +21,19 @@ providers:
     types: [A]
     ttl: 300
 
+processors:
+  pi-acme:
+    class: octodns.processor.filter.NameRejectlistFilter
+    # Traefik owns this transient TXT, including during DDNS reconciliation.
+    rejectlist: [_acme-challenge.pi]
+
 zones:
   # Dynamic sources follow static configuration. No static A record should
   # exist for these names. Other records remain managed by the YAML source.
   "jackharrhy.dev.":
     glob: "jackharrhy.dev."
     sources: [config, home]
+    processors: [pi-acme]
     targets: [digitalocean]
 
   "cheesetown.rocks.":
