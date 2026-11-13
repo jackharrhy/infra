@@ -88,11 +88,11 @@ such as Cheesetown's ordered slash redirect/strip-prefix chain; retain independe
 rate-limit buckets and certificate resolvers. Garden's low-priority domain aliases
 must not overtake higher-priority application paths.
 
-### Private Pi hostname
+### Private Pi and named previews
 
-`pi.jackharrhy.dev` has an explicit Tailnet A record, not the public wildcard's
-A/AAAA. Newport Traefik binds `pitailnet` to `100.123.66.70:443`; only its Pi
-router uses that entrypoint. Public `websecure` stays on `192.168.2.30:443` for
+`pi.jackharrhy.dev` and `*.pi.jackharrhy.dev` have explicit Tailnet A records,
+not the public wildcard's A/AAAA. Newport Traefik binds `pitailnet` to
+`100.123.66.70:443`; only explicit private Host routers use that entrypoint. Public `websecure` stays on `192.168.2.30:443` for
 existing WAN forwarding. Keep `web` and `websecure` as explicit default
 entrypoints so implicit Docker routers do not inherit the private listener.
 A public Host/SNI or spoofed forwarded header must never select the Pi backend.
@@ -106,17 +106,52 @@ and proxy routing. This is the canonical external URL; legacy Tailscale Serve
 
 Traefik's `newportdns` resolver renews DNS-01 certificates using the encrypted
 `secrets/traefik.enc.yaml` input and private persisted `acme-dns.json` (0600).
-No public application/challenge listener is needed. The zone's `pi-acme`
+The certificate includes both `pi.jackharrhy.dev` and `*.pi.jackharrhy.dev`;
+the wildcard covers one label, not nested subdomains. No public
+application/challenge listener is needed. The zone's `pi-acme`
 processor excludes only `_acme-challenge.pi` from octoDNS/DDNS reconciliation so
 renewal TXT records remain Traefik-owned. Run dynamic-zone DNS changes on Newport,
 not Mug. Public DNS and certificate transparency disclose the hostname; they do
 not grant service access. Clients require Tailscale and a resolver accepting the
 CGNAT answer. Do not replace this with a public Mug route or Tailscale Funnel.
 
+Named previews are opt-in, not a catchall proxy or process launcher:
+
+| Name under `pi.jackharrhy.dev` | Fixed loopback upstream | Application owner / access |
+| --- | --- | --- |
+| `alderpoint` | 5173 | Alderpoint app; native login and exact allowed host |
+| `alderpoint-api` | 54321 | Alderpoint main Supabase; existing API/auth policies |
+| `4orm` | 18954 | Harrhy native review; separate private review key |
+
+Register a unique short lowercase label with its owner, fixed loopback port,
+access policy and retirement condition in the same canonical routes file. Reserve
+the apex for p2; never derive an upstream from arbitrary Host input. Unknown
+names return 404. p2's marker/auth is not shared preview authentication. Traefik
+does not inject Tailscale user identities; do not fabricate those headers or
+replace a review-key gate with trust in client-supplied identity. Preserve Host,
+Origin and WebSocket upgrades; keep forwarded-header trust disabled on the private
+entrypoint. Cookies must be host-only, not scoped to the shared parent domain;
+sibling previews are same-site, so retain CSRF/exact Origin checks.
+
+Change app origins/callbacks through the app owner, verify before removing old
+Serve entries, and remove a preview route before its backend port is reused.
+The native 4orm review's fixture issuer remains its existing Serve 8565 origin:
+issuer+subject links are identity state, not a cosmetic URL rename. Do not remove
+that issuer route or rewrite identity rows to tidy a hostname. Its app is reached
+at the named host; the separate key gate applies to both origins.
+
+Retired game, Cmd, Marty and visual-review previews are not automatically
+relaunched by wildcard DNS. Future relaunch is an explicit app-owner request:
+start the retained dedicated runtime/state, add a named fixed route, align exact
+origins/access gates and verify. Runtime/state cleanup is separate from routing.
+
 After changes verify valid TLS and authentication from a Tailnet client; public
 WAN IPv4/IPv6 Host/SNI denial; local-only ingress and unauthenticated WebSocket
-denial; absence of legacy Serve 8788 and unchanged existing public sites. A server probe is not a successful
-owner browser session. Preserve the LAN lease/address when changing bindings.
+denial; retired Serve entries absent and existing public sites unchanged. A server
+probe is not a successful owner browser session. Preserve the LAN lease/address
+when changing bindings. If a resolver filters public-to-CGNAT answers or retains
+negative cache, diagnose that exact resolver; do not disable rebinding protection
+globally or hide the problem with hosts-file entries.
 
 ## SOPS and recovery
 

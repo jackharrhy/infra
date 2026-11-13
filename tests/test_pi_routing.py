@@ -19,15 +19,47 @@ class PiRoutingTests(unittest.TestCase):
         http = yaml.safe_load((ROOT / 'hosts/newport/traefik/dynamic/routes.yml').read_text())['http']
         router = http['routers']['pi']
         self.assertEqual(router['entryPoints'], ['pitailnet'])
+        self.assertEqual(router['rule'], 'Host(`pi.jackharrhy.dev`)')
         self.assertEqual(router['tls']['certResolver'], 'newportdns')
+        self.assertEqual(router['tls']['domains'], [
+            {'main': 'pi.jackharrhy.dev', 'sans': ['*.pi.jackharrhy.dev']}])
         self.assertEqual(http['services']['pi']['loadBalancer'], {
             'passHostHeader': True, 'servers': [{'url': 'http://127.0.0.1:8788'}]})
         self.assertEqual(http['middlewares']['pi-proxy-marker']['headers']['customRequestHeaders'],
                          {'X-P2-Proxy-Secret': '1'})
 
+    def test_named_previews_are_opt_in_private_fixed_upstreams(self):
+        http = yaml.safe_load((ROOT / 'hosts/newport/traefik/dynamic/routes.yml').read_text())['http']
+        previews = {
+            'alderpoint-preview': ('alderpoint', 5173),
+            'alderpoint-preview-api': ('alderpoint-api', 54321),
+            '4orm-preview': ('4orm', 18954),
+        }
+        for name, (host, port) in previews.items():
+            with self.subTest(name=name):
+                router = http['routers'][name]
+                self.assertEqual(router['rule'], f'Host(`{host}.pi.jackharrhy.dev`)')
+                self.assertEqual(router['entryPoints'], ['pitailnet'])
+                self.assertEqual(router.get('middlewares', []), [])
+                self.assertIn('tls', router)
+                self.assertEqual(http['services'][router['service']]['loadBalancer'], {
+                    'passHostHeader': True, 'servers': [{'url': f'http://127.0.0.1:{port}'}]})
+        private_rules = {r['rule'] for r in http['routers'].values()
+                         if 'pitailnet' in r.get('entryPoints', [])}
+        self.assertEqual(private_rules, {
+            'Host(`pi.jackharrhy.dev`)',
+            'Host(`alderpoint.pi.jackharrhy.dev`)',
+            'Host(`alderpoint-api.pi.jackharrhy.dev`)',
+            'Host(`4orm.pi.jackharrhy.dev`)',
+        })
+        for router in http['routers'].values():
+            if 'pitailnet' in router.get('entryPoints', []):
+                self.assertNotIn('HostRegexp', router['rule'])
+
     def test_dns_has_no_public_ipv6_and_preserves_acme_challenge(self):
         zone = yaml.safe_load((ROOT / 'dns/zones/jackharrhy.dev.yaml').read_text())
-        self.assertEqual(zone['pi'], {'ttl': 300, 'type': 'A', 'value': '100.123.66.70'})
+        for name in ['pi', '*.pi']:
+            self.assertEqual(zone[name], {'ttl': 300, 'type': 'A', 'value': '100.123.66.70'})
         dns = yaml.safe_load((ROOT / 'dns/config.yaml').read_text())
         self.assertIn('pi-acme', dns['zones']['jackharrhy.dev.']['processors'])
         self.assertEqual(dns['processors']['pi-acme']['rejectlist'], ['_acme-challenge.pi'])

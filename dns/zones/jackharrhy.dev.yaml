@@ -19,6 +19,10 @@
   value: 142.93.144.29
 - type: AAAA
   value: 2604:a880:cad:d0::dff:a001
+'*.pi':
+  ttl: 300
+  type: A
+  value: 100.123.66.70
 _atproto:
   type: TXT
   value: did=did:plc:fag4zgsjdw6cf4eepa4dx4eo
