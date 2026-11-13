@@ -122,6 +122,7 @@ Named previews are opt-in, not a catchall proxy or process launcher:
 | `alderpoint` | 5173 | Alderpoint app; native login and exact allowed host |
 | `alderpoint-api` | 54321 | Alderpoint main Supabase; existing API/auth policies |
 | `4orm` | 18954 | Harrhy native review; Tailnet entrance, native app login retained |
+| `auth-preview` | 18809 | Harrhy GET-only synthetic UI fixture; `/`, `/login`, `/assets/` only, no actual Auth session/provider |
 
 Register a unique short lowercase label with its owner, fixed loopback port,
 access policy and retirement condition in the same canonical routes file. Reserve

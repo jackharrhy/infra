@@ -25,6 +25,11 @@ http:
       entryPoints: [pitailnet]
       service: 4orm-preview
       tls: {}
+    auth-preview:
+      rule: 'Host(`auth-preview.pi.jackharrhy.dev`) && (Path(`/`) || Path(`/login`) || PathPrefix(`/assets/`))'
+      entryPoints: [pitailnet]
+      service: auth-preview
+      tls: {}
     direct-wan-guard:
       rule: '!Host(`cheesetown.rocks`) && !Host(`jellyfin.rotund.org`) && !(ClientIP(`127.0.0.0/8`) || ClientIP(`10.0.0.0/8`) || ClientIP(`172.16.0.0/12`)
         || ClientIP(`192.168.0.0/16`) || ClientIP(`100.64.0.0/10`) || ClientIP(`::1/128`) || ClientIP(`fc00::/7`))'
@@ -32,6 +37,11 @@ http:
       priority: 1000000
       service: noop@internal
   services:
+    auth-preview:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: http://127.0.0.1:18809
     alderpoint-preview:
       loadBalancer:
         passHostHeader: true
