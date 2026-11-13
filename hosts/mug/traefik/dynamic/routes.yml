@@ -88,7 +88,7 @@ http:
     jack-auth-ui:
       rule: Host(`auth.jackharrhy.dev`) && (Path(`/`) || PathPrefix(`/login`) || PathPrefix(`/device`) || PathPrefix(`/account`)
         || Path(`/manage`) || PathPrefix(`/manage/`) || PathPrefix(`/authorize`) || PathPrefix(`/logout`) || PathPrefix(`/assets/`)
-        || Path(`/healthz`) || Path(`/forgot-password`) || Path(`/reset-password`) || Path(`/verify-email`) || PathPrefix(`/enroll`))
+        || Path(`/healthz`) || Path(`/forgot-password`) || Path(`/reset-password`) || Path(`/verify-email`) || PathPrefix(`/enroll`) || Path(`/support/handoff`) || Path(`/support/redeem`) || Path(`/support/session`) || Path(`/support/end`) || Path(`/support/callback`))
       entryPoints: [websecure]
       priority: 200
       service: jack-auth-ui

@@ -100,10 +100,12 @@ The Auth config/key is sealed in
 `hosts/newport/jack-auth/secrets/artbin-support.json.enc.yaml` and rendered to
 `jack-auth/.runtime-secrets/artbin-support.json`, mounted read-only. Artbin receives
 only the separate transport/client/origin settings from `artbin-support.enc.yaml`;
-its existing resource credentials and data stay separate. Both inputs start disabled.
+its existing resource credentials and data stay separate. Both inputs are enabled
+for the reviewed Jack-only flow. Mug routes `/support/handoff`, `/support/redeem`,
+`/support/session`, `/support/end` and `/support/callback` to the Auth UI.
 
-Enable only with actor-bound Auth source and a paired UI database checkpoint linked
-to the matching sealed config/key. Disabling must retain that config, key, client
+Activation requires actor-bound Auth source and a paired UI database checkpoint
+linked to the matching sealed config/key. Disabling must retain that config, key, client
 and sweeper until issued tokens are inactive; deleting the config is not a safe
 kill switch. The routine database backup does not capture the encryption key.
 

@@ -10,6 +10,14 @@ class AuthAuthorizationRoutingTests(unittest.TestCase):
         path = Path(__file__).resolve().parents[1] / 'hosts/mug/traefik/dynamic/routes.yml'
         self.http = yaml.safe_load(path.read_text())['http']
 
+    def test_support_protocol_and_actor_callback_reach_the_ui(self):
+        router = self.http['routers']['jack-auth-ui']
+        self.assertEqual(router['service'], 'jack-auth-ui')
+        self.assertGreater(router['priority'], self.http['routers']['jack-auth-api']['priority'])
+        for path in ['/support/handoff', '/support/redeem', '/support/session', '/support/end', '/support/callback']:
+            with self.subTest(path=path):
+                self.assertIn(f'Path(`{path}`)', router['rule'])
+
     def test_authorization_aliases_are_guarded_without_capturing_other_protocol_endpoints(self):
         router = self.http['routers']['jack-auth-authorization']
         pattern, = re.findall(r'PathRegexp\(`([^`]+)`\)', router['rule'])
