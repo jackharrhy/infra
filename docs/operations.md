@@ -166,6 +166,29 @@ use the dynamic sources. The timer reconciles whole selected zones: review stati
 changes before putting them in the live checkout. DNS does not configure router
 forwarding or establish external reachability.
 
+## Local gateway and Tailnet changes
+
+Discover the actual default gateway and firmware family before selecting a client
+or sending credentials. Prefer supported local CLI/web administration and the
+existing router client's README; a fixture passing does not establish compatibility
+with the current device. Expose only explicitly requested services, not every
+listener. Obtain a complete authenticated mapping baseline before writes; a
+partial/guest inventory is not an empty rule set or permission to mutate it.
+
+Keep global-enable and per-rule changes separate. Read back each exact write and
+preserve unrelated devices' rules. After uncertain/partial failure, inspect state
+before retrying: a failed response does not mean nothing changed. Some RDK web
+handlers mutate cleanup state even on GET; use the family-specific safe read path
+rather than probing an action handler as if it were read-only. Bell/Sagemcom IDs
+and global-toggle semantics are not interchangeable with RDK.
+
+Verify TCP with trusted HTTPS and the real application from an independent network;
+for UDP use a protocol response or unique received probe, not successful send.
+Packet arrival is not actual voice/game acceptance. Preserve existing Tailscale
+Serve mappings and complete approved subnet-route sets; an exit node is not proof
+of a gateway subnet route. A topology investigation does not authorize router or
+network-wide DHCP/DNS changes.
+
 ## NAS and diagrams
 
 ```sh
@@ -181,8 +204,20 @@ infra diagram
 
 NAS credentials are `nas/secrets/synology.enc.yaml`. Search uses DSM's index and
 account permissions, not a local crawl; returned paths are not local mount paths.
-Grant/revoke are access changes, not read-only inspection. `diagram` writes
-`docs/infra.d2` and invokes D2; `--no-render` writes source only.
+Grant/revoke are access changes, not read-only inspection. Paginate indexed search
+against its declared total; a truncated page, missing account permission or unindexed
+archive is not proof of absence. Reuse the CLI's authenticated client/TOTP handling
+and sanitized cleanup rather than creating another credentials transport.
+
+For a selected large ZIP, authenticated HTTP Range reads can inspect its central
+directory and small members without downloading the entire archive; require HTTP 206
+before consuming a requested range. Never accept a server ignoring Range as a
+silent multi-gigabyte download. Stream tar.gz inspection when appropriate, retain
+small recovered members privately, and report interruption/ReadError as incomplete
+coverage even if a useful member was recovered. Do not extract arbitrary archive
+trees onto live data or publish recovered private identities.
+
+`diagram` writes `docs/infra.d2` and invokes D2; `--no-render` writes source only.
 
 ## Planned
 

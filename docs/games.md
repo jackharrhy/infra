@@ -46,7 +46,14 @@ keeps all rolling archives for seven days, the first per day from seven to 28 da
 the first per ISO week thereafter indefinitely, and the earliest surviving rolling
 archive indefinitely, using Newfoundland time. Only matching top-level
 `cheesetown-*.tar.gz` files are eligible; deployment/retirement/upgrade archives
-are untouched. Failed backups skip retention. Preview from the project directory:
+are untouched. Failed backups skip retention.
+
+Tar's "file changed as we read it" result is not a clean recovery point even if
+an outer producer returns zero. Leave pruning skipped and obtain a clean retry.
+Archives or hardlinks on the same drive are not protection against drive failure;
+separate a verified off-host recovery copy from convenient local retention.
+
+Preview from the project directory:
 
 ```sh
 docker compose exec backup /retain-backups.sh --dry-run
@@ -100,6 +107,12 @@ ignored `downloads/`. The pack is optional; declining retains vanilla paintings.
 Cheesetown terminates its own public TLS; preserve separate `/map`, `/storefront`
 and `/item-sorter` routes and ordered slash/strip-prefix middleware. Public DNS
 has its own dynamic apex record; game/DNS/forwarding readiness are distinct checks.
+
+Optional client packs do not provision or upgrade the server. Packwiz file updates
+do not replace an existing launcher's Minecraft/loader components or JVM settings;
+version changes may require explicit instance edits or a reviewed reimport. Check
+indexed paths and actual served artifacts, not only generated manifests. Keep
+client-pack publishing separate from world/server configuration changes.
 
 ## Sven Co-op
 
@@ -159,3 +172,33 @@ is defined here. Do not promise recovery of an unfinished in-memory level/sessio
 coordinate a safe stopping point. Restore reviewed assets/configuration into an
 empty destination with the game/download writer stopped, preserving the previous
 set until play/FastDL checks pass.
+
+### Live console and pack changes
+
+Avoid a timeout-killed `docker attach` with default signal proxying: terminating
+the client can signal the game. For an occupied server, use a bounded Docker
+Engine API attachment against a discovered supported API version and close only
+that attachment socket. Decode non-TTY framed output correctly and never query
+credential-bearing CVARs as generic diagnostics.
+
+For a non-TTY console, POST to the daemon's supported
+`/vVERSION/containers/CONTAINER/attach?stream=1&stdin=1&stdout=1&stderr=1` over its
+Unix socket with `Connection: Upgrade`, `Upgrade: tcp` and an empty body. Require
+HTTP101 or200 before newline-terminated console commands. Each output frame has
+an eight-byte header: stream byte, three padding bytes and big-endian payload
+length. Retain partial frames, bound the read interval and close only that socket.
+
+Inspect the real map/player/setting state first. Resolve administrators from
+verified Steam identity, not display names. Administrator-only cheats, global
+gravity, owner privileges and RCON are different capabilities; do not enable all
+of them for a narrow player request. Persist private admin data outside FastDL.
+
+Read back configuration bytes from inside the container: an atomic host edit can
+leave an individual-file bind on the old inode. Install complete packs before
+`changelevel`; verify the requested map afterward. Reapply/read back a requested
+hostname after the transition because map configuration can overwrite it.
+
+For separately authorized pack removal, subtract every retained pack's shared
+paths before deleting exclusively owned assets. Update startup and mapcycle
+together, retain author settings and recovery, and recheck play/FastDL rather than
+assuming that a BSP deletion alone completed a safe removal.
