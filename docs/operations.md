@@ -121,14 +121,14 @@ Named previews are opt-in, not a catchall proxy or process launcher:
 | --- | --- | --- |
 | `alderpoint` | 5173 | Alderpoint app; native login and exact allowed host |
 | `alderpoint-api` | 54321 | Alderpoint main Supabase; existing API/auth policies |
-| `4orm` | 18954 | Harrhy native review; separate private review key |
+| `4orm` | 18954 | Harrhy native review; Tailnet entrance, native app login retained |
 
 Register a unique short lowercase label with its owner, fixed loopback port,
 access policy and retirement condition in the same canonical routes file. Reserve
 the apex for p2; never derive an upstream from arbitrary Host input. Unknown
 names return 404. p2's marker/auth is not shared preview authentication. Traefik
 does not inject Tailscale user identities; do not fabricate those headers or
-replace a review-key gate with trust in client-supplied identity. Preserve Host,
+replace an access policy with trust in client-supplied identity. Preserve Host,
 Origin and WebSocket upgrades; keep forwarded-header trust disabled on the private
 entrypoint. Cookies must be host-only, not scoped to the shared parent domain;
 sibling previews are same-site, so retain CSRF/exact Origin checks.
@@ -138,7 +138,15 @@ Serve entries, and remove a preview route before its backend port is reused.
 The native 4orm review's fixture issuer remains its existing Serve 8565 origin:
 issuer+subject links are identity state, not a cosmetic URL rename. Do not remove
 that issuer route or rewrite identity rows to tidy a hostname. Its app is reached
-at the named host; the separate key gate applies to both origins.
+at the named host. The review app and fixture issuer intentionally use Tailnet
+reachability as their entrance boundary; native application login remains separate.
+Keep all five review/access listeners on loopback, the app router on `pitailnet`
+only, and the issuer Serve mapping private (never Funnel). This is not production
+Auth eligibility or authorization for unrelated previews.
+
+Future shared entrance authentication is tracked in
+[issue 85](https://github.com/jackharrhy/infra/issues/85); it is not deployed policy.
+Do not replace individual app authentication or broaden cookie scope by implication.
 
 Retired game, Cmd, Marty and visual-review previews are not automatically
 relaunched by wildcard DNS. Future relaunch is an explicit app-owner request:
