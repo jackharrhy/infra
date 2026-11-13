@@ -12,9 +12,13 @@ Jack Auth's issuer/UI is `https://auth.jackharrhy.dev`; discovery is
 in its canonical route file. PostgreSQL and pinned provider/local UI images are
 intentionally separate from routine registry-following applications. Backend
 ports 18085/18086 bind Newport's tailnet address, not the public Internet.
-Application source is in `~/repos/personal/auth`; the deployment copy is
-`~/repos/personal/jack-auth` on Newport. Follow that source's provisioning/build
-instructions rather than inventing a fleet-wide Auth refresh procedure.
+Auth UI development is now owned by Harrhy's
+[`apps/auth`](https://github.com/jackharrhy/harrhy/tree/main/apps/auth). Older
+standalone checkouts and a feature branch predating that import are not proof of
+current main. The separate deployment copy is `~/repos/personal/jack-auth` on
+Newport; inspect its actual selected source/image before maintenance. A source
+consolidation is not a provider/runtime cutover. Follow the current source owner's
+provisioning/build instructions, not an invented fleet-wide Auth refresh.
 
 Auth owns issuer resources, explicit app eligibility/grants, service-account
 keys and provider/SMTP configuration. Applications own native accounts, identity
@@ -108,6 +112,28 @@ Activation requires actor-bound Auth source and a paired UI database checkpoint
 linked to the matching sealed config/key. Disabling must retain that config, key, client
 and sweeper until issued tokens are inactive; deleting the config is not a safe
 kill switch. The routine database backup does not capture the encryption key.
+
+## Private vault synchronization
+
+Use the official [headless Sync guide](https://obsidian.md/help/sync/headless) and
+existing registration rather than creating another writer. Inspect desktop and
+headless clients first: they must not sync the same vault concurrently. Reuse
+saved authentication privately; configuration/backups can contain encryption keys
+and private filenames. A successful remote listing is not completed sync.
+
+Before the first resumed synchronization, take and verify a private backup of the
+vault plus its matching headless configuration. Verify the installed Node/client
+and its native SQLite module with an in-memory database before touching state;
+package installation can suppress native scripts. For a stale server-side consumer,
+use explicit pull-only mode when requested; mirror/remote deletion semantics are
+a separate decision. Run one successful bounded sync before enabling continuous
+operation. Inspect actual user-service enablement, restart behavior and private
+logs; do not repair authentication by blind restart loops.
+
+Synchronization, local build, public-content review and publication are separate
+authorities. Do not put a private vault or whole attachment tree in a public image,
+repo or upload merely to verify sync. Garden's current snapshot/export procedure
+below supersedes older standalone-site manifest/upload commands.
 
 ## Garden: code and public writing are separate releases
 
@@ -312,3 +338,16 @@ editing first; restart clears in-memory file locks. Back up
 `/mnt/terrabud/docker-data/newport/lore` while stopped and retain an off-host copy.
 Keep history/recovery archives; do not treat a renamed repository as a supported
 native operation or reuse retired identity-provider configuration.
+
+Obtain editable Lore checkouts through the supported client; the server's backing
+store is not a working tree. Keep repository identity/history and native lock
+semantics intact rather than editing backing files to imitate a client operation.
+
+## Browser policy diagnostics
+
+A legitimate flow can fail because response policy produces `Origin: null` or
+CSP blocks a verified post-consent callback. Reproduce the actual browser request
+and fix the responsible, narrowly scoped response/redirect policy; do not drop
+CSRF/origin validation, reuse a one-time consent handle or broaden arbitrary
+redirects to make the symptom disappear. Successful anonymous redirects alone
+still do not establish a working human authorization flow.

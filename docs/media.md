@@ -52,6 +52,12 @@ recover the matching image/source and encrypted configuration.
 
 ## Playback and requests
 
+Verify the actual NAS mount and intended non-root/media-group access before
+declaring a library missing. A stale supplementary-group membership or a path
+predicate that suppresses permission errors can look like absent media. Use
+`stat()` to distinguish missing from inaccessible and, where applicable, the
+existing `/usr/bin/sg media` boundary rather than changing NAS ownership or ACLs.
+
 ### Jellyfin
 
 Only `/mnt/stash/media/library/{movies,tv,documentaries}` is mounted read-only
@@ -105,6 +111,14 @@ docker exec newport-navidrome-1 /app/navidrome backup create --backup-dir /backu
 Backups contain the DB, not audio/cache. Preserve SOPS/configuration with recovery;
 inspect `navidrome backup restore --help` for native options and stop the service
 before production restore. Keep current data first; cache is rebuildable.
+
+Stash is the canonical listening library; Blue's offline library is independent,
+not a destructive mirror. Newport processes against the Stash mount; keep bulk
+transfer staging outside indexed music and off the constrained local root. Device
+variants and local-only releases can be legitimate. Engine DJ's working paths,
+catalogs, playlists, cues and beatgrids remain device-owned; publishing a serving
+copy does not authorize moving originals, retagging or rewriting performance data.
+Use musictl's own repository for replication implementation and reviewed plans.
 
 ### Seerr
 
@@ -176,6 +190,23 @@ healthy swarm. Do not add a bypass proxy/tracker account or change bandwidth/qua
 policy as incidental source expansion. Scheduled strikes/configuration do not prove
 that an automatic strike-limit removal and successful replacement has occurred.
 
+## Progress and entry-only cleanup
+
+Paginate request/history APIs before claiming totals. Deduplicate download hashes;
+a season pack can account for several episode queue rows. TV fulfillment is
+measured against requested aired seasons/episodes, not a whole-series percentage.
+Completed `queuedUP`/`stalledUP` torrents can be waiting to upload, not unfinished
+downloads. Queue state, imported payload/hardlinks and the player's visible catalog
+are separate evidence; do not claim a submitted search has filled the library.
+
+Preserve the approved stop-only ratio/time policy. Check global defaults, existing
+torrent overrides, indexer seed settings and synced manager values separately;
+changing one default does not establish effective limits. Stopping seeding is not
+removal. For separately authorized completed-entry cleanup, require imported-file
+and native-history evidence, set `deleteFiles=false` explicitly, and verify retained
+payload/library identities plus unfinished jobs. This is not permission to configure
+future cleanup or remove anything from the listening/viewing library.
+
 ## Maintenance and recovery
 
 Routine examples:
@@ -216,7 +247,11 @@ After an access change, check actual owner login, no-grant denial, malformed
 callback rejection and anonymous/spoofed-header UI/API denial. Playback changes
 need real native/browser playback as relevant; acquisition changes need the
 specifically authorized download/import/hardlink outcome. Check source constraints
-without treating tests as a live acceptance claim:
+without treating tests as a live acceptance claim. For a playback/bootstrap change,
+decode a bounded native music stream rather than treating HTTP200 as playback.
+For video, distinguish actual direct browser playback from an explicitly forced
+hardware-transcode check. Stop test sessions afterward; these checks are not a
+requirement to replay the full media suite for an ordinary compatible patch:
 
 ```sh
 uv run python -m unittest discover -s tests
