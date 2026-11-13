@@ -57,6 +57,15 @@ After a Docker daemon restart with live restore, a running Traefik/Watchtower ca
 retain a stale Docker socket mount. Compare socket inodes, recreate only affected
 consumers, and verify provider discovery/updater connectivity.
 
+## Container memory diagnostics
+
+Run `python3 scripts/container-memory.py --project mug` on Mug, or use
+`--project newport` on Newport. Add `sudo` if process/cgroup files are unreadable.
+The read-only report includes cgroup-v2 resident charge, swap and memory caps;
+Docker's usual stats view omits swapped-out memory. Partial reports fail visibly.
+Compare with `/proc/pressure/memory`, `/proc/pressure/io` and `vmstat 2 5` before
+changing limits: swap occupancy alone does not establish active paging.
+
 ## Routing
 
 Local container routes belong in Compose labels. File-provider routes, services
