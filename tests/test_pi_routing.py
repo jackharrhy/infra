@@ -51,10 +51,22 @@ class PiRoutingTests(unittest.TestCase):
             'Host(`alderpoint.pi.jackharrhy.dev`)',
             'Host(`alderpoint-api.pi.jackharrhy.dev`)',
             'Host(`4orm.pi.jackharrhy.dev`)',
+            'Host(`auth-preview.pi.jackharrhy.dev`) && (Path(`/`) || Path(`/login`) || PathPrefix(`/assets/`))',
         })
         for router in http['routers'].values():
             if 'pitailnet' in router.get('entryPoints', []):
                 self.assertNotIn('HostRegexp', router['rule'])
+
+    def test_auth_design_fixture_has_no_live_auth_proxy_paths(self):
+        http = yaml.safe_load((ROOT / 'hosts/newport/traefik/dynamic/routes.yml').read_text())['http']
+        router = http['routers']['auth-preview']
+        self.assertEqual(router['entryPoints'], ['pitailnet'])
+        self.assertNotIn('middlewares', router)
+        self.assertEqual(router['service'], 'auth-preview')
+        self.assertEqual(http['services']['auth-preview']['loadBalancer'], {
+            'passHostHeader': True, 'servers': [{'url': 'http://127.0.0.1:18809'}]})
+        self.assertNotIn('support', router['rule'])
+        self.assertNotIn('callback', router['rule'])
 
     def test_dns_has_no_public_ipv6_and_preserves_acme_challenge(self):
         zone = yaml.safe_load((ROOT / 'dns/zones/jackharrhy.dev.yaml').read_text())
