@@ -32,9 +32,11 @@ introduce worktrees to avoid coordinating. Preserve unrelated work and live rout
 
 ## Task guidance
 
-- Fleet operations and Watchtower: load `infra-host-maintenance`.
-- Cheesetown, backups and optional client packs: load `cheesetown-minecraft-server`.
-- Shared project handoffs: load `session-coordination`; keep one owner per cutover.
+- Fleet operations and Watchtower: load [infra-host-maintenance](.agents/skills/infra-host-maintenance/SKILL.md).
+- Host storage, packages and remote access: load [host-system-maintenance](.agents/skills/host-system-maintenance/SKILL.md).
+- Application access, recovery and media: load [infra-services](.agents/skills/infra-services/SKILL.md).
+- Game servers, backups and optional packs: load [infra-games](.agents/skills/infra-games/SKILL.md).
+- Shared handoffs: read [agent operation](docs/agent-operations.md); keep one owner per cutover.
 
 Keep this file short and forward-facing. Procedures belong in skills; current
 holds, receipts and project-specific acceptance status belong in the active task.
