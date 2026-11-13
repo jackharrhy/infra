@@ -9,14 +9,16 @@ Public hostnames below are configuration references, not claims of fresh live te
 Jack Auth's issuer/UI is `https://auth.jackharrhy.dev`; discovery is
 `https://auth.jackharrhy.dev/.well-known/openid-configuration`. Newport runs
 `jack-auth-db`, `jack-auth-api` and `jack-auth-ui`; Mug splits UI/provider routing
-in its canonical route file. PostgreSQL and pinned provider/local UI images are
-intentionally separate from routine registry-following applications. Backend
-ports 18085/18086 bind Newport's tailnet address, not the public Internet.
+in its canonical route file. PostgreSQL and the pinned provider are separate from
+the Harrhy-published `ghcr.io/jackharrhy/auth` UI image. The UI's selected digest
+is in Compose; its existing manual-update/Watchtower exclusion is intentional.
+Backend ports 18085/18086 bind Newport's tailnet address, not the public Internet.
 Auth UI development is now owned by Harrhy's
 [`apps/auth`](https://github.com/jackharrhy/harrhy/tree/main/apps/auth). Older
 standalone checkouts and a feature branch predating that import are not proof of
-current main. The separate deployment copy is `~/repos/personal/jack-auth` on
-Newport; inspect its actual selected source/image before maintenance. A source
+current main. The old standalone deployment copy `~/repos/personal/jack-auth` on
+Newport is retained recovery, not the canonical build source for the published UI.
+A source
 consolidation is not a provider/runtime cutover. Follow the current source owner's
 provisioning/build instructions, not an invented fleet-wide Auth refresh.
 

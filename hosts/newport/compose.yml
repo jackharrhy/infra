@@ -1240,8 +1240,8 @@ services:
       - "com.centurylinklabs.watchtower.enable=false"
 
   jack-auth-ui:
-    image: jack-auth:spike
-    pull_policy: never
+    image: ghcr.io/jackharrhy/auth@sha256:92cdcc20df0cb7158339080d8d4477f0d5522fd1dbcd33225d5eca9a63282a0d
+    pull_policy: missing
     restart: unless-stopped
     read_only: true
     cap_drop: [ALL]
@@ -1253,6 +1253,8 @@ services:
       FOURM_ENROLLMENT_KEY_FILE: /run/secrets/fourm-enrollment-key.json
       RADIO_ENROLLMENT_DB_FILE: /data/radio-enrollment.sqlite
       AUTH_SUPPORT_CONFIG_FILE: /run/secrets/artbin-support.json
+      # Unset the image-only build-tool default to preserve the live environment.
+      npm_config_nodedir: null
     volumes:
       - ./jack-auth/.runtime-secrets/artbin-support.json:/run/secrets/artbin-support.json:ro
       - ./jack-auth/.runtime-secrets/login-key.json:/run/secrets/login-token.json:ro
