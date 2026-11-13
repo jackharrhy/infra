@@ -34,6 +34,7 @@ class PiRoutingTests(unittest.TestCase):
             'alderpoint-preview': ('alderpoint', 5173),
             'alderpoint-preview-api': ('alderpoint-api', 54321),
             '4orm-preview': ('4orm', 18954),
+            'wonder-site': ('wonder', 18810),
         }
         for name, (host, port) in previews.items():
             with self.subTest(name=name):
@@ -51,11 +52,26 @@ class PiRoutingTests(unittest.TestCase):
             'Host(`alderpoint.pi.jackharrhy.dev`)',
             'Host(`alderpoint-api.pi.jackharrhy.dev`)',
             'Host(`4orm.pi.jackharrhy.dev`)',
+            'Host(`wonder.pi.jackharrhy.dev`)',
             'Host(`auth-preview.pi.jackharrhy.dev`) && (Path(`/`) || Path(`/login`) || PathPrefix(`/assets/`))',
         })
         for router in http['routers'].values():
             if 'pitailnet' in router.get('entryPoints', []):
                 self.assertNotIn('HostRegexp', router['rule'])
+
+    def test_wonder_serves_only_built_static_releases(self):
+        compose = yaml.safe_load((ROOT / 'hosts/newport/compose.yml').read_text())
+        service = compose['services']['wonder-site']
+        self.assertTrue(service['read_only'])
+        self.assertEqual(service['user'], '101:101')
+        self.assertEqual(service['ports'], ['127.0.0.1:18810:8080'])
+        self.assertIn('/mnt/terrabud/websites/pi-wonder:/srv/site:ro', service['volumes'])
+        self.assertTrue(all('/repos/' not in v for v in service['volumes']))
+        nginx = (ROOT / 'hosts/newport/wonder/nginx.conf').read_text()
+        self.assertIn('root /srv/site/current;', nginx)
+        self.assertIn('autoindex off;', nginx)
+        self.assertIn('try_files $uri $uri/ =404;', nginx)
+        self.assertIn('limit_except GET HEAD', nginx)
 
     def test_auth_design_fixture_has_no_live_auth_proxy_paths(self):
         http = yaml.safe_load((ROOT / 'hosts/newport/traefik/dynamic/routes.yml').read_text())['http']
