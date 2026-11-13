@@ -101,7 +101,8 @@ The private route proxies loopback port 8788, preserves Host/Origin and WebSocke
 upgrades, and overwrites `X-P2-Proxy-Secret: 1`. p2 retains its own remote owner
 authentication, allowed-host/origin checks and local-only ingress restrictions.
 p2's runtime owner maintains its preferred URL/allowed hosts; Infra owns DNS/TLS
-and proxy routing. Existing Tailscale Serve 8788 remains available.
+and proxy routing. This is the canonical external URL; legacy Tailscale Serve
+8788 is retired. Backend loopback port 8788 remains the required proxy upstream.
 
 Traefik's `newportdns` resolver renews DNS-01 certificates using the encrypted
 `secrets/traefik.enc.yaml` input and private persisted `acme-dns.json` (0600).
@@ -114,7 +115,7 @@ CGNAT answer. Do not replace this with a public Mug route or Tailscale Funnel.
 
 After changes verify valid TLS and authentication from a Tailnet client; public
 WAN IPv4/IPv6 Host/SNI denial; local-only ingress and unauthenticated WebSocket
-denial; old Serve and existing public sites. A server probe is not a successful
+denial; absence of legacy Serve 8788 and unchanged existing public sites. A server probe is not a successful
 owner browser session. Preserve the LAN lease/address when changing bindings.
 
 ## SOPS and recovery
