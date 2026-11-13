@@ -34,6 +34,30 @@ x-media-auth: &media-auth
     OAUTH2_PROXY_SILENCE_PING_LOGGING: "true"
 
 services:
+  wonder-site:
+    image: nginx:stable-alpine
+    restart: unless-stopped
+    user: "101:101"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    entrypoint: [nginx, -g, "daemon off;"]
+    networks: [web]
+    ports: ["127.0.0.1:18810:8080"]
+    tmpfs: ["/tmp:size=16m,mode=1777"]
+    volumes:
+      - ./wonder/nginx.conf:/etc/nginx/nginx.conf:ro
+      - /mnt/terrabud/websites/pi-wonder:/srv/site:ro
+    healthcheck:
+      test: [CMD, wget, -q, --spider, http://127.0.0.1:8080/]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    labels:
+      - "traefik.enable=false"
+      - "com.centurylinklabs.watchtower.enable=true"
+
   cleanuparr-auth:
     <<: *media-auth
     env_file: [.runtime-secrets/cleanuparr-auth.env]

@@ -30,6 +30,11 @@ http:
       entryPoints: [pitailnet]
       service: auth-preview
       tls: {}
+    wonder-site:
+      rule: Host(`wonder.pi.jackharrhy.dev`)
+      entryPoints: [pitailnet]
+      service: wonder-site
+      tls: {}
     direct-wan-guard:
       rule: '!Host(`cheesetown.rocks`) && !Host(`jellyfin.rotund.org`) && !(ClientIP(`127.0.0.0/8`) || ClientIP(`10.0.0.0/8`) || ClientIP(`172.16.0.0/12`)
         || ClientIP(`192.168.0.0/16`) || ClientIP(`100.64.0.0/10`) || ClientIP(`::1/128`) || ClientIP(`fc00::/7`))'
@@ -37,6 +42,11 @@ http:
       priority: 1000000
       service: noop@internal
   services:
+    wonder-site:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: http://127.0.0.1:18810
     auth-preview:
       loadBalancer:
         passHostHeader: true

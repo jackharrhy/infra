@@ -193,6 +193,28 @@ media redirects, `/home`, 404/development-route rejection and representative
 browser widths, suppressing test analytics. This is a checklist, not completed
 acceptance for a future image.
 
+## Wonder private static site
+
+`https://wonder.pi.jackharrhy.dev` is an independent Astro static site, not a p2
+plugin or runtime dependency. Wonder owns source/content/build/publication in
+`~/repos/personal/pi-wonder`; Infra owns Newport `wonder-site` and its explicit
+private `pitailnet` route. It has no new auth layer: Tailnet reachability grants
+read access. Do not put credentials or raw private research in built output.
+
+The publisher copies only validated `dist` into
+`/mnt/terrabud/websites/pi-wonder/releases/BUILD` and atomically replaces a
+relative `current` symlink. Keep the prior release for rollback; a failed build
+or validation must not replace current. Reject source/config/dotfiles/source maps
+and symlinks in artifacts. Source and `node_modules` are never mounted in the
+server. Wonder owns the publish command; scheduling is separate, not required for
+site availability.
+
+The read-only unprivileged nginx container serves only this release root, with
+loopback `127.0.0.1:18810` and no automatic directory indexes. Restart p2 without
+affecting the site. Static publishing needs no container restart: switch the
+symlink and verify expected pages/assets over the named TLS URL; roll back the
+symlink if a publication fails. Do not delete releases or volumes implicitly.
+
 ## Mug applications
 
 | Service / public host | Persistent state and boundaries |
