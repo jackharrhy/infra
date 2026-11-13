@@ -10,8 +10,8 @@ Jack Auth's issuer/UI is `https://auth.jackharrhy.dev`; discovery is
 `https://auth.jackharrhy.dev/.well-known/openid-configuration`. Newport runs
 `jack-auth-db`, `jack-auth-api` and `jack-auth-ui`; Mug splits UI/provider routing
 in its canonical route file. PostgreSQL and the pinned provider are separate from
-the Harrhy-published `ghcr.io/jackharrhy/auth` UI image. The UI's selected digest
-is in Compose; its existing manual-update/Watchtower exclusion is intentional.
+the Harrhy-published `ghcr.io/jackharrhy/auth:latest` UI image. The UI follows the
+main-published tag; its existing manual-update/Watchtower exclusion is intentional.
 Backend ports 18085/18086 bind Newport's tailnet address, not the public Internet.
 Auth UI development is now owned by Harrhy's
 [`apps/auth`](https://github.com/jackharrhy/harrhy/tree/main/apps/auth). Older
@@ -67,7 +67,10 @@ metadata, not Radio audio**, not disposable cache, and not consumer activation.
 `RADIO_ENROLLMENT_DB_FILE` selects the ledger; `ACCESS_DB_FILE` can override the
 access DB, otherwise it is derived beside the ledger.
 
-From the Infra root on Newport, before scoped UI maintenance:
+For a routine compatible UI image update, retain the prior image and use adequate
+existing recovery; no new database snapshot is required for every patch. For a
+state-changing cutover or when a fresh authorization-state checkpoint is needed,
+run from the Infra root on Newport:
 
 ```sh
 python3 hosts/newport/jack-auth/backup-radio-ledger.py
@@ -171,7 +174,8 @@ atomically switches `current` and restarts only `jackharrhy`. Failed health chec
 switch back. Removed media is not deleted from R2. Legacy `assets:*` commands are
 for separately authorized bucket maintenance, not routine content publishing.
 
-For code updates, perform backup gates, then from `hosts/mug`:
+For compatible code updates, retain the prior image and existing recovery, then
+from `hosts/mug` (run any actual service-specific backup/drain hooks explicitly):
 
 ```sh
 docker compose pull jackharrhy

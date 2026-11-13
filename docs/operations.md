@@ -88,6 +88,35 @@ such as Cheesetown's ordered slash redirect/strip-prefix chain; retain independe
 rate-limit buckets and certificate resolvers. Garden's low-priority domain aliases
 must not overtake higher-priority application paths.
 
+### Private Pi hostname
+
+`pi.jackharrhy.dev` has an explicit Tailnet A record, not the public wildcard's
+A/AAAA. Newport Traefik binds `pitailnet` to `100.123.66.70:443`; only its Pi
+router uses that entrypoint. Public `websecure` stays on `192.168.2.30:443` for
+existing WAN forwarding. Keep `web` and `websecure` as explicit default
+entrypoints so implicit Docker routers do not inherit the private listener.
+A public Host/SNI or spoofed forwarded header must never select the Pi backend.
+
+The private route proxies loopback port 8788, preserves Host/Origin and WebSocket
+upgrades, and overwrites `X-P2-Proxy-Secret: 1`. p2 retains its own remote owner
+authentication, allowed-host/origin checks and local-only ingress restrictions.
+p2's runtime owner maintains its preferred URL/allowed hosts; Infra owns DNS/TLS
+and proxy routing. Existing Tailscale Serve 8788 remains available.
+
+Traefik's `newportdns` resolver renews DNS-01 certificates using the encrypted
+`secrets/traefik.enc.yaml` input and private persisted `acme-dns.json` (0600).
+No public application/challenge listener is needed. The zone's `pi-acme`
+processor excludes only `_acme-challenge.pi` from octoDNS/DDNS reconciliation so
+renewal TXT records remain Traefik-owned. Run dynamic-zone DNS changes on Newport,
+not Mug. Public DNS and certificate transparency disclose the hostname; they do
+not grant service access. Clients require Tailscale and a resolver accepting the
+CGNAT answer. Do not replace this with a public Mug route or Tailscale Funnel.
+
+After changes verify valid TLS and authentication from a Tailnet client; public
+WAN IPv4/IPv6 Host/SNI denial; local-only ingress and unauthenticated WebSocket
+denial; old Serve and existing public sites. A server probe is not a successful
+owner browser session. Preserve the LAN lease/address when changing bindings.
+
 ## SOPS and recovery
 
 Only encrypted secret YAML belongs in Git. Rendering needs `sops` and the
