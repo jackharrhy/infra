@@ -33,3 +33,8 @@ id_ed25519
 *.before
 *.before-*
 *.bak
+
+# Host-local application data and retained deployment snapshots.
+/hosts/*/volumes/
+/hosts/*/*_backups/
+/retired-forjoel/
