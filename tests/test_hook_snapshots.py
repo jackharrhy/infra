@@ -71,7 +71,10 @@ class HookSnapshotTests(unittest.TestCase):
         self.run_hook(['sh', str(ROOT / 'hosts/newport/adguardhome/backup.sh')])
         self.assertEqual(len(self.generations()), 1)
 
-    def exercise_sqlite(self, kind):
+    def exercise_sqlite(self, kind, persistent_helper=False):
+        if persistent_helper:
+            shutil.copyfile(HELPER, self.backups / ".infra-backup-retention.sh")
+            self.env.pop("INFRA_BACKUP_HELPER")
         db_dir = self.config / 'db' if kind == 'seerr' else self.config
         db_dir.mkdir(exist_ok=True)
         db_path = db_dir / 'state.db'
@@ -122,6 +125,14 @@ class HookSnapshotTests(unittest.TestCase):
 
     def test_cleanuparr_wal_and_fresh_equivalence(self):
         self.exercise_sqlite('cleanuparr')
+
+    def test_cleanuparr_persistent_helper_survives_missing_opt_mount(self):
+        self.exercise_sqlite("cleanuparr", persistent_helper=True)
+
+    def test_seerr_persistent_helper_survives_missing_opt_mount(self):
+        if not shutil.which("node") or subprocess.run(["node", "-e", "require('node:sqlite')"], capture_output=True).returncode:
+            self.skipTest("node:sqlite unavailable")
+        self.exercise_sqlite("seerr", persistent_helper=True)
 
     def test_seerr_wal_and_fresh_equivalence(self):
         if not shutil.which('node') or subprocess.run(['node', '-e', "require('node:sqlite')"], capture_output=True).returncode:

@@ -17,7 +17,10 @@ def main():
     backups.mkdir(parents=True, exist_ok=True)
     marker = backups / ".last-success"
     managed = "manual" not in sys.argv[1:]
-    helper = os.environ.get("INFRA_BACKUP_HELPER", "/opt/infra-backup-retention.sh")
+    default_helper = Path("/opt/infra-backup-retention.sh")
+    if not default_helper.is_file():
+        default_helper = backups / ".infra-backup-retention.sh"
+    helper = os.environ.get("INFRA_BACKUP_HELPER", str(default_helper))
     def retention(*args):
         return subprocess.check_output(["sh", helper, *map(str, args)], text=True).strip()
     if "daily" in sys.argv[1:] and marker.exists() and time.time() - marker.stat().st_mtime < 86400:

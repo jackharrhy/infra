@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { DatabaseSync, backup } from 'node:sqlite';
 import { chmod, mkdir, readFile, readdir, rename, rm, writeFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
@@ -8,7 +9,8 @@ const config = process.env.SEERR_CONFIG_FOLDER || '/app/config';
 const destination = process.env.SEERR_BACKUP_FOLDER || '/backups';
 process.umask(0o077);
 const managed = process.argv[2] !== 'manual';
-const retention = (...args) => execFileSync('sh', [process.env.INFRA_BACKUP_HELPER || '/opt/infra-backup-retention.sh', ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'] }).trim();
+const defaultHelper = existsSync('/opt/infra-backup-retention.sh') ? '/opt/infra-backup-retention.sh' : join(destination, '.infra-backup-retention.sh');
+const retention = (...args) => execFileSync('sh', [process.env.INFRA_BACKUP_HELPER || defaultHelper, ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'] }).trim();
 const marker = join(destination, '.last-success');
 if (process.argv[2] === 'daily') {
   try {
