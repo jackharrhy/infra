@@ -782,6 +782,7 @@ services:
       - "127.0.0.1:4400:4400"
     environment:
       BETTER_AUTH_URL: https://executor.jackharrhy.dev
+      EXECUTOR_OAUTH_CLIENT_METADATA_URL: https://executor.jackharrhy.dev/oauth/client-metadata.json
       EXECUTOR_DISABLE_ANALYTICS: "1"
       # Owner-approved personal-instance egress: all authenticated authored apps
       # can reach private services. This does not change public SSO-only ingress.
