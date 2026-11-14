@@ -4,12 +4,12 @@
     value: 142.93.144.29
   - type: AAAA
     value: 2604:a880:cad:d0::dff:a001
-  - ttl: 1800
+  - ttl: 300
     type: MX
     values:
-    - exchange: mx.zohomail.com.
+    - exchange: us1-smtp.messagingengine.com.
       preference: 10
-    - exchange: mx2.zoho.com.
+    - exchange: us2-smtp.messagingengine.com.
       preference: 20
   - ttl: 1800
     type: NS
@@ -17,14 +17,33 @@
     - ns1.digitalocean.com.
     - ns2.digitalocean.com.
     - ns3.digitalocean.com.
-  - ttl: 43200
+  - ttl: 300
     type: TXT
-    value: v=spf1 include:zoho.com ~all
+    value: v=spf1 include:zoho.com include:spf.messagingengine.com ~all
 '*':
 - type: A
   value: 142.93.144.29
 - type: AAAA
   value: 2604:a880:cad:d0::dff:a001
+- ttl: 300
+  type: MX
+  values:
+  - exchange: us1-smtp.messagingengine.com.
+    preference: 10
+  - exchange: us2-smtp.messagingengine.com.
+    preference: 20
+fm1._domainkey:
+  ttl: 300
+  type: CNAME
+  value: fm1.jackharrhy.com.dkim.fmhosted.com.
+fm2._domainkey:
+  ttl: 300
+  type: CNAME
+  value: fm2.jackharrhy.com.dkim.fmhosted.com.
+fm3._domainkey:
+  ttl: 300
+  type: CNAME
+  value: fm3.jackharrhy.com.dkim.fmhosted.com.
 www:
   ttl: 43200
   type: CNAME
