@@ -156,4 +156,3 @@ class PreviewRegistryTests(unittest.TestCase):
                 else:
                     with self.assertRaises(ValueError):
                         p.loopback_listener(21001)
-
