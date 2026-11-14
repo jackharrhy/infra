@@ -30,5 +30,9 @@ test "$(sqlite3 -readonly "$tea_snapshot/operator/operator.db" 'PRAGMA integrity
 
 tar -czf "$tea_archive" -C "$tea_snapshot" andrew luke operator
 tar -tzf "$tea_archive" >/dev/null
-find "$tea_backups" -maxdepth 1 -type f -name 'tea-????????T??????Z.tar.gz' -mtime +13 -delete
+# Keep seven newest producer-verified daily archives, even after missed nights.
+find "$tea_backups" -maxdepth 1 -regextype posix-extended -type f \
+  -regex '.*/tea-[0-9]{8}T[0-9]{6}Z\.tar\.gz' -printf '%f\0' \
+  | LC_ALL=C sort -zr | tail -z -n +8 \
+  | while IFS= read -r -d '' archive; do rm -- "$tea_backups/$archive"; done
 printf 'TeaCMS backup verified: %s\n' "$tea_archive"

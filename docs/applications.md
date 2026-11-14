@@ -255,9 +255,23 @@ application store and track/audio storage are separate from the Auth enrollment/
 
 Tea CMS requires private package access in Mug's `~/.docker/config.json`.
 `/etc/cron.d/teacms-backup` runs the [backup script](../hosts/mug/teacms/backup.sh)
-daily, preserving both site databases/uploads/public assets and the operator DB
-in `~/backups/teacms`, with about 14 days' retention. Restore the whole matched
-set into empty destinations with the service stopped.
+daily at 04:27 UTC on Mug, preserving both site databases/uploads/public assets
+and the operator DB in `~/backups/teacms`. It retains seven newest producer-verified
+daily archives (normally seven days; missed nights do not erase older recovery).
+This is local recovery on the same disk, not an independent off-host backup.
+Restore the whole matched set into empty destinations with the service stopped.
+
+The separate `andrewsite_remix` app for `andrewgossecomposer.com` mounts
+`volumes/andrewsite_tea_data` at `/app/data`. Its existing OS cron calls
+`hosts/mug/andrewsite/backup.sh` at 04:17 UTC, backing up SQLite plus that app's
+uploads into `~/backups/andrewsite` with the same seven-snapshot retention.
+These are not Docker image/whole-volume backups. In particular, the separate
+read-only `andrewsite_media` mount `volumes/andrewsite_strapi_uploads` is not
+covered by the current Tea DB/uploads archive; preserve that legacy media and
+include it explicitly in any future application-owned recovery contract.
+Keep current scheduled protections until any app-owned replacement has verified
+consistent snapshots, media coverage, status and restore. Weekly/monthly tiers
+are a separate retention choice, not additional cron jobs by implication.
 
 ## Newport applications
 

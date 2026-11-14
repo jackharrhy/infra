@@ -40,6 +40,22 @@ after cleanup settles; directory-size sums are not reclaimed headroom. Preserve
 explicit rollback holds; image, builder-cache, container and volume cleanup are
 different scopes.
 
+### Mug log bounds
+
+`hosts/mug/logging/infra.conf` installs as
+`/etc/systemd/journald.conf.d/50-infra-bounds.conf`: 3 GiB persistent maximum,
+2 GiB keep-free, 64 MiB journal files and daily rotation. No age-based purge is
+configured. The prospective cap was set above existing journal usage; applying
+it did not remove existing journal files. Space/file-count limits govern future
+rotation. Lowering a cap or running `journalctl --vacuum-*` can destroy historical
+diagnostics and is a separate explicit cleanup decision, not a free cache flush.
+
+Radio and TeaCMS Compose logging is `json-file`, 10 MiB × 3 files; changed logging
+settings take effect only at their next normal container recreation. Do not
+restart the fleet just to apply future logging caps or externally truncate
+Docker-owned log files. Keep the distinction between journals, container logs,
+active persistent data, local backup archives and independent off-host recovery.
+
 ## Packages and signed repositories
 
 Before an approved package operation, inspect the OS/suite, executable resolution,
