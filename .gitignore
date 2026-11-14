@@ -34,6 +34,10 @@ id_ed25519
 *.before-*
 *.bak
 
+# Generated temporary routes; authoritative leases live outside Git.
+/hosts/newport/traefik/dynamic/previews.runtime.yml
+/hosts/newport/traefik/dynamic/.preview-*.tmp
+
 # Host-local application data and retained deployment snapshots.
 /hosts/*/volumes/
 /hosts/*/*_backups/

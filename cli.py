@@ -1306,5 +1306,10 @@ def nas_nfs_revoke(share: str, client_pattern: str, yes: bool):
     click.echo(click.style("ok", fg="green"))
 
 
+from preview_registry import preview
+
+cli.add_command(preview)
+
+
 if __name__ == "__main__":
     cli()

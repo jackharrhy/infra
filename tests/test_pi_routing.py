@@ -53,7 +53,6 @@ class PiRoutingTests(unittest.TestCase):
             'Host(`alderpoint-api.pi.jackharrhy.dev`)',
             'Host(`4orm.pi.jackharrhy.dev`)',
             'Host(`wonder.pi.jackharrhy.dev`)',
-            'Host(`auth-preview.pi.jackharrhy.dev`) && (Path(`/`) || Path(`/login`) || PathPrefix(`/assets/`))',
         })
         for router in http['routers'].values():
             if 'pitailnet' in router.get('entryPoints', []):
@@ -73,16 +72,10 @@ class PiRoutingTests(unittest.TestCase):
         self.assertIn('try_files $uri $uri/ =404;', nginx)
         self.assertIn('limit_except GET HEAD', nginx)
 
-    def test_auth_design_fixture_has_no_live_auth_proxy_paths(self):
+    def test_temporary_auth_fixture_is_not_permanent_configuration(self):
         http = yaml.safe_load((ROOT / 'hosts/newport/traefik/dynamic/routes.yml').read_text())['http']
-        router = http['routers']['auth-preview']
-        self.assertEqual(router['entryPoints'], ['pitailnet'])
-        self.assertNotIn('middlewares', router)
-        self.assertEqual(router['service'], 'auth-preview')
-        self.assertEqual(http['services']['auth-preview']['loadBalancer'], {
-            'passHostHeader': True, 'servers': [{'url': 'http://127.0.0.1:18809'}]})
-        self.assertNotIn('support', router['rule'])
-        self.assertNotIn('callback', router['rule'])
+        self.assertNotIn('auth-preview', http['routers'])
+        self.assertNotIn('auth-preview', http['services'])
 
     def test_dns_has_no_public_ipv6_and_preserves_acme_challenge(self):
         zone = yaml.safe_load((ROOT / 'dns/zones/jackharrhy.dev.yaml').read_text())
