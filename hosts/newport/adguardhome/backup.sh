@@ -4,6 +4,10 @@ umask 077
 source=${CONFIG_FILE:-/opt/adguardhome/conf/AdGuardHome.yaml}
 backups=${BACKUP_DIR:-/backups}
 helper=${INFRA_BACKUP_HELPER:-/opt/infra-backup-retention.sh}
+# Transitional live rollout on a read-only rootfs; normal recreation mounts /opt.
+if [ -z "${INFRA_BACKUP_HELPER:-}" ] && [ ! -r "$helper" ]; then
+    helper="$backups/.infra-backup-retention.sh"
+fi
 test -s "$source"
 mkdir -p "$backups"
 if [ "${1:-}" = daily ] && [ -f "$backups/.last-success" ] && find "$backups/.last-success" -mtime -1 | grep -q .; then

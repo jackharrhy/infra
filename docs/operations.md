@@ -105,7 +105,10 @@ The helper is mounted read-only at `/opt/infra-backup-retention.sh`. For a live
 single-file/directory-bind rollout without app recreation, preserve original bind
 inodes, install and verify the helper first, then update the mounted script inode
 in place while the applicable updater is briefly paused. Compare running and
-tracked hashes and restore Watchtower afterward. Git rename/pull alone does not
+tracked hashes and restore Watchtower afterward. A read-only AdGuard rootfs may
+use the same helper at `/backups/.infra-backup-retention.sh` until its normal
+recreation mounts `/opt`; keep both copies checksum-identical during adoption.
+Git rename/pull alone does not
 refresh a single-file bind; a directory bind can expose edits immediately. The
 Compose helper mounts take effect on the next normal recreation.
 

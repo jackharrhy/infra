@@ -62,6 +62,15 @@ class HookSnapshotTests(unittest.TestCase):
         self.assertEqual((self.backups / '.last-success').read_bytes(), marker)
         self.assertEqual(len(self.generations()), 4)
 
+    def test_adguard_readonly_rootfs_helper_fallback(self):
+        source = self.config / 'AdGuardHome.yaml'
+        source.write_text('dns:\n  port: 53\n')
+        shutil.copyfile(HELPER, self.backups / '.infra-backup-retention.sh')
+        self.env.pop('INFRA_BACKUP_HELPER')
+        self.env.update(CONFIG_FILE=str(source), BACKUP_DIR=str(self.backups))
+        self.run_hook(['sh', str(ROOT / 'hosts/newport/adguardhome/backup.sh')])
+        self.assertEqual(len(self.generations()), 1)
+
     def exercise_sqlite(self, kind):
         db_dir = self.config / 'db' if kind == 'seerr' else self.config
         db_dir.mkdir(exist_ok=True)

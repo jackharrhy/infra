@@ -16,6 +16,18 @@ import urllib.parse
 import urllib.request
 
 
+def recoverable_magnet(job):
+    """A missing-metadata fallback must retain a magnet for this exact job."""
+    uri=urllib.parse.urlparse(job.get('magnet_uri',''))
+    torrent_hash=job['hash'].lower()
+    if uri.scheme!='magnet' or len(torrent_hash)!=40 or any(c not in '0123456789abcdef'for c in torrent_hash):return False
+    return 'urn:btih:'+torrent_hash in [value.lower()for value in urllib.parse.parse_qs(uri.query).get('xt',[])]
+
+
+def missing_metadata_magnet(job,files,properties):
+    return recoverable_magnet(job) and files==[] and properties.get('pieces_num')==-1
+
+
 def backup():
     if os.geteuid()==0:
         os.setgroups([65536]);os.setgid(65536);os.setuid(1000)
@@ -54,12 +66,18 @@ def backup():
                 if (before.st_ino,before.st_size,before.st_mtime_ns)!=(after.st_ino,after.st_size,after.st_mtime_ns):raise ValueError('Config changed during snapshot')
         exports=root/'torrents';exports.mkdir()
         for job in jobs:
-            if 'meta' in job['state'].lower():continue
+            if 'meta' in job['state'].lower()and recoverable_magnet(job):continue
             torrent_hash=job['hash']
             if any(c not in '0123456789abcdef'for c in torrent_hash.lower()):raise ValueError('Invalid torrent hash')
             try:payload=request('torrents/export?hash='+torrent_hash)
             except urllib.error.HTTPError as error:
-                if error.code==404 and job.get('magnet_uri'):continue
+                if error.code==404 and recoverable_magnet(job):continue
+                if error.code==409 and recoverable_magnet(job):
+                    # A paused metadata-less magnet need not have a 'meta' state.
+                    # Do not hide export/serialization failures for real torrents.
+                    files=json.loads(request('torrents/files?hash='+torrent_hash))
+                    properties=json.loads(request('torrents/properties?hash='+torrent_hash))
+                    if missing_metadata_magnet(job,files,properties):continue
                 raise
             (exports/(torrent_hash+'.torrent')).write_bytes(payload)
         after_jobs=json.loads(request('torrents/info'))
