@@ -20,6 +20,9 @@ jellyfin:
   type: CNAME
   value: home.jackharrhy.dev.
 slskd:
-  ttl: 300
+- ttl: 300
   type: A
-  value: 100.123.66.70
+  value: 142.93.144.29
+- ttl: 300
+  type: AAAA
+  value: 2604:a880:cad:d0::dff:a001

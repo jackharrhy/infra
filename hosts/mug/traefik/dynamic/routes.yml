@@ -1,5 +1,11 @@
 http:
   routers:
+    slskd:
+      rule: Host(`slskd.rotund.org`)
+      entryPoints: [websecure]
+      service: newport-origin
+      tls:
+        certResolver: mugresolver
     cleanuparr:
       rule: Host(`cleanuparr.rotund.org`)
       entryPoints: [websecure]
