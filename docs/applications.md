@@ -265,9 +265,10 @@ manifests identify source revision, datasets, file inventory and SHA256. This is
 local recovery on the same disk, not an independent off-host backup.
 
 The TeaCMS-only host cron is retired after native snapshot and offline restore
-acceptance. Preserve its seven good old archives in `~/backups/teacms`; they are
-not ingested, converted or pruned by the new engine. Do not disable the separate
-Andrew cron. Before a future cutover, prove an actual completed native snapshot
+acceptance. Legacy tar archives in `~/backups/teacms` are not ingested, converted
+or pruned by the new engine. Retiring those archives requires a separate explicit
+cleanup approval after native recovery is proven; it is not part of ordinary
+retention. Do not disable the separate Andrew cron. Before a future cutover, prove an actual completed native snapshot
 and offline restore using the **matching image**, read-only backup mount, no
 production data mount, network disabled and a **new private scratch destination**.
 Verify SQLite/media and preserved non-session data; restored sessions/tickets
