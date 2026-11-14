@@ -24,9 +24,9 @@ SUFFIX = '.pi.jackharrhy.dev'
 DEFAULT_TTL = 86400
 MAX_TTL = 7 * DEFAULT_TTL
 RESERVED = {'pi', 'auth', 'api', 'admin', 'login', 'mcp', 'traefik',
-            'alderpoint', 'alderpoint-api', '4orm', 'wonder'}
+            'alderpoint', 'alderpoint-api', '4orm', 'wonder', 'browse'}
 # Permanent native/administrative listeners not all represented in Compose.
-PROTECTED = {8788, 18081, 18085, 18086, 18955, 19004, 19005, 19006}
+PROTECTED = {8788, 18081, 18085, 18086, 18955, 19004, 19005, 19006, 19988, 19989}
 FIELDS = {'owner', 'purpose', 'port', 'paths', 'prefixes', 'expires_at'}
 
 

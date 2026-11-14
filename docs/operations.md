@@ -125,6 +125,7 @@ Named previews are opt-in, not a catchall proxy or process launcher:
 | `alderpoint-api` | 54321 | Alderpoint main Supabase; existing API/auth policies |
 | `4orm` | 18954 | Harrhy native review; Tailnet entrance, native app login retained |
 | `wonder` | 18810 | Wonder static Astro publication; Tailnet read access, independent of p2 |
+| `browse` (`/mcp` only) | 19989 | Permanent authenticated Browse MCP adapter; native extension uses separate Tailnet port 19988 |
 
 Permanent registrations have an owner, fixed loopback port and access policy in
 the canonical file. Short-lived previews use the local registry below instead of

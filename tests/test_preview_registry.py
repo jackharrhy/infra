@@ -50,8 +50,8 @@ class PreviewRegistryTests(unittest.TestCase):
         self.register()
         old = self.projection()
         for args in [dict(name='*.evil'), dict(name='a.b'), dict(name='Upper'),
-                     dict(name='pi'), dict(name='4orm'), dict(name='wonder'),
-                     dict(port=8788), dict(port=80), dict(port=65536),
+                     dict(name='pi'), dict(name='4orm'), dict(name='wonder'), dict(name='browse'),
+                     dict(port=8788), dict(port=19988), dict(port=19989), dict(port=80), dict(port=65536),
                      dict(paths=['/`) || Host(`evil']), dict(paths=['/../secret']),
                      dict(prefixes=['/assets']), dict(ttl=0), dict(ttl=p.MAX_TTL + 1),
                      dict(owner='bad\nowner'), dict(purpose='')]:

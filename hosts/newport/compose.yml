@@ -701,6 +701,9 @@ services:
     environment:
       BETTER_AUTH_URL: https://executor.jackharrhy.dev
       EXECUTOR_DISABLE_ANALYTICS: "1"
+      # Owner-approved personal-instance egress: all authenticated authored apps
+      # can reach private services. This does not change public SSO-only ingress.
+      EXECUTOR_APPS_ALLOW_PRIVATE_FETCH: "true"
       SSO_DISCOVERY_URL: https://auth.jackharrhy.dev/.well-known/openid-configuration
       SSO_ALLOWED_DOMAINS: jackharrhy.com
       SSO_ONLY: "true"
