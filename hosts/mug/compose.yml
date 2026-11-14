@@ -312,6 +312,10 @@ services:
     networks: [web]
     environment:
       TEA_OPERATOR_ORIGIN: https://teacms.jackharrhy.dev
+      TEA_BACKUP_DIR: /app/backups
+      TEA_BACKUP_INTERVAL_SECONDS: "86400"
+      TEA_BACKUP_KEEP: "7"
+      TEA_BACKUP_RESERVE_BYTES: "268435456"
     volumes:
       - ./volumes/teacms:/app/data
       - type: bind
