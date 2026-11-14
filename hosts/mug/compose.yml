@@ -390,6 +390,12 @@ services:
     env_file:
       - ./.runtime-secrets/lists-tea.env
     volumes:
+      - type: bind
+        source: ../common/backup-retention.sh
+        target: /opt/infra-backup-retention.sh
+        read_only: true
+        bind:
+          create_host_path: false
       - ./volumes/lists_tea_data:/data
       - ./volumes/lists_tea_backups:/backups
       - ./lists/hooks/backup.mjs:/scripts/lists-backup.mjs:ro
