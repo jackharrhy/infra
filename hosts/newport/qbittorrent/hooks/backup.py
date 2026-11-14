@@ -33,8 +33,9 @@ def backup():
         os.setgroups([65536]);os.setgid(65536);os.setuid(1000)
     os.umask(0o077)
     managed='manual' not in sys.argv[1:]
+    default_helper='/opt/infra-backup-retention.sh' if Path('/opt/infra-backup-retention.sh').is_file()else'/backups/.infra-backup-retention.sh'
     def retention(*args):
-        return subprocess.check_output(['sh',os.environ.get('INFRA_BACKUP_HELPER','/opt/infra-backup-retention.sh'),*map(str,args)],text=True).strip()
+        return subprocess.check_output(['sh',os.environ.get('INFRA_BACKUP_HELPER',default_helper),*map(str,args)],text=True).strip()
     config=Path('/config');deadline=time.monotonic()+120
     auth=json.loads((config/'.infra/auth.json').read_text())
     opener=urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))

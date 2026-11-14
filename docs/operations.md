@@ -105,12 +105,17 @@ The helper is mounted read-only at `/opt/infra-backup-retention.sh`. For a live
 single-file/directory-bind rollout without app recreation, preserve original bind
 inodes, install and verify the helper first, then update the mounted script inode
 in place while the applicable updater is briefly paused. Compare running and
-tracked hashes and restore Watchtower afterward. A read-only AdGuard rootfs may
-use the same helper at `/backups/.infra-backup-retention.sh` until its normal
-recreation mounts `/opt`; keep both copies checksum-identical during adoption.
-Git rename/pull alone does not
-refresh a single-file bind; a directory bind can expose edits immediately. The
-Compose helper mounts take effect on the next normal recreation.
+tracked hashes and restore Watchtower afterward. For AdGuard, Cleanuparr, Seerr
+and qBittorrent, also install the checksum-identical helper at
+`/backups/.infra-backup-retention.sh` in the existing persistent backup bind. This
+fallback survives automatic image replacement before the read-only `/opt` mount
+has been applied; it also supports AdGuard's read-only rootfs. Keep copies
+checksum-identical. Git rename/pull alone does not refresh a single-file bind; a
+directory bind can expose edits immediately. Watchtower preserves the running
+container's mounts rather than applying Compose changes: new helper mounts need
+a subsequent **Compose** recreation, not merely an automatic image update. Lists
+requires the helper mount applied in Compose (Bun cannot execute a deleted-dentry
+script bind); do not mistake a readable old inode for a runnable Bun module.
 
 ## Container memory diagnostics
 
