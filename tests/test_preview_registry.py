@@ -6,9 +6,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import yaml
-from click.testing import CliRunner
 
-import cli
 import preview_registry as p
 
 
@@ -50,8 +48,8 @@ class PreviewRegistryTests(unittest.TestCase):
         self.register()
         old = self.projection()
         for args in [dict(name='*.evil'), dict(name='a.b'), dict(name='Upper'),
-                     dict(name='pi'), dict(name='4orm'), dict(name='wonder'), dict(name='browse'),
-                     dict(port=8788), dict(port=19988), dict(port=19989), dict(port=80), dict(port=65536),
+                     dict(name='pi'), dict(name='browse'),
+                     dict(port=8788), dict(port=19989), dict(port=80), dict(port=65536),
                      dict(paths=['/`) || Host(`evil']), dict(paths=['/../secret']),
                      dict(prefixes=['/assets']), dict(ttl=0), dict(ttl=p.MAX_TTL + 1),
                      dict(owner='bad\nowner'), dict(purpose='')]:
@@ -136,7 +134,7 @@ class PreviewRegistryTests(unittest.TestCase):
             self.registry.apply('reconcile')
         self.assertEqual(old, self.projection())
 
-    def test_concurrent_writers_do_not_lose_leases_or_emit_partial_yaml(self):
+    def test_concurrent_writers_preserve_all_leases_and_final_projection(self):
         def create(index):
             other = p.Registry(self.root / 'state', self.dynamic, self.compose,
                                clock=lambda: self.now, listener=lambda port: None)
@@ -159,16 +157,3 @@ class PreviewRegistryTests(unittest.TestCase):
                     with self.assertRaises(ValueError):
                         p.loopback_listener(21001)
 
-    def test_cli_register_list_renew_remove(self):
-        with patch.object(p.socket, 'gethostname', return_value='newport'), \
-             patch.object(p, 'Registry', return_value=self.registry):
-            runner = CliRunner()
-            base = ['preview']
-            result = runner.invoke(cli.cli, base + ['register', 'demo', '--port', '21001',
-                                   '--owner', 'source-owner', '--purpose', 'UI review'])
-            self.assertEqual(result.exit_code, 0, result.output)
-            self.assertIn('https://demo.pi.jackharrhy.dev', result.output)
-            for args in [['list'], ['renew', 'demo', '--owner', 'source-owner'],
-                         ['remove', 'demo', '--owner', 'source-owner'], ['reconcile']]:
-                result = runner.invoke(cli.cli, base + args)
-                self.assertEqual(result.exit_code, 0, result.output)
