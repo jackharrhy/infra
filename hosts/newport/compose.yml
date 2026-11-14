@@ -34,6 +34,40 @@ x-media-auth: &media-auth
     OAUTH2_PROXY_SILENCE_PING_LOGGING: "true"
 
 services:
+  slskd:
+    image: slskd/slskd:latest
+    restart: unless-stopped
+    user: "1026:100"
+    group_add: ["65536"]
+    networks:
+      slskd_disconnected:
+        ipv4_address: 172.30.34.2
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 512m
+    pids_limit: 128
+    env_file: [.runtime-secrets/slskd.env]
+    environment:
+      SLSKD_CONFIG: /etc/slskd/slskd.yml
+      SLSKD_UMASK: "002"
+    volumes:
+      - ./slskd/slskd.yml:/etc/slskd/slskd.yml:ro
+      - /mnt/terrabud/docker-data/newport/slskd:/app
+      - type: bind
+        source: /mnt/stash/media/library/music
+        target: /music
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: /mnt/stash/media/downloads/soulseek
+        target: /downloads
+        bind:
+          create_host_path: false
+    labels:
+      - "traefik.enable=false"
+      - "com.centurylinklabs.watchtower.enable=true"
+
   wonder-site:
     image: nginx:stable-alpine
     restart: unless-stopped
@@ -1395,6 +1429,11 @@ services:
     - traefik.http.routers.burger.entrypoints=web
 
 networks:
+  slskd_disconnected:
+    internal: true
+    ipam:
+      config:
+        - subnet: 172.30.34.0/29
   dns:
   navidrome_backend:
     ipam:

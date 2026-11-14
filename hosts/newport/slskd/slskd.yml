@@ -1,0 +1,21 @@
+remote_configuration: false
+remote_file_management: false
+flags:
+  no_connect: true
+  no_share_scan: true
+  no_version_check: true
+directories:
+  incomplete: /downloads/incomplete
+  downloads: /downloads/complete
+shares:
+  directories:
+    - /music
+  filters:
+    - '(^|/)@eaDir(/|$)'
+    - '\.DS_Store$'
+web:
+  port: 5030
+  https:
+    disabled: true
+  authentication:
+    disabled: false
