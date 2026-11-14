@@ -221,6 +221,9 @@ services:
   radio-celld:
     image: ghcr.io/jackharrhy/radio:latest
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
     networks: [web]
     env_file:
       - ./.runtime-secrets/radio-minio.env
@@ -303,6 +306,9 @@ services:
   teacms:
     image: ghcr.io/jackharrhy/teacms:latest
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
     networks: [web]
     environment:
       TEA_OPERATOR_ORIGIN: https://teacms.jackharrhy.dev
