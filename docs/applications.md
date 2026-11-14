@@ -339,8 +339,99 @@ real MCP consent/token/resource flow; old partial checks are not a fresh pass.
 Optional app-host pages need `EXECUTOR_APP_UI_BASE_URL`, wildcard DNS and a
 certificate for `*.executor-apps.jackharrhy.dev`; `*.jackharrhy.dev` does not cover
 that extra label. `EXECUTOR_OAUTH_CLIENT_METADATA_URL` is optional, not assumed
-configured. Private fetch is off by default: enabling
-`EXECUTOR_APPS_ALLOW_PRIVATE_FETCH=true` gives every instance app that network position.
+configured. Private fetch is off upstream by default; this personal instance
+explicitly enables `EXECUTOR_APPS_ALLOW_PRIVATE_FETCH=true` for authenticated
+application integrations. This grants **all instance authored apps** private-network
+egress, not just Browse. It does not make the publicly routed Executor dashboard
+Tailnet-only, remove SSO, or change native grants. The deployed beta41 supports no
+per-app private-fetch exception; do not confuse host-side import URL allowlists
+with authored-app workerd egress. Source/fork reconciliation is separate from the
+pinned runtime image; no source rebase implies deployment.
+
+## Browse desktop browser pilot
+
+The pinned upstream relay is Anomaly Browse **0.0.16** (source tag commit
+`506de3e7bad481c7db5dca786b6e333751e15877`). The verified release package is installed
+outside Git at `/mnt/terrabud/tools/browse-runtime-v0.0.16`; the launcher is
+`~/.local/bin/browse`, managed by user `browse-relay.service`. The installer helper
+in [hosts/newport/browse](../hosts/newport/browse/) verifies the fixed release
+checksum and skips package scripts; it does not run upstream's global installer,
+configure other agents or pair a browser. Relay auto-update/checks are disabled in
+the launcher/service for this pinned pilot. Review new versions deliberately.
+
+### Desktop extension and transport
+
+Official [Chrome Web Store extension](https://chromewebstore.google.com/detail/mfnicocicmmlkpjnaffgihfjhdgjkdjg)
+updates independently through the browser. For an exactly matched manual build,
+use the [0.0.16 release ZIP](https://github.com/anomalyco/browse/releases/download/v0.0.16/browse-extension-0.0.16.zip)
+and Load unpacked after checking its published checksum. Do not disable pairing
+or widen extension Origin allowlists to paper over a version mismatch.
+
+On the desktop with Tailscale enabled, open extension Options → advanced:
+
+- **Relay address:** `100.123.66.70:19988` (bare Tailnet IP/port, not an HTTPS URL).
+  Do **not** use a `.dev` hostname for this plain-WS endpoint: Chromium's `.dev`
+  HSTS preload upgrades ws to wss and produces `ERR_SSL_PROTOCOL_ERROR` against
+  the native non-TLS relay. Do not clear/disable browser security to work around it.
+- On Newport, run `~/.local/bin/browse pair` in the owner's private terminal; enter
+  its one-use ten-minute code in **Pairing code**, then **Connect**. Never paste
+  pairing codes, relay tokens or adapter keys into chats or Git.
+- Explicitly lend a non-sensitive test tab with the toolbar button. Agents must
+  not inspect existing private/authenticated tabs before the owner lends them.
+  The owner can take a tab back at any time; pairing alone is not consent to browse.
+
+This extension version hardcodes **ws**, not wss, even if a wss scheme is typed.
+Traffic encryption is provided by Tailscale; an HTTPS reverse proxy is not its
+native relay endpoint. The separate `https://browse.pi.jackharrhy.dev/mcp` adapter
+below uses real TLS and is unaffected. A WebSocket 101 probe proves transport,
+not pairing; verify the extension actually reports connected, and regenerate an
+expired pairing code only after correcting its address. Supported relay binding is only loopback or `0.0.0.0`.
+Remote mode uses the latter with a specific Tailnet allow followed by non-Tailnet
+firewall denial; verify these rules **before** starting remote mode:
+
+```sh
+sudo ufw allow in on tailscale0 to 100.123.66.70 port 19988 proto tcp comment 'Browse Tailnet extension pilot'
+sudo ufw deny in to any port 19988 proto tcp comment 'Browse deny non-Tailnet ingress'
+# This command prints a short-lived code: run privately, never in shared logs.
+~/.local/bin/browse set hostname 0.0.0.0
+```
+
+The relay rejects remote HTTP/API and CDP requests; only the extension WebSocket
+is available remotely, with the published-extension Origin check and upstream
+ECDH/HMAC pairing. Local API/CDP still require the private relay token at
+`~/.local/share/browse/relay-token` (0600). Do not reverse-proxy its whole HTTP API
+through a trusted loopback connection, which would defeat the peer check. No
+Funnel/public forwarding is used. Both the relay and execution realm trust the
+Unix account; this is not a sandbox against other same-UID processes.
+
+### Authenticated MCP integration
+
+Native Browse MCP is **stdio** (`~/.local/bin/browse mcp`). p2 can use it directly.
+Executor needs HTTP, so the established pinned **Supergateway 4.2.2** adapter
+wraps that same command as stateful Streamable HTTP, not custom CDP plumbing.
+User `browse-mcp.service` binds **127.0.0.1:19989**; the only private HTTPS route is
+`https://browse.pi.jackharrhy.dev/mcp`. There is no root/raw-CDP route. It is a
+permanent integration, not an expiring temporary preview lease.
+
+Every adapter request requires the inbound API key read via `--apiKeyFile` from
+`~/.local/share/browse/mcp-api-key` (0600), distinct from relay/browser keys. The
+helper creates a key only if absent; never rotate a configured account implicitly.
+Use the supported Executor provider-account secret form to provision its bearer
+credential with exact HTTPS host placement. Do not use `--oauth2Bearer` (outbound
+credential), inline argv keys, wildcard CORS, public bind or an unauthenticated
+HTTP browser endpoint. Missing/unreadable/empty key files fail closed. The supported
+log levels are `debug`, `info`, `none`; the unit uses `none` to avoid browser data
+in adapter logs. Pairing and tool approval/lent-tab consent remain separate gates.
+
+Install the reviewed launchers/units with normal `install`, then enable user
+`browse-relay.service` and `browse-mcp.service`; do not start competing upstream
+daemons/installers. Check service state, localhost unauthenticated API 401,
+Tailnet remote API 404/foreign extension Origin 403, missing/wrong MCP key 401,
+authenticated MCP initialize, and independent public WAN TCP/Host/SNI denial.
+Never claim a working browser until the owner really pairs/lends a tab. Logs,
+journals, browser keys and captured private content stay outside Git in Browse's
+XDG folders; upstream journals are bounded to fourteen days/200 entries, not a
+promise of zero retention or protection from the Unix account.
 
 ## Lore
 
