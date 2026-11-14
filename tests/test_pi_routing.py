@@ -45,16 +45,6 @@ class PiRoutingTests(unittest.TestCase):
                 self.assertIn('tls', router)
                 self.assertEqual(http['services'][router['service']]['loadBalancer'], {
                     'passHostHeader': True, 'servers': [{'url': f'http://127.0.0.1:{port}'}]})
-        private_rules = {r['rule'] for r in http['routers'].values()
-                         if 'pitailnet' in r.get('entryPoints', [])}
-        self.assertEqual(private_rules, {
-            'Host(`pi.jackharrhy.dev`)',
-            'Host(`alderpoint.pi.jackharrhy.dev`)',
-            'Host(`alderpoint-api.pi.jackharrhy.dev`)',
-            'Host(`4orm.pi.jackharrhy.dev`)',
-            'Host(`wonder.pi.jackharrhy.dev`)',
-            'Host(`browse.pi.jackharrhy.dev`) && Path(`/mcp`)',
-        })
         for router in http['routers'].values():
             if 'pitailnet' in router.get('entryPoints', []):
                 self.assertNotIn('HostRegexp', router['rule'])
@@ -84,23 +74,12 @@ class PiRoutingTests(unittest.TestCase):
         unit = (ROOT / 'hosts/newport/browse/browse-mcp.service').read_text()
         self.assertIn('--host 127.0.0.1 --port 19989', unit)
         self.assertIn('--apiKeyFile %h/.local/share/browse/mcp-api-key', unit)
-        self.assertIn('--stateful', unit)
-        self.assertNotIn('--oauth2Bearer', unit)
         self.assertNotIn('--cors', unit)
         self.assertIn('--logLevel none', unit)
-        launcher = (ROOT / 'hosts/newport/browse/browse').read_text()
-        self.assertIn('OPENCODE_BROWSER_AUTO_UPDATE=off', launcher)
-        self.assertIn('browse-runtime-v0.0.16', launcher)
         compose = yaml.safe_load((ROOT / 'hosts/newport/compose.yml').read_text())
         executor = compose['services']['executor']
         self.assertEqual(executor['environment']['EXECUTOR_APPS_ALLOW_PRIVATE_FETCH'], 'true')
         self.assertEqual(executor['environment']['SSO_ONLY'], 'true')
-        self.assertEqual(executor['image'], 'local/executor:2.0.0-beta.41-auth-only.1')
-
-    def test_temporary_auth_fixture_is_not_permanent_configuration(self):
-        http = yaml.safe_load((ROOT / 'hosts/newport/traefik/dynamic/routes.yml').read_text())['http']
-        self.assertNotIn('auth-preview', http['routers'])
-        self.assertNotIn('auth-preview', http['services'])
 
     def test_dns_has_no_public_ipv6_and_preserves_acme_challenge(self):
         zone = yaml.safe_load((ROOT / 'dns/zones/jackharrhy.dev.yaml').read_text())

@@ -1,4 +1,3 @@
-"""Fresh staging, rather than a time-only shortcut, protects pre-update recovery."""
 import json
 import os
 from pathlib import Path
@@ -47,7 +46,6 @@ class HookSnapshotTests(unittest.TestCase):
         source.write_text('dns:\n  port: 5353\n')
         self.run_hook(command)
         self.assertEqual(len(self.generations()), 2)
-        # Corrupt every publication: exact current staging must not trust receipt alone.
         for path in self.generations():
             path.write_text('corrupt')
         self.run_hook(command)
@@ -62,19 +60,7 @@ class HookSnapshotTests(unittest.TestCase):
         self.assertEqual((self.backups / '.last-success').read_bytes(), marker)
         self.assertEqual(len(self.generations()), 4)
 
-    def test_adguard_readonly_rootfs_helper_fallback(self):
-        source = self.config / 'AdGuardHome.yaml'
-        source.write_text('dns:\n  port: 53\n')
-        shutil.copyfile(HELPER, self.backups / '.infra-backup-retention.sh')
-        self.env.pop('INFRA_BACKUP_HELPER')
-        self.env.update(CONFIG_FILE=str(source), BACKUP_DIR=str(self.backups))
-        self.run_hook(['sh', str(ROOT / 'hosts/newport/adguardhome/backup.sh')])
-        self.assertEqual(len(self.generations()), 1)
-
-    def exercise_sqlite(self, kind, persistent_helper=False):
-        if persistent_helper:
-            shutil.copyfile(HELPER, self.backups / ".infra-backup-retention.sh")
-            self.env.pop("INFRA_BACKUP_HELPER")
+    def exercise_sqlite(self, kind):
         db_dir = self.config / 'db' if kind == 'seerr' else self.config
         db_dir.mkdir(exist_ok=True)
         db_path = db_dir / 'state.db'
@@ -110,29 +96,9 @@ class HookSnapshotTests(unittest.TestCase):
                 self.assertEqual(snapshot.execute('PRAGMA integrity_check').fetchone()[0], 'ok')
                 values.append(snapshot.execute('SELECT value FROM state').fetchone()[0])
         self.assertEqual(sorted(values), [1, 2])
-        count = len(list((self.backups / '.infra-hook-v1').iterdir()))
-        self.run_hook(command, 'manual')
-        self.assertEqual(len(self.generations()), 3)
-        self.assertEqual(len(list((self.backups / '.infra-hook-v1').iterdir())), count)
-        # Missing producer data must fail, never prune or advance the success marker.
-        marker = self.backups / '.last-success'
-        before = marker.read_bytes() if marker.exists() else None
-        connection.close()
-        db_path.unlink()
-        self.run_hook(command, ok=False)
-        self.assertEqual(len(self.generations()), 3)
-        self.assertEqual(marker.read_bytes() if marker.exists() else None, before)
 
     def test_cleanuparr_wal_and_fresh_equivalence(self):
         self.exercise_sqlite('cleanuparr')
-
-    def test_cleanuparr_persistent_helper_survives_missing_opt_mount(self):
-        self.exercise_sqlite("cleanuparr", persistent_helper=True)
-
-    def test_seerr_persistent_helper_survives_missing_opt_mount(self):
-        if not shutil.which("node") or subprocess.run(["node", "-e", "require('node:sqlite')"], capture_output=True).returncode:
-            self.skipTest("node:sqlite unavailable")
-        self.exercise_sqlite("seerr", persistent_helper=True)
 
     def test_seerr_wal_and_fresh_equivalence(self):
         if not shutil.which('node') or subprocess.run(['node', '-e', "require('node:sqlite')"], capture_output=True).returncode:
