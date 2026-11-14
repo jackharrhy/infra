@@ -314,6 +314,11 @@ services:
       TEA_OPERATOR_ORIGIN: https://teacms.jackharrhy.dev
     volumes:
       - ./volumes/teacms:/app/data
+      - type: bind
+        source: ./volumes/teacms_backups
+        target: /app/backups
+        bind:
+          create_host_path: false
     healthcheck:
       test:
         - CMD

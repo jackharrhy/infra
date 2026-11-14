@@ -261,6 +261,16 @@ daily archives (normally seven days; missed nights do not erase older recovery).
 This is local recovery on the same disk, not an independent off-host backup.
 Restore the whole matched set into empty destinations with the service stopped.
 
+The prepared app-native backup bind is `volumes/teacms_backups` → `/app/backups`,
+separate from `/app/data` and the old tar archive root, owned by uid 1000 with mode
+0700. `create_host_path: false` requires explicit host preparation. This mount does
+not enable backups: keep `TEA_BACKUP_DIR` absent until the matching image and its
+backup/restore CLI have been checked. Keep the existing cron and seven good
+archives through a completed native snapshot and an offline restore into a **new
+private scratch directory**, using the matching image, read-only backups and no
+production data mount. Never ingest/convert old tar archives or restore over live
+data by implication.
+
 The separate `andrewsite_remix` app for `andrewgossecomposer.com` mounts
 `volumes/andrewsite_tea_data` at `/app/data`. Its existing OS cron calls
 `hosts/mug/andrewsite/backup.sh` at 04:17 UTC, backing up SQLite plus that app's

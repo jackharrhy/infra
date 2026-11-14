@@ -35,6 +35,15 @@ class MugRetentionTests(unittest.TestCase):
                 self.assertTrue(unrelated.exists())
                 self.assertTrue(link.is_symlink())
 
+    def test_teacms_native_backup_mount_is_isolated_and_not_enabled(self):
+        service = yaml.safe_load((ROOT / 'hosts/mug/compose.yml').read_text())['services']['teacms']
+        mounts = [m for m in service['volumes'] if isinstance(m, dict) and m.get('target') == '/app/backups']
+        self.assertEqual(mounts, [{'type': 'bind', 'source': './volumes/teacms_backups',
+                                  'target': '/app/backups', 'bind': {'create_host_path': False}}])
+        self.assertNotIn('TEA_BACKUP_DIR', service.get('environment', {}))
+        self.assertIn('./volumes/teacms:/app/data', service['volumes'])
+        self.assertTrue((ROOT / 'hosts/mug/teacms/backup.cron').is_file())
+
     def test_prospective_journal_bounds_and_future_container_limits(self):
         config = configparser.ConfigParser()
         config.read(ROOT / 'hosts/mug/logging/infra.conf')
