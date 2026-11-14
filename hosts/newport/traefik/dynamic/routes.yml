@@ -1,5 +1,11 @@
 http:
   routers:
+    slskd:
+      rule: Host(`slskd.rotund.org`)
+      entryPoints: [pitailnet]
+      service: slskd
+      tls:
+        certResolver: newportdns
     pi:
       rule: Host(`pi.jackharrhy.dev`)
       entryPoints: [pitailnet]
@@ -42,6 +48,11 @@ http:
       priority: 1000000
       service: noop@internal
   services:
+    slskd:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: http://172.30.34.2:5030
     browse-mcp:
       loadBalancer:
         passHostHeader: true

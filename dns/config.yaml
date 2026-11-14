@@ -27,7 +27,17 @@ processors:
     # Traefik owns this transient TXT, including during DDNS reconciliation.
     rejectlist: [_acme-challenge.pi]
 
+  slskd-acme:
+    class: octodns.processor.filter.NameRejectlistFilter
+    rejectlist: [_acme-challenge.slskd]
+
 zones:
+  "rotund.org.":
+    glob: "rotund.org."
+    sources: [config]
+    processors: [slskd-acme]
+    targets: [digitalocean]
+
   # Dynamic sources follow static configuration. No static A record should
   # exist for these names. Other records remain managed by the YAML source.
   "jackharrhy.dev.":
