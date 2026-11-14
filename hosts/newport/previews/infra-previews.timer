@@ -1,0 +1,10 @@
+[Unit]
+Description=Expire temporary preview routes at startup and every minute
+
+[Timer]
+OnBootSec=5s
+OnUnitActiveSec=60s
+AccuracySec=1s
+
+[Install]
+WantedBy=timers.target

@@ -25,11 +25,6 @@ http:
       entryPoints: [pitailnet]
       service: 4orm-preview
       tls: {}
-    auth-preview:
-      rule: 'Host(`auth-preview.pi.jackharrhy.dev`) && (Path(`/`) || Path(`/login`) || PathPrefix(`/assets/`))'
-      entryPoints: [pitailnet]
-      service: auth-preview
-      tls: {}
     wonder-site:
       rule: Host(`wonder.pi.jackharrhy.dev`)
       entryPoints: [pitailnet]
@@ -47,11 +42,6 @@ http:
         passHostHeader: true
         servers:
           - url: http://127.0.0.1:18810
-    auth-preview:
-      loadBalancer:
-        passHostHeader: true
-        servers:
-          - url: http://127.0.0.1:18809
     alderpoint-preview:
       loadBalancer:
         passHostHeader: true

@@ -68,13 +68,15 @@ changing limits: swap occupancy alone does not establish active paging.
 
 ## Routing
 
-Local container routes belong in Compose labels. File-provider routes, services
-and middleware belong in the host's one watched canonical file:
+Local container routes belong in Compose labels. Permanent file-provider routes,
+services and middleware belong in the host's canonical file:
 
 - [Mug routes](../hosts/mug/traefik/dynamic/routes.yml)
 - [Newport routes](../hosts/newport/traefik/dynamic/routes.yml)
 
-Do not introduce per-application route fragments. Listener, provider and ACME
+Do not introduce per-application route fragments. The sole temporary-route
+exception is Newport's CLI-generated, Git-ignored `previews.runtime.yml` described
+below; never hand-write arbitrary preview YAML. Listener, provider and ACME
 settings belong in each host's Compose configuration. Mug normally terminates
 public HTTPS and relays Newport hosts through `newport-origin`, preserving Host;
 Newport selects the backend. Auth and Lore use dedicated HTTP/h2c backends.
@@ -122,12 +124,12 @@ Named previews are opt-in, not a catchall proxy or process launcher:
 | `alderpoint` | 5173 | Alderpoint app; native login and exact allowed host |
 | `alderpoint-api` | 54321 | Alderpoint main Supabase; existing API/auth policies |
 | `4orm` | 18954 | Harrhy native review; Tailnet entrance, native app login retained |
-| `auth-preview` | 18809 | Harrhy GET-only synthetic UI fixture; `/`, `/login`, `/assets/` only, no actual Auth session/provider |
 | `wonder` | 18810 | Wonder static Astro publication; Tailnet read access, independent of p2 |
 
-Register a unique short lowercase label with its owner, fixed loopback port,
-access policy and retirement condition in the same canonical routes file. Reserve
-the apex for p2; never derive an upstream from arbitrary Host input. Unknown
+Permanent registrations have an owner, fixed loopback port and access policy in
+the canonical file. Short-lived previews use the local registry below instead of
+Infra commits per preview. Reserve the apex for p2; never derive an upstream from
+arbitrary Host input. Unknown
 names return 404. p2's marker/auth is not shared preview authentication. Traefik
 does not inject Tailscale user identities; do not fabricate those headers or
 replace an access policy with trust in client-supplied identity. Preserve Host,
@@ -162,6 +164,76 @@ probe is not a successful owner browser session. Preserve the LAN lease/address
 when changing bindings. If a resolver filters public-to-CGNAT answers or retains
 negative cache, diagnose that exact resolver; do not disable rebinding protection
 globally or hide the problem with hosts-file entries.
+
+### Temporary preview registry (Newport)
+
+Source owners can register an authorized temporary preview without editing Infra
+Git or waiting for a proxy operator. Start the app on **127.0.0.1 only**, then run
+from any directory on Newport (`uv run --project ~/infra ~/infra/cli.py` is the
+same entrypoint if the shortcut is not on PATH):
+
+```sh
+~/.local/bin/infra preview register demo --port 21001 --owner my-project \
+  --purpose 'Short UI review' --ttl 24h
+~/.local/bin/infra preview list
+~/.local/bin/infra preview renew demo --owner my-project --ttl 24h
+~/.local/bin/infra preview remove demo --owner my-project
+```
+
+Registration returns `https://demo.pi.jackharrhy.dev`. The optional repeatable
+`--path /login --prefix /assets/` restricts literal URL paths; without these,
+only the exact Host is matched. Inputs are not raw Traefik expressions. Names are
+single lowercase DNS labels, no wildcard or nested names. Reserved platform and
+permanent names, permanent/admin ports, shared leased ports, non-loopback listeners,
+owner takeovers and invalid TTLs are refused. Owner labels coordinate trusted
+operators; they do not authenticate same-UID agents. Do not register privileged
+local services or assume preview routes grant owner-only access.
+
+Leases default to 24h, maximum 7d, with explicit renewal. The private authoritative
+registry is `~/.local/state/infra/previews/registry.json` (0700 parent/0600 files).
+A process lock serializes writers, complete candidates are validated, and a single
+0600 projection is atomically replaced in the existing directory mount:
+`hosts/newport/traefik/dynamic/previews.runtime.yml` (ignored by Git). Generated
+routers use only exact opt-in Hosts, `pitailnet`, existing wildcard TLS and fixed
+`http://127.0.0.1:PORT` upstreams; callers cannot inject middleware, headers,
+filesystem paths or upstream URLs. No p2 marker or fake Tailscale identity is added.
+
+`infra-previews.timer` runs `preview reconcile` at user-service startup and every
+minute. Expiry removes **routes only**, never processes, ports, files or data.
+Startup/expiry is bounded by timer scheduling and file-provider debounce, not a
+hard real-time security cutoff. Reconcile validates registry state and rebuilds
+the projection; validation failure preserves last-good config and is visible in
+`systemctl --user status infra-previews.service` / its journal. A crash between
+registry and projection writes is reconciled on the next run. Monitor failures;
+do not infer lease expiry from a broken timer.
+
+Remove the lease **before stopping/reusing its port**; the app owner still owns
+runtime and sensitive-data/access safety. Renew only while the review remains
+wanted. Persistent deployed apps stay in canonical Infra config. A source agent
+sharing the Unix account is not sandboxed by this command; this is a small trusted
+runtime registry, not a new authorization/orchestration platform.
+
+To install the one expiry timer (already installed on Newport):
+
+```sh
+install -m 644 hosts/newport/previews/infra-previews.{service,timer} ~/.config/systemd/user/
+systemctl --user daemon-reload
+systemctl --user enable --now infra-previews.timer
+systemctl --user start infra-previews.service
+```
+
+For a one-time migration, `register --adopt-existing` accepts only an exactly
+equivalent non-reserved static route/upstream. Verify the generated route first,
+then remove the redundant static stanza and reconcile. This allows overlap without
+review interruption; it cannot override a different/permanent route. Only the
+Auth synthetic fixture was migrated initially; its owner renews/removes its lease.
+No other deployed routes or services are delegated by this feature.
+
+The generated file must stay **top-level** in the watched directory: Traefik 3.7.18
+loads nested configuration but does not install recursive file watchers. Do not
+replace this with a single-file bind mount (atomic replacement/inode trap), a
+nested proxy or per-preview committed fragments. Keep runtime registry/projection
+out of public archives; Git ignore is not protection against explicit force-add.
 
 ## SOPS and recovery
 

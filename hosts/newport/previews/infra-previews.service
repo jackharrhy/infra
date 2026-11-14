@@ -1,0 +1,9 @@
+[Unit]
+Description=Reconcile Newport temporary preview route leases
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/infra
+ExecStart=%h/.local/bin/uv run --project %h/infra %h/infra/cli.py preview reconcile
+TimeoutStartSec=30
+UMask=0077
