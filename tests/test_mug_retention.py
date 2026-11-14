@@ -44,7 +44,8 @@ class MugRetentionTests(unittest.TestCase):
             'TEA_BACKUP_DIR': '/app/backups', 'TEA_BACKUP_INTERVAL_SECONDS': '86400',
             'TEA_BACKUP_KEEP': '7', 'TEA_BACKUP_RESERVE_BYTES': '268435456'})
         self.assertIn('./volumes/teacms:/app/data', service['volumes'])
-        self.assertTrue((ROOT / 'hosts/mug/teacms/backup.cron').is_file())
+        self.assertFalse((ROOT / 'hosts/mug/teacms/backup.cron').exists())
+        self.assertTrue((ROOT / 'hosts/mug/andrewsite/backup.cron').is_file())
 
     def test_prospective_journal_bounds_and_future_container_limits(self):
         config = configparser.ConfigParser()

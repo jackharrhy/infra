@@ -254,22 +254,27 @@ the authoritative store and current recovery credentials/configuration. This
 application store and track/audio storage are separate from the Auth enrollment/access snapshots.
 
 Tea CMS requires private package access in Mug's `~/.docker/config.json`.
-`/etc/cron.d/teacms-backup` runs the [backup script](../hosts/mug/teacms/backup.sh)
-daily at 04:27 UTC on Mug, preserving both site databases/uploads/public assets
-and the operator DB in `~/backups/teacms`. It retains seven newest producer-verified
-daily archives (normally seven days; missed nights do not erase older recovery).
-This is local recovery on the same disk, not an independent off-host backup.
-Restore the whole matched set into empty destinations with the service stopped.
+Its app-owned scheduler captures independent consistent SQLite snapshots for both
+sites and the operator plus all retained uploads/public assets. The isolated
+`volumes/teacms_backups` → `/app/backups` bind is separate from `/app/data` and the
+old tar root, owned by uid 1000 with mode 0700; `create_host_path: false` requires
+explicit host preparation. `TEA_BACKUP_DIR` enables the engine: interval 86400
+seconds, seven completed verified generations, reserve 268435456 bytes. Private
+`status.json` and the authenticated operator dashboard report freshness/errors;
+manifests identify source revision, datasets, file inventory and SHA256. This is
+local recovery on the same disk, not an independent off-host backup.
 
-The app-native backup bind is `volumes/teacms_backups` → `/app/backups`, separate
-from `/app/data` and the old tar archive root, owned by uid 1000 with mode 0700.
-`create_host_path: false` requires explicit host preparation. `TEA_BACKUP_DIR`
-enables the checked image's scheduler: interval 86400 seconds, seven completed
-verified generations, reserve 268435456 bytes. Keep the existing cron and seven good
-archives through a completed native snapshot and an offline restore into a **new
-private scratch directory**, using the matching image, read-only backups and no
-production data mount. Never ingest/convert old tar archives or restore over live
-data by implication.
+The TeaCMS-only host cron is retired after native snapshot and offline restore
+acceptance. Preserve its seven good old archives in `~/backups/teacms`; they are
+not ingested, converted or pruned by the new engine. Do not disable the separate
+Andrew cron. Before a future cutover, prove an actual completed native snapshot
+and offline restore using the **matching image**, read-only backup mount, no
+production data mount, network disabled and a **new private scratch destination**.
+Verify SQLite/media and preserved non-session data; restored sessions/tickets
+must be invalidated. Never restore over live data by implication. See the
+[application backup/restore contract](https://github.com/jackharrhy/harrhy/blob/main/docs/cms/backups.md)
+for consistency, lease, reserve and CLI details. Preserve matching deployment
+configuration/keys separately; an app-data snapshot does not bundle them.
 
 The separate `andrewsite_remix` app for `andrewgossecomposer.com` mounts
 `volumes/andrewsite_tea_data` at `/app/data`. Its existing OS cron calls
