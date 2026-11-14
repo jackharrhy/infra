@@ -92,6 +92,30 @@ services:
       - "traefik.enable=false"
       - "com.centurylinklabs.watchtower.enable=true"
 
+  slskd-auth:
+    <<: *media-auth
+    env_file: [.runtime-secrets/slskd-auth.env]
+    ports: ["127.0.0.1:14188:4180"]
+    environment:
+      <<: *media-auth-environment
+      OAUTH2_PROXY_REDIRECT_URL: https://slskd.rotund.org/oauth2/callback
+      OAUTH2_PROXY_WHITELIST_DOMAINS: slskd.rotund.org,auth.jackharrhy.dev
+      OAUTH2_PROXY_COOKIE_NAME: __Host-slskd_auth
+      OAUTH2_PROXY_COOKIE_REFRESH: "0"
+      OAUTH2_PROXY_PROVIDER_DISPLAY_NAME: Jack Auth
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=newport_web"
+      - "traefik.http.routers.slskd-oauth.rule=Host(`slskd.rotund.org`) && PathPrefix(`/oauth2/`)"
+      - "traefik.http.routers.slskd-oauth.entrypoints=web"
+      - "traefik.http.routers.slskd-oauth.service=slskd-auth"
+      - "traefik.http.services.slskd-auth.loadbalancer.server.port=4180"
+      - "traefik.http.middlewares.slskd-auth.forwardauth.address=http://127.0.0.1:14188/"
+      - "traefik.http.middlewares.slskd-auth.forwardauth.trustForwardHeader=true"
+      - "traefik.http.middlewares.slskd-auth.forwardauth.authRequestHeaders=Cookie,Accept"
+      - "com.centurylinklabs.watchtower.enable=true"
+
+
   cleanuparr-auth:
     <<: *media-auth
     env_file: [.runtime-secrets/cleanuparr-auth.env]

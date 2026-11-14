@@ -2,10 +2,9 @@ http:
   routers:
     slskd:
       rule: Host(`slskd.rotund.org`)
-      entryPoints: [pitailnet]
+      entryPoints: [web]
       service: slskd
-      tls:
-        certResolver: newportdns
+      middlewares: [slskd-auth@docker]
     pi:
       rule: Host(`pi.jackharrhy.dev`)
       entryPoints: [pitailnet]

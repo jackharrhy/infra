@@ -1,7 +1,8 @@
-# slskd private setup
+# slskd setup
 
-Open https://slskd.rotund.org while connected to Tailscale. Native UI
-username is `owner`. Retrieve the unique password in your own private terminal:
+Open https://slskd.rotund.org and sign in through `auth.jackharrhy.dev` using
+the existing owner-only media-admin grant. Native UI authentication remains a
+second gate; its username is `owner`. Retrieve the password in your private terminal:
 
 ```sh
 cd ~/infra
@@ -17,10 +18,12 @@ destination.
 
 The service deliberately starts with `no_connect`, no automatic share scan and an
 internal-only Docker network without a default route or published ports. Host-network
-Traefik reaches its fixed internal bridge address; only the explicit `pitailnet`
-router serves it. The explicit Tailnet A record suppresses the public wildcard
-(including AAAA). DNS-01 TLS uses `newportdns`; octoDNS excludes only this host's
-transient ACME challenge record from reconciliation. Do not attach the service to `web` merely to fix connectivity.
+Traefik reaches its fixed internal bridge address. Public DNS/TLS ingress is Mug,
+relaying to Newport's `web` router behind the dedicated `slskd-auth` OAuth2 proxy,
+using the same owner subject allowlist and issuer project as the other media-admin
+services. API and WebSocket paths use that gate too; no Tailnet router bypasses it.
+The proxy has its own client and host-only secure cookie, separate from native UI
+credentials. Do not attach slskd itself to `web` merely to fix connectivity.
 Watchtower remains enabled; replacements retain the isolated network and mounts.
 
 Only canonical `library/music` is mounted read-only as `/music`. Only
@@ -40,4 +43,6 @@ alone cannot bypass isolation.
 
 Operate only this service with scoped Compose commands. No sibling recreation or
 Docker pruning is required. Validate authenticated state and empty transfer queues,
-private TLS, public-listener denial and the internal network after maintenance.
+public TLS, anonymous SSO redirection/API denial and the internal network after
+maintenance. A real owner browser SSO session is a separate acceptance check from
+native login or a redirect probe.
