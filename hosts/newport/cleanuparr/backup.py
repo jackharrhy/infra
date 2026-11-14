@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 import shutil
 import sqlite3
+import subprocess
 import sys
 import time
 import uuid
@@ -15,6 +16,10 @@ def main():
     backups = Path(os.environ.get("BACKUP_DIR", "/backups"))
     backups.mkdir(parents=True, exist_ok=True)
     marker = backups / ".last-success"
+    managed = "manual" not in sys.argv[1:]
+    helper = os.environ.get("INFRA_BACKUP_HELPER", "/opt/infra-backup-retention.sh")
+    def retention(*args):
+        return subprocess.check_output(["sh", helper, *map(str, args)], text=True).strip()
     if "daily" in sys.argv[1:] and marker.exists() and time.time() - marker.stat().st_mtime < 86400:
         print("Recent Cleanuparr backup retained")
         return
@@ -45,7 +50,19 @@ def main():
             dest.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(source, dest)
             dest.chmod(0o600)
-        staging.rename(backups / name)
+        if managed:
+            digest = retention("hash", staging)
+            previous = retention("reuse", backups, digest)
+        else:
+            previous = ""
+        if previous:
+            shutil.rmtree(staging)
+            name = previous
+            print("Fresh Cleanuparr snapshot matches verified previous publication")
+        else:
+            staging.rename(backups / name)
+            if managed:
+                retention("complete", backups, name, digest)
         temporary = marker.with_name(".last-success.new")
         temporary.write_text(name + "\n")
         temporary.replace(marker)

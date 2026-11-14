@@ -57,6 +57,58 @@ After a Docker daemon restart with live restore, a running Traefik/Watchtower ca
 retain a stale Docker socket mount. Compare socket inodes, recreate only affected
 consumers, and verify provider discovery/updater connectivity.
 
+## Update-hook backups
+
+Custom automatic hooks for AdGuard, Cleanuparr, Seerr, qBittorrent and Lists always
+make a fresh producer-consistent capture before a pre-update decision. After the
+producer's existing integrity checks, byte-identical covered files/relative paths
+may reuse the newest managed publication only within 24 hours and after its full
+artifact checksum matches. TTL alone never proves a live database unchanged.
+Changes, missing/corrupt artifacts or uncertain equivalence require a new
+publication. Directory digests cover file bytes, paths and empty directories, not
+mtimes; they do not normalize database or API fields. Existing daily pre-check
+cadence remains; an update never uses its time-only daily guard.
+
+Jellyfin is an explicit exception: its existing fresh native pre-update hook and
+archives remain unchanged, without automatic pruning or equivalence reuse. Native
+completion/full ZIP hashing cannot prove complete database export: the upstream
+engine can skip rows on enumeration errors, and filenames have second-resolution
+collision risk. Before enabling retention, independently validate ZIP entries and
+complete database coverage/recovery, and identify a newly created archive without
+overwriting or adopting unknown artifacts. Sonarr/Radarr/Prowlarr and Navidrome
+retain their native policies; native manual and scheduled retention can differ.
+
+[The shared helper](../hosts/common/backup-retention.sh) keeps the union of the
+newest generation on each of the seven most recent observed UTC backup-days and
+the three newest generations. Missed nights do not expire older recovery days.
+Only a newly completed, producer-validated publication permits pruning. Hidden
+`.infra-hook-v1` completion receipts identify owned immutable generations; only
+checksum-matching prune candidates may be removed. Changed, corrupt, unknown,
+manual and pre-adoption artifacts are preserved, not adopted by filename. There
+is no initial historical cleanup or new cron job. A valid current generation is
+always retained. Inspect preservation warnings rather than deleting unknown
+files or stale locks blindly.
+
+To make a separately retained manual snapshot, explicitly bypass automatic reuse,
+receipts and pruning:
+
+```sh
+docker exec newport-adguardhome-1 sh /infra/backup.sh manual
+docker exec newport-cleanuparr-1 python3 /infra/backup.py manual
+docker exec newport-seerr-1 node /infra/backup.mjs manual
+docker exec newport-qbittorrent-1 python3 /infra/backup.py manual
+# On Mug:
+docker exec mug-lists-1 bun /scripts/lists-backup.mjs manual
+```
+
+The helper is mounted read-only at `/opt/infra-backup-retention.sh`. For a live
+single-file/directory-bind rollout without app recreation, preserve original bind
+inodes, install and verify the helper first, then update the mounted script inode
+in place while the applicable updater is briefly paused. Compare running and
+tracked hashes and restore Watchtower afterward. Git rename/pull alone does not
+refresh a single-file bind; a directory bind can expose edits immediately. The
+Compose helper mounts take effect on the next normal recreation.
+
 ## Container memory diagnostics
 
 Run `python3 scripts/container-memory.py --project mug` on Mug, or use

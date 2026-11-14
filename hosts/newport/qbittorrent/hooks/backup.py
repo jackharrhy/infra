@@ -6,6 +6,8 @@ from pathlib import Path
 import shutil
 import sqlite3
 import stat
+import subprocess
+import sys
 import tarfile
 import tempfile
 import time
@@ -18,6 +20,9 @@ def backup():
     if os.geteuid()==0:
         os.setgroups([65536]);os.setgid(65536);os.setuid(1000)
     os.umask(0o077)
+    managed='manual' not in sys.argv[1:]
+    def retention(*args):
+        return subprocess.check_output(['sh',os.environ.get('INFRA_BACKUP_HELPER','/opt/infra-backup-retention.sh'),*map(str,args)],text=True).strip()
     config=Path('/config');deadline=time.monotonic()+120
     auth=json.loads((config/'.infra/auth.json').read_text())
     opener=urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
@@ -59,9 +64,25 @@ def backup():
             (exports/(torrent_hash+'.torrent')).write_bytes(payload)
         after_jobs=json.loads(request('torrents/info'))
         if {j['hash']for j in jobs}!={j['hash']for j in after_jobs}:raise ValueError('Torrent membership changed during backup')
+        digest=retention('hash',root) if managed else ''
+        previous=retention('reuse','/backups',digest) if managed else ''
+        if previous:
+            print('Fresh qBittorrent snapshot matches verified previous publication',flush=True)
+            return
         target=Path('/backups')/('qbittorrent-'+str(time.time_ns())+'.tar.gz')
-        with tarfile.open(target,'w:gz')as archive:archive.add(root,arcname='recovery')
-        with tarfile.open(target,'r:gz')as archive:assert any(n.endswith('/jobs.json')for n in archive.getnames())
+        partial=target.with_name('.'+target.name+'.partial')
+        try:
+            with tarfile.open(partial,'w:gz')as archive:archive.add(root,arcname='recovery')
+            with tarfile.open(partial,'r:gz')as archive:
+                assert any(n.endswith('/jobs.json')for n in archive.getnames())
+                for member in archive:
+                    if member.isfile():
+                        with archive.extractfile(member)as stream:
+                            while stream.read(1024*1024):pass
+            partial.rename(target)
+            if managed:retention('complete','/backups',target.name,digest)
+        finally:
+            partial.unlink(missing_ok=True)
         print('qBittorrent recovery snapshot completed:',len(jobs),'jobs',flush=True)
 
 if __name__=='__main__':

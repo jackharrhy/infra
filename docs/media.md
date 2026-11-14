@@ -141,7 +141,7 @@ matching X-XSRF-TOKEN header. Stable Jellyfin Quick Connect is not proof of Auth
 Config/DB/cache/logs live at `/mnt/terrabud/docker-data/newport/seerr`. The backup
 helper captures all `config/db` databases consistently plus `settings.json`, not
 cache/logs, into `/mnt/stash/newport/seerr-backups`. Daily pre-check and mandatory
-pre-update snapshots fail closed (75); no automatic deletion. Restore matching
+pre-update snapshots fail closed (75), with shared [managed retention and exact-content reuse](operations.md#update-hook-backups). Restore matching
 settings and `db/` together into an empty config root while stopped; retain current
 WAL/SHM with the moved-aside original and preserve private runtime ownership/modes.
 
@@ -228,14 +228,14 @@ regenerating these local hook inputs.
 | --- | --- |
 | Sonarr, Radarr, Prowlarr | Native Backup command, awaited to completion before updates; failure exits 75. Restore through native System → Backup, not a live raw SQLite copy. |
 | qBittorrent | Hook snapshots config, SQLite, resume metadata, job/preferences and torrent exports into its dedicated NAS directory; payloads are separate. Preserve transfer limits, stopped seeding state and current queue. |
-| Cleanuparr | Online SQLite snapshots of all databases plus JWT/Data Protection key files; excludes logs/live sidecars, private atomic snapshots, no automatic deletion. Restore all DBs/keys together into an empty config root, then start in dry-run before allowing real changes. |
-| Seerr | All DBs plus settings; no automatic deletion; recover private credentials/account/history/integrations together. |
+| Cleanuparr | Online SQLite snapshots of all databases plus JWT/Data Protection key files; excludes logs/live sidecars, private atomic snapshots with managed retention. Restore all DBs/keys together into an empty config root, then start in dry-run before allowing real changes. |
+| Seerr | All DBs plus settings; managed retention; recover private credentials/account/history/integrations together. |
 
 Manual snapshots from Newport:
 
 ```sh
-docker exec newport-cleanuparr-1 python3 /infra/backup.py
-docker exec newport-seerr-1 node /infra/backup.mjs
+docker exec newport-cleanuparr-1 python3 /infra/backup.py manual
+docker exec newport-seerr-1 node /infra/backup.mjs manual
 ```
 
 Follow the shared stop/move-aside/empty-destination restore procedure; preserve

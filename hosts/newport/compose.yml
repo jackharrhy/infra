@@ -95,6 +95,12 @@ services:
     tmpfs: ["/tmp:rw,noexec,nosuid,size=16m,mode=1777"]
     command: ["--no-check-update", "--web-addr", "0.0.0.0:3000", "-c", "/opt/adguardhome/conf/AdGuardHome.yaml", "-w", "/opt/adguardhome/work"]
     volumes:
+      - type: bind
+        source: ../common/backup-retention.sh
+        target: /opt/infra-backup-retention.sh
+        read_only: true
+        bind:
+          create_host_path: false
       - /mnt/terrabud/docker-data/newport/adguardhome/conf:/opt/adguardhome/conf
       - /mnt/terrabud/docker-data/newport/adguardhome/work:/opt/adguardhome/work
       - ./adguardhome/backup.sh:/infra/backup.sh:ro
@@ -136,6 +142,12 @@ services:
       PORT: "11011"
       UMASK: "077"
     volumes:
+      - type: bind
+        source: ../common/backup-retention.sh
+        target: /opt/infra-backup-retention.sh
+        read_only: true
+        bind:
+          create_host_path: false
       - /mnt/terrabud/docker-data/newport/cleanuparr:/config
       - ./cleanuparr/backup.py:/infra/backup.py:ro
       - type: bind
@@ -182,6 +194,12 @@ services:
       LOG_LEVEL: info
       PORT: "5055"
     volumes:
+      - type: bind
+        source: ../common/backup-retention.sh
+        target: /opt/infra-backup-retention.sh
+        read_only: true
+        bind:
+          create_host_path: false
       - /mnt/terrabud/docker-data/newport/seerr:/app/config
       - ./seerr/backup.mjs:/infra/backup.mjs:ro
       - type: bind
@@ -332,6 +350,12 @@ services:
       - "192.168.2.30:6881:6881"
       - "192.168.2.30:6881:6881/udp"
     volumes:
+      - type: bind
+        source: ../common/backup-retention.sh
+        target: /opt/infra-backup-retention.sh
+        read_only: true
+        bind:
+          create_host_path: false
       - /mnt/terrabud/docker-data/newport/qbittorrent:/config
       - ./qbittorrent/hooks:/infra:ro
       - type: bind
