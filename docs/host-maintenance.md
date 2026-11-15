@@ -36,9 +36,14 @@ that storage migration is explicitly in scope.
 For approved application logs, verified-inode truncation can release an open log;
 unlinking it may not. Docker-owned active logs need native bounded retention and
 a scoped recreation, not external rotation behind the daemon. Measure free space
-after cleanup settles; directory-size sums are not reclaimed headroom. Preserve
-explicit rollback holds; image, builder-cache, container and volume cleanup are
-different scopes.
+after cleanup settles; directory-size sums are not reclaimed headroom.
+Image, builder-cache, container and volume cleanup are different scopes.
+
+Do not retain local images solely for rollback or create manual image archives
+and duplicate rollback tags. Use published images or recoverable source/build
+recipes. Before removing unused images, check every running and retained stopped
+container plus current builds. Protect unique unpublished artifacts until their
+source and build recipe are confirmed; application data backups remain separate.
 
 ### Development preview storage
 
