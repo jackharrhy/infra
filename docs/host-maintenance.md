@@ -40,6 +40,25 @@ after cleanup settles; directory-size sums are not reclaimed headroom. Preserve
 explicit rollback holds; image, builder-cache, container and volume cleanup are
 different scopes.
 
+### Development preview storage
+
+Run development previews from their owned worktree; do not install a complete
+per-commit application snapshot unless an immutable installation is explicitly
+needed. Keep durable private data and its recovery separate from application
+code. Routine compatible UI/library refreshes use existing backup cadence and
+update hooks; they do not by themselves justify full data exports or exhaustive
+per-file acceptance checks. Add a capture for an identified data/schema or
+recovery risk. Before a full capture, estimate its size and available headroom;
+use the approved recovery location and retention policy rather than accumulating
+unbounded full copies on root.
+
+At task completion, have the source owner identify disposable dependencies and
+local review images, then check runtime references and ignored/private files
+before removing exact artifacts. Preserve branches, unique work and required
+recovery. Image layers and BuildKit caches share references: removing an image
+may free no bytes until newly unused build cache is collected. Measure filesystem
+headroom after each operation instead of summing image sizes or cache totals.
+
 ### Mug log bounds
 
 `hosts/mug/logging/infra.conf` installs as
