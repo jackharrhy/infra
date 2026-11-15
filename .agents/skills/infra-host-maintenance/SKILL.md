@@ -30,10 +30,12 @@ image, readiness and authenticated acceptance are different evidence.
 2. Inspect running image ID and OCI revision, mounts, environment privately, live
    use and free space. Compare with the intended settings. Environment order is
    irrelevant; changed values are not. Do not print raw env/labels or credentials.
-3. Choose proportional recovery. A compatible image/config change normally needs
-   an available prior immutable image and adequate existing recovery, not a fresh
-   tar export/database copy/full migration matrix. Schema/destructive changes need
-   their real consistency and downgrade checks. Preserve first/current recovery.
+3. Choose proportional recovery. Routine compatible changes use existing backup
+   cadence and update hooks, not fresh full exports or exhaustive file checks.
+   Recover application code from published images or source/build recipes; do not
+   retain or archive local images solely for rollback. Schema/destructive changes
+   need their relevant consistency and recovery checks. Preserve designated data
+   recovery points.
 4. Run the authorized service-scoped operation. For example:
 
    ```sh
