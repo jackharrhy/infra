@@ -35,6 +35,11 @@ http:
       entryPoints: [pitailnet]
       service: wonder-site
       tls: {}
+    sluggers-old:
+      rule: Host(`sluggers-old.pi.jackharrhy.dev`)
+      entryPoints: [pitailnet]
+      service: sluggers-old
+      tls: {}
     atlas:
       rule: Host(`atlas.pi.jackharrhy.dev`)
       entryPoints: [pitailnet]
@@ -59,6 +64,11 @@ http:
       priority: 1000000
       service: noop@internal
   services:
+    sluggers-old:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: http://127.0.0.1:18951
     atlas:
       loadBalancer:
         passHostHeader: true
