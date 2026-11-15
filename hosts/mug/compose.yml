@@ -310,12 +310,15 @@ services:
       driver: json-file
       options: {max-size: "10m", max-file: "3"}
     networks: [web]
+    env_file:
+      - ./.runtime-secrets/teacms-auth.env
     environment:
-      TEA_OPERATOR_ORIGIN: https://teacms.jackharrhy.dev
-      TEA_BACKUP_DIR: /app/backups
-      TEA_BACKUP_INTERVAL_SECONDS: "86400"
-      TEA_BACKUP_KEEP: "7"
-      TEA_BACKUP_RESERVE_BYTES: "268435456"
+      HARRHY_CMS_DATA_DIR: /app/data
+      HARRHY_CMS_OPERATOR_ORIGIN: https://teacms.jackharrhy.dev
+      HARRHY_CMS_BACKUP_DIR: /app/backups
+      HARRHY_CMS_BACKUP_INTERVAL_SECONDS: "86400"
+      HARRHY_CMS_BACKUP_KEEP: "7"
+      HARRHY_CMS_BACKUP_RESERVE_BYTES: "268435456"
     volumes:
       - ./volumes/teacms:/app/data
       - type: bind
