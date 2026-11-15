@@ -35,6 +35,18 @@ http:
       entryPoints: [pitailnet]
       service: wonder-site
       tls: {}
+    atlas:
+      rule: Host(`atlas.pi.jackharrhy.dev`)
+      entryPoints: [pitailnet]
+      service: atlas
+      tls: {}
+    atlas-preview-redirect:
+      rule: Host(`atlas-preview.pi.jackharrhy.dev`)
+      entryPoints: [pitailnet]
+      priority: 100
+      service: noop@internal
+      middlewares: [atlas-canonical]
+      tls: {}
     browse-mcp:
       rule: Host(`browse.pi.jackharrhy.dev`) && Path(`/mcp`)
       entryPoints: [pitailnet]
@@ -47,6 +59,11 @@ http:
       priority: 1000000
       service: noop@internal
   services:
+    atlas:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: http://127.0.0.1:4337
     slskd:
       loadBalancer:
         passHostHeader: true
@@ -83,6 +100,11 @@ http:
         servers:
           - url: http://127.0.0.1:8788
   middlewares:
+    atlas-canonical:
+      redirectRegex:
+        regex: ^https?://atlas-preview\.pi\.jackharrhy\.dev(.*)$
+        replacement: https://atlas.pi.jackharrhy.dev${1}
+        permanent: true
     pi-proxy-marker:
       headers:
         customRequestHeaders:
