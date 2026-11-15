@@ -1012,12 +1012,12 @@ services:
       - ./.runtime-secrets/maps-artbin-auth.env
       - ./.runtime-secrets/maps-central-auth.env
     environment:
-      - TEA_MAPS_URL=https://worldview.harrhy.xyz
-      - TEA_MAPS_COLLABORATION_URL=http://maps-collaboration:44100
-      - TEA_MAPS_ARTBIN_URL=https://artbin.jackharrhy.dev
+      - HARRHY_MAPS_URL=https://worldview.harrhy.xyz
+      - HARRHY_MAPS_COLLABORATION_URL=http://maps-collaboration:44100
+      - HARRHY_MAPS_ARTBIN_URL=https://artbin.jackharrhy.dev
       - AUTH_ISSUER=https://auth.jackharrhy.dev
-      - TEA_MAPS_QUAKE_COMPILER_URL=http://maps-compiler:8788
-      - TEA_MAPS_GOWER_COMPILER_URL=http://maps-gower-compiler:8788
+      - HARRHY_MAPS_QUAKE_COMPILER_URL=http://maps-compiler:8788
+      - HARRHY_MAPS_GOWER_COMPILER_URL=http://maps-gower-compiler:8788
     volumes:
       - /mnt/terrabud/docker-data/newport/maps_service_tea:/app/data
     pids_limit: 128
@@ -1050,14 +1050,14 @@ services:
     tmpfs:
       - /tmp:size=512m,mode=1777
     environment:
-      - TEA_MAPS_COMPILER_ORIGINS=https://worldview.harrhy.xyz
-      - TEA_MAPS_COMPILER_MAX_CONCURRENT=1
-      - TEA_MAPS_COMPILER_THREADS=2
-      - TEA_MAPS_COMPILER_TIMEOUT_MS=60000
-      - TEA_MAPS_COMPILER_MAX_REQUEST_BYTES=188743680
-      - TEA_MAPS_COMPILER_MAX_MAP_BYTES=2097152
-      - TEA_MAPS_COMPILER_MAX_ASSET_BASE64_BYTES=180355072
-      - TEA_MAPS_COMPILER_MAX_ARTIFACT_BYTES=67108864
+      - HARRHY_MAPS_COMPILER_ORIGINS=https://worldview.harrhy.xyz
+      - HARRHY_MAPS_COMPILER_MAX_CONCURRENT=1
+      - HARRHY_MAPS_COMPILER_THREADS=2
+      - HARRHY_MAPS_COMPILER_TIMEOUT_MS=60000
+      - HARRHY_MAPS_COMPILER_MAX_REQUEST_BYTES=188743680
+      - HARRHY_MAPS_COMPILER_MAX_MAP_BYTES=2097152
+      - HARRHY_MAPS_COMPILER_MAX_ASSET_BASE64_BYTES=180355072
+      - HARRHY_MAPS_COMPILER_MAX_ARTIFACT_BYTES=67108864
       - ERICW_QBSP=/opt/ericw-tools/qbsp
       - ERICW_VIS=/opt/ericw-tools/vis
       - ERICW_LIGHT=/opt/ericw-tools/light
@@ -1080,16 +1080,16 @@ services:
     tmpfs:
       - /tmp:size=512m,mode=1777
     environment:
-      - TEA_MAPS_GAME_PROFILE=gower
-      - TEA_MAPS_COMPILER_ORIGINS=https://worldview.harrhy.xyz
-      - TEA_MAPS_COMPILER_MAX_CONCURRENT=1
-      - TEA_MAPS_COMPILER_THREADS=6
-      - TEA_MAPS_COMPILER_TIMEOUT_MS=1800000
-      - TEA_MAPS_COMPILER_MAX_REQUEST_BYTES=188743680
-      - TEA_MAPS_COMPILER_MAX_MAP_BYTES=2097152
-      - TEA_MAPS_COMPILER_MAX_ASSETS=64
-      - TEA_MAPS_COMPILER_MAX_ASSET_BASE64_BYTES=180355072
-      - TEA_MAPS_COMPILER_MAX_ARTIFACT_BYTES=67108864
+      - HARRHY_MAPS_GAME_PROFILE=gower
+      - HARRHY_MAPS_COMPILER_ORIGINS=https://worldview.harrhy.xyz
+      - HARRHY_MAPS_COMPILER_MAX_CONCURRENT=1
+      - HARRHY_MAPS_COMPILER_THREADS=6
+      - HARRHY_MAPS_COMPILER_TIMEOUT_MS=1800000
+      - HARRHY_MAPS_COMPILER_MAX_REQUEST_BYTES=188743680
+      - HARRHY_MAPS_COMPILER_MAX_MAP_BYTES=2097152
+      - HARRHY_MAPS_COMPILER_MAX_ASSETS=64
+      - HARRHY_MAPS_COMPILER_MAX_ASSET_BASE64_BYTES=180355072
+      - HARRHY_MAPS_COMPILER_MAX_ARTIFACT_BYTES=67108864
       - ERICW_QBSP=/opt/ericw-tools/qbsp
       - ERICW_VIS=/opt/ericw-tools/vis
       - ERICW_LIGHT=/opt/ericw-tools/light
