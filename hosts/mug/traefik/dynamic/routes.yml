@@ -1,5 +1,12 @@
 http:
   routers:
+    jackharrhy-www:
+      rule: Host(`www.jackharrhy.dev`)
+      entryPoints: [websecure]
+      service: noop@internal
+      middlewares: [jackharrhy-canonical]
+      tls:
+        certResolver: mugresolver
     slskd:
       rule: Host(`slskd.rotund.org`)
       entryPoints: [websecure]
@@ -242,6 +249,11 @@ http:
       tls:
         certResolver: mugresolver
   middlewares:
+    jackharrhy-canonical:
+      redirectRegex:
+        regex: ^https?://www\.jackharrhy\.dev(?::[0-9]+)?(/.*)$
+        replacement: https://jackharrhy.dev${1}
+        permanent: true
     jack-auth-authorization-body:
       buffering:
         maxRequestBodyBytes: 16384
