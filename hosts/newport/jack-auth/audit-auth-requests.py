@@ -24,6 +24,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--since", required=True)
     parser.add_argument("--until", required=True)
+    parser.add_argument("--client-candidates-file", type=Path, help="Private non-secret client metadata; emit equality only")
     args = parser.parse_args()
     start, end = (datetime.fromisoformat(v.replace("Z", "+00:00")) for v in (args.since, args.until))
     if start.tzinfo is None or end.tzinfo is None or not 0 < (end - start).total_seconds() <= 600:
@@ -58,6 +59,12 @@ def main():
         targets = [a for a in registry if f"urn:zitadel:iam:org:project:id:{a['projectId']}:aud" in scopes]
         app = targets[0] if len(targets) == 1 else None
         permissions = [p for p in (app or {}).get("delegatedPermissions", []) if f"urn:zitadel:iam:org:project:role:{p}" in scopes]
+        if app and app["id"] == "ref" and args.client_candidates_file:
+            candidates = json.loads(args.client_candidates_file.read_text())
+            if isinstance(candidates, dict):
+                candidates = candidates.get("clients", candidates.get("candidates", []))
+            matches = [c for c in candidates if c.get("clientId") == payload.get("client_id")]
+            print(json.dumps({"storedExecutorClientMatch": bool(matches), "matches": [{k: c.get(k) for k in ("source", "createdAt")} for c in matches]}))
         callback = urllib.parse.urlsplit(payload.get("redirect_uri", ""))
         standard = {"openid", "profile", "email", "offline_access", "urn:zitadel:iam:org:projects:roles"}
         if app:
