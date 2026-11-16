@@ -43,6 +43,15 @@ Keep deliberate vendor versions/security holds. Leave Watchtower operational;
 any remaining hold needs an affected service, owner, release condition and next
 step, not a blanket indefinite freeze.
 
+All active Harrhy applications using Celld, including native previews and tool
+binaries, must converge on one qualified canonical Celld artifact/version. Track
+current verified upstream with a linear patch-series fork; do not introduce merge
+commits or indefinite per-application versions. Coordinate the fork source owner,
+application pin writer and sole runtime operator before adoption. Use normal
+publishers and Watchtower for fleet rollout; a bounded mixed-version transition
+is expected, not an atomic fleet switch. Check actual storage-migration risks and
+protect the affected durable state without treating unrelated uploads as a gate.
+
 Newport Watchtower is opt-in (`WATCHTOWER_LABEL_ENABLE=true`); preserve explicit
 false and unlabeled development exclusions. Mug does not use the same opt-in
 selector: inspect its actual labels/policy. Both configurations enable lifecycle
