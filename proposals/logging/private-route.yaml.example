@@ -1,0 +1,17 @@
+# REVIEW ONLY: not installed in any watched route directory.
+# Proposed existing Newport Tailnet TLS ingress; no DNS/certificate changes.
+http:
+  routers:
+    logs-proposal:
+      rule: Host(`logs.pi.jackharrhy.dev`)
+      entryPoints: [pitailnet]
+      service: logs-proposal
+      tls: {}
+  services:
+    logs-proposal:
+      loadBalancer:
+        servers:
+          - url: http://127.0.0.1:8427
+# Forward Authorization to vmauth; vmauth strips it on the storage hop.
+# Open /select/vmui/ with query-owner credentials; root intentionally has no route.
+# This does not create an issuer, use Authelia, or change JackAuth.

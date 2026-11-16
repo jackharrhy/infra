@@ -53,3 +53,6 @@ jobs:
       - uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
       - name: CLI tests
         run: uv run python -m unittest discover -s tests -v
+
+      - name: Review-only logging proposal source tests
+        run: uv run python -m unittest discover -s proposals/logging -p 'test_*.py' -v

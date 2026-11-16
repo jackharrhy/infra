@@ -1,0 +1,39 @@
+# REVIEW ONLY: separate Newport project, outside fleet deployment discovery.
+services:
+  victorialogs:
+    image: victoriametrics/victoria-logs:v1.54.0@sha256:ee4e820cac3721f5f5d91641b950c22439593adc4224f9655e5333d5a84c1dfe
+    command:
+      - -storageDataPath=/var/lib/victoria-logs
+      - -retentionPeriod=7d
+      - -retention.maxDiskSpaceUsageBytes=8589934592
+    networks: [storage]
+    volumes:
+      - logs-data:/var/lib/victoria-logs
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options: {max-size: 10m, max-file: '3'}
+  vmauth:
+    image: victoriametrics/vmauth:v1.156.0@sha256:e4b739ed468de88906550911c03fee2b0da89785679343a006639b8f471df051
+    command:
+      - -auth.config=/run/secrets/vmauth.yaml
+      - -httpListenAddr=:8427
+      - -httpInternalListenAddr=127.0.0.1:8426
+    ports:
+      - '127.0.0.1:8427:8427'
+    networks: [storage]
+    volumes:
+      - type: bind
+        source: ${LOG_AUTH_CONFIG:?future private rendered config required}
+        target: /run/secrets/vmauth.yaml
+        read_only: true
+        bind: {create_host_path: false}
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options: {max-size: 10m, max-file: '3'}
+networks:
+  storage:
+    internal: true
+volumes:
+  logs-data: {}

@@ -1,0 +1,7 @@
+{
+  "host": "newport",
+  "services": {
+    "example": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "cap_services": ["example"]
+}

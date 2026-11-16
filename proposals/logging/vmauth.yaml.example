@@ -1,0 +1,36 @@
+# REVIEW ONLY. Placeholder passwords; never mount this example in production.
+# Headers belong to each url_map entry, not the user-level fallback.
+users:
+- username: mug
+  password: REPLACE_WITH_DISTINCT_MUG_SECRET
+  url_map:
+  - src_paths:
+    - /insert/jsonline
+    url_prefix: http://victorialogs:9428/
+    headers:
+    - 'Authorization:'
+    - 'Cookie:'
+    - 'AccountID: 0'
+    - 'ProjectID: 0'
+- username: newport
+  password: REPLACE_WITH_DISTINCT_NEWPORT_SECRET
+  url_map:
+  - src_paths:
+    - /insert/jsonline
+    url_prefix: http://victorialogs:9428/
+    headers:
+    - 'Authorization:'
+    - 'Cookie:'
+    - 'AccountID: 0'
+    - 'ProjectID: 0'
+- username: query-owner
+  password: REPLACE_WITH_DISTINCT_OWNER_SECRET
+  url_map:
+  - src_paths:
+    - /select/.*
+    url_prefix: http://victorialogs:9428/
+    headers:
+    - 'Authorization:'
+    - 'Cookie:'
+    - 'AccountID: 0'
+    - 'ProjectID: 0'
