@@ -1,0 +1,9 @@
+[Unit]
+Description=Private GET-only media inventory snapshots
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /home/jack/infra/hosts/newport/jack-auth/media-inventory/refresh.py
+TimeoutStartSec=30
+UMask=0077
+NoNewPrivileges=yes
