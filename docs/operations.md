@@ -136,8 +136,13 @@ services and middleware belong in the host's canonical file:
 
 Do not introduce per-application route fragments. The sole temporary-route
 exception is Newport's CLI-generated, Git-ignored `previews.runtime.yml` described
-below; never hand-write arbitrary preview YAML. Listener, provider and ACME
-settings belong in each host's Compose configuration. Mug normally terminates
+below; never hand-write arbitrary preview YAML. Every permanent application,
+redirect, middleware and TLS route must have tracked Compose/YAML source of truth,
+independent of preview expiry or cleanup. Generated production routes require a
+checked-in manifest and generator with a documented apply path; private runtime
+state alone is not a deployment definition. Docker labels and tracked file-provider
+routes are both durable declarations; Traefik calls both dynamic configuration.
+Listener, provider and ACME settings belong in each host's Compose configuration. Mug normally terminates
 public HTTPS and relays Newport hosts through `newport-origin`, preserving Host;
 Newport selects the backend. Auth and Lore use dedicated HTTP/h2c backends.
 Cheesetown and Jellyfin terminate public TLS on Newport; Jellyfin's Mug fallback

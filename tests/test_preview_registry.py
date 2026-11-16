@@ -48,7 +48,8 @@ class PreviewRegistryTests(unittest.TestCase):
         self.register()
         old = self.projection()
         for args in [dict(name='*.evil'), dict(name='a.b'), dict(name='Upper'),
-                     dict(name='pi'), dict(name='browse'),
+                     dict(name='pi'), dict(name='browse'), dict(name='atlas'),
+                     dict(name='sluggers-old'),
                      dict(port=8788), dict(port=19989), dict(port=80), dict(port=65536),
                      dict(paths=['/`) || Host(`evil']), dict(paths=['/../secret']),
                      dict(prefixes=['/assets']), dict(ttl=0), dict(ttl=p.MAX_TTL + 1),
@@ -108,6 +109,20 @@ class PreviewRegistryTests(unittest.TestCase):
         self.register()
         self.registry.apply('remove', name='demo', owner='source-owner')
         self.assertEqual(self.registry.read(), {})
+
+    def test_expiry_does_not_change_canonical_production_routes(self):
+        canonical = Path(__file__).resolve().parents[1] / 'hosts/newport/traefik/dynamic/routes.yml'
+        production = self.dynamic / 'routes.yml'
+        original = canonical.read_bytes()
+        production.write_bytes(original)
+        self.register(ttl=60)
+        self.now += 61
+        self.registry.apply('reconcile')
+        self.assertEqual(production.read_bytes(), original)
+        self.assertEqual(yaml.safe_load(self.projection())['http']['routers'], {})
+        routers, _, _ = self.registry.static()
+        self.assertIn('atlas', routers)
+        self.assertIn('sluggers-old', routers)
 
     def test_failed_projection_write_rolls_back_registry(self):
         self.register()
