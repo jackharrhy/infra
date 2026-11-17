@@ -98,7 +98,7 @@ http:
       loadBalancer:
         passHostHeader: true
         servers:
-          - url: http://127.0.0.1:18949
+          - url: http://127.0.0.1:18950
     harrhy-ui:
       loadBalancer:
         passHostHeader: true
