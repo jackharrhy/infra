@@ -35,6 +35,7 @@ class PiRoutingTests(unittest.TestCase):
             'alderpoint-preview-api': ('alderpoint-api', 54321),
             '4orm-preview': ('4orm', 18954),
             'wonder-site': ('wonder', 18810),
+            'harrhy-ui': ('harrhy-ui', 18943),
         }
         for name, (host, port) in previews.items():
             with self.subTest(name=name):

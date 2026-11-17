@@ -30,6 +30,11 @@ http:
       entryPoints: [pitailnet]
       service: 4orm-preview
       tls: {}
+    harrhy-ui:
+      rule: Host(`harrhy-ui.pi.jackharrhy.dev`)
+      entryPoints: [pitailnet]
+      service: harrhy-ui
+      tls: {}
     wonder-site:
       rule: Host(`wonder.pi.jackharrhy.dev`)
       entryPoints: [pitailnet]
@@ -84,6 +89,11 @@ http:
         passHostHeader: true
         servers:
           - url: http://127.0.0.1:19989
+    harrhy-ui:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: http://127.0.0.1:18943
     wonder-site:
       loadBalancer:
         passHostHeader: true
