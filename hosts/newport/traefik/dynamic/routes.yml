@@ -30,6 +30,11 @@ http:
       entryPoints: [pitailnet]
       service: 4orm-preview
       tls: {}
+    sluggers-ui:
+      rule: Host(`sluggers-ui.pi.jackharrhy.dev`)
+      entryPoints: [pitailnet]
+      service: sluggers-ui
+      tls: {}
     harrhy-ui:
       rule: Host(`harrhy-ui.pi.jackharrhy.dev`)
       entryPoints: [pitailnet]
@@ -89,6 +94,11 @@ http:
         passHostHeader: true
         servers:
           - url: http://127.0.0.1:19989
+    sluggers-ui:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: http://127.0.0.1:18949
     harrhy-ui:
       loadBalancer:
         passHostHeader: true
