@@ -963,6 +963,7 @@ services:
       - ./.runtime-secrets/artbin-support.env
     environment:
       - ARTBIN_URL=https://artbin.jackharrhy.dev
+      - HARRHY_ARTBIN_BROWSER_ORIGIN=https://artbin.harrhy.xyz
     volumes:
       - /mnt/terrabud/docker-data/newport/artbin_tea_data/data:/app/apps/artbin/data
       - /mnt/terrabud/docker-data/newport/artbin_tea_data/uploads:/app/apps/artbin/public/uploads
@@ -972,7 +973,7 @@ services:
       - "traefik.docker.network=newport_web"
       - "traefik.enable=true"
       - "traefik.http.services.artbin.loadbalancer.server.port=3000"
-      - "traefik.http.routers.artbin.rule=Host(`artbin.jackharrhy.dev`)"
+      - "traefik.http.routers.artbin.rule=Host(`artbin.jackharrhy.dev`) || Host(`artbin.harrhy.xyz`)"
       - "traefik.http.routers.artbin.entrypoints=web"
 
   maps-ui:

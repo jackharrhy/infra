@@ -49,6 +49,11 @@ http:
       service: newport-origin
       tls:
         certResolver: mugresolver
+    artbin-browser-alternate:
+      rule: Host(`artbin.harrhy.xyz`)
+      entryPoints: [websecure]
+      service: newport-origin
+      tls: {}
     bar:
       rule: Host(`jackharrhy.dev`) && PathPrefix(`/bar`)
       entryPoints: [websecure]
