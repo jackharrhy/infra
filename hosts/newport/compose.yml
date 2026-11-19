@@ -1113,6 +1113,7 @@ services:
       - "127.0.0.1:8794:8080"
     environment:
       - CELLD_VARS_FILE=/run/secrets/ref.env
+      - CELLD_VAR_HARRHY_REF_ALTERNATE_BROWSER_ORIGIN=https://ref.harrhy.xyz
       - CELLD_TRUST_FORWARDED_HEADERS=1
     volumes:
       - /mnt/terrabud/docker-data/newport/ref_celld_tea:/app/.celld
@@ -1128,10 +1129,17 @@ services:
       - "traefik.http.services.ref-celld.loadbalancer.server.port=8080"
       - "traefik.http.routers.ref-celld.rule=Host(`ref.jackharrhy.dev`)"
       - "traefik.http.routers.ref-celld.entrypoints=web"
+      - "traefik.http.routers.ref-celld.service=ref-celld"
       # Mug terminates TLS; Celld needs the browser origin for WebSocket checks.
       - "traefik.http.routers.ref-celld.middlewares=ref-public-origin"
       - "traefik.http.middlewares.ref-public-origin.headers.customrequestheaders.X-Forwarded-Host=ref.jackharrhy.dev"
       - "traefik.http.middlewares.ref-public-origin.headers.customrequestheaders.X-Forwarded-Proto=https"
+      - "traefik.http.routers.ref-alternate.rule=Host(`ref.harrhy.xyz`)"
+      - "traefik.http.routers.ref-alternate.entrypoints=web"
+      - "traefik.http.routers.ref-alternate.service=ref-celld"
+      - "traefik.http.routers.ref-alternate.middlewares=ref-alternate-origin"
+      - "traefik.http.middlewares.ref-alternate-origin.headers.customrequestheaders.X-Forwarded-Host=ref.harrhy.xyz"
+      - "traefik.http.middlewares.ref-alternate-origin.headers.customrequestheaders.X-Forwarded-Proto=https"
 
   marky:
     image: ghcr.io/jackharrhy/marky:latest

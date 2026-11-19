@@ -163,6 +163,19 @@ http:
       service: newport-origin
       tls:
         certResolver: mugresolver
+    ref-browser-alternate:
+      rule: Host(`ref.harrhy.xyz`)
+      entryPoints: [websecure]
+      middlewares: [ref-strip-cloudflare-ip]
+      service: newport-origin
+      tls: {}
+    ref-browser-alternate-login:
+      rule: Host(`ref.harrhy.xyz`) && Path(`/login`) && Method(`POST`)
+      entryPoints: [websecure]
+      priority: 100
+      middlewares: [ref-login-rate, ref-login-body, ref-strip-cloudflare-ip]
+      service: newport-origin
+      tls: {}
     rolie-polie-olie:
       rule: Host(`rolie-polie-olie.fogo.sh`)
       entryPoints: [websecure]
