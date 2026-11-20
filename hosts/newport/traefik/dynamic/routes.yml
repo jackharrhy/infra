@@ -35,11 +35,6 @@ http:
       entryPoints: [pitailnet]
       service: sluggers-ui
       tls: {}
-    harrhy-pi-temp:
-      rule: Host(`harrhy-pi-temp.pi.jackharrhy.dev`)
-      entryPoints: [pitailnet]
-      service: harrhy-pi-temp
-      tls: {}
     harrhy-ui:
       rule: Host(`harrhy-ui.pi.jackharrhy.dev`)
       entryPoints: [pitailnet]
@@ -104,11 +99,6 @@ http:
         passHostHeader: true
         servers:
           - url: http://127.0.0.1:18950
-    harrhy-pi-temp:
-      loadBalancer:
-        passHostHeader: true
-        servers:
-          - url: http://127.0.0.1:21214
     harrhy-ui:
       loadBalancer:
         passHostHeader: true
