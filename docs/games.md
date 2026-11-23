@@ -35,35 +35,35 @@ successful restore or world conversion from container startup alone.
 
 ### Backups and restore
 
-`backup` uses RCON to flush and archives every six hours into
-`/mnt/terrabud/docker-data/newport/cheesetown/backups`. Rebuildable JARs, cache,
-logs, temporary files and BlueMap web/maps output are excluded; preserve the mod
-manifests/configuration/toolchain alongside recovery material. AudioPlayer media
-is in `world/audio_player_data`, not a disposable web cache.
-
-After a successful backup, [retain-backups.sh](../hosts/newport/cheesetown/retain-backups.sh)
-keeps all rolling archives for seven days, the first per day from seven to 28 days,
-the first per ISO week thereafter indefinitely, and the earliest surviving rolling
-archive indefinitely, using Newfoundland time. Only matching top-level
-`cheesetown-*.tar.gz` files are eligible; deployment/retirement/upgrade archives
-are untouched. Failed backups skip retention.
-
-Tar's "file changed as we read it" result is not a clean recovery point even if
-an outer producer returns zero. Leave pruning skipped and obtain a clean retry.
-Archives or hardlinks on the same drive are not protection against drive failure;
-separate a verified off-host recovery copy from convenient local retention.
-
-Preview from the project directory:
+Newport's `cheesetown-restic.timer` runs every six hours (01:17, 07:17,
+13:17, 19:17 UTC). The [backup helper](../hosts/newport/cheesetown/restic-backup.sh)
+requires the exact Stash NFS export before touching the game or repository.
+It warns players, flushes and gracefully stops Minecraft, copies the stopped
+tree locally, and returns the game to healthy with saving enabled before
+uploading. Each run involves a brief restart. It preserves Anvil, configuration,
+mods and custom assets (including `world/audio_player_data`); only the verified
+generated PNG and PRBM tiles under the three BlueMap tile trees are excluded.
 
 ```sh
-docker compose exec backup /retain-backups.sh --dry-run
+systemctl --user list-timers cheesetown-restic.timer
+journalctl --user -u cheesetown-restic.service
+./restic-backup.sh restic snapshots
 ```
 
-For recovery, stop the game and backup writer, move the current complete data tree
-aside, inspect/extract a reviewed archive into an empty destination, and restore
-matching mod/config/image versions and permissions. Do not overlay an old world
-onto a newer live tree. Preserve the original until world/player/mod acceptance;
-a new-format world is not safely downgraded merely by changing the image.
+Run the helper from the nested project. The Restic repository and age-encrypted
+password escrow are under `/mnt/stash/newport/cheesetown-restic-v1`. Recover
+the password with the matching Infra age identity on a trusted recovery host;
+never copy that identity onto Stash. Keep the recovered password in a private
+file (mode 0600) and pass its path via `RESTIC_PASSWORD_FILE` on that host.
+Restore a selected snapshot with `restic restore ID --target EMPTY_DIR --verify`.
+Check world, mods, config, custom assets and permissions, and test the matching
+server version in isolation before using the restore in production. Do not
+overlay an old world onto a live tree.
+
+The Compose `legacy-backup` profile is for explicit fallback only; legacy
+archives, migration captures and restores are retained. No automatic Restic
+forget/prune or legacy retention runs. Monitor available Stash and staging
+space. The pilot restore is not a substitute for checking scheduled runs.
 
 ### Fabric mods and datapacks
 

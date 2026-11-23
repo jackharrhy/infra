@@ -1,0 +1,10 @@
+[Unit]
+Description=Consistent Cheesetown backup to the encrypted Stash Restic repository
+
+[Service]
+Type=oneshot
+ExecStart=%h/infra/hosts/newport/cheesetown/restic-backup.sh backup
+TimeoutStartSec=45min
+TimeoutStopSec=240
+KillMode=mixed
+UMask=0077

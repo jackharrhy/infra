@@ -28,23 +28,8 @@ class PiRoutingTests(unittest.TestCase):
         self.assertEqual(http['middlewares']['pi-proxy-marker']['headers']['customRequestHeaders'],
                          {'X-P2-Proxy-Secret': '1'})
 
-    def test_named_previews_are_opt_in_private_fixed_upstreams(self):
-        http = yaml.safe_load((ROOT / 'hosts/newport/traefik/dynamic/routes.yml').read_text())['http']
-        previews = {
-            'alderpoint-preview': ('alderpoint', 5173),
-            'alderpoint-preview-api': ('alderpoint-api', 54321),
-            '4orm-preview': ('4orm', 18954),
-            'wonder-site': ('wonder', 18810),
-        }
-        for name, (host, port) in previews.items():
-            with self.subTest(name=name):
-                router = http['routers'][name]
-                self.assertEqual(router['rule'], f'Host(`{host}.pi.jackharrhy.dev`)')
-                self.assertEqual(router['entryPoints'], ['pitailnet'])
-                self.assertEqual(router.get('middlewares', []), [])
-                self.assertIn('tls', router)
-                self.assertEqual(http['services'][router['service']]['loadBalancer'], {
-                    'passHostHeader': True, 'servers': [{'url': f'http://127.0.0.1:{port}'}]})
+    def test_private_listener_has_no_catchall(self):
+        http = yaml.safe_load((ROOT / "hosts/newport/traefik/dynamic/routes.yml").read_text())["http"]
         for router in http['routers'].values():
             if 'pitailnet' in router.get('entryPoints', []):
                 self.assertNotIn('HostRegexp', router['rule'])

@@ -1,0 +1,11 @@
+[Unit]
+Description=Check ZITADEL backup freshness on Stash
+OnFailure=jack-auth-provider-alert@%n.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 %h/infra/hosts/newport/jack-auth/provider-backup.py check
+TimeoutStartSec=75s
+TimeoutStopSec=15s
+UMask=0077
+Nice=10

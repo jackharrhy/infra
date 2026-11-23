@@ -82,7 +82,19 @@ full-host recovery before enabling automatic updates.
 
 Restore via Dashboard → Backups or Jellyfin's native `--restore-archive` option,
 preserving the current installation first. Database migrations are not reversed
-safely by simply downgrading an image. The retired NAS container is not this server.
+safely by simply downgrading an image. Inspect native archive options and ZIP CRCs;
+archives can hold database table exports rather than SQLite, so a skipped SQLite
+check is not an integrity check. The retired NAS container is not this server.
+
+After a completed scan, compare actual item paths and every `MediaSources` path
+before calling alternate versions missing. Extras can remain unindexed; preserve
+them rather than inventing episode identities. After an approved filesystem
+removal, an empty Series can survive a successful scan. Bind the exact item ID and
+path, verify container-side path absence and that children stay within the approved
+root before native item removal; recheck ID lookup and title search afterward.
+Never delete broad search results or mistake inaccessible NAS content for absence.
+For integration reads, use the installed Jellyfin `MediaBrowser` authorization
+scheme; failure with a legacy token header alone does not prove key revocation.
 
 ### Navidrome
 
@@ -111,6 +123,18 @@ docker exec newport-navidrome-1 /app/navidrome backup create --backup-dir /backu
 Backups contain the DB, not audio/cache. Preserve SOPS/configuration with recovery;
 inspect `navidrome backup restore --help` for native options and stop the service
 before production restore. Keep current data first; cache is rebuildable.
+
+For a separately approved curated/archive split, keep the roots as siblings and
+retain an original-to-final identity/hash map. Stop the player and take a native
+DB backup before reversible same-filesystem directory renames, then recreate it
+to remount the new directory inode at its serving path. Preserve Blue/Engine
+originals. Check the actual player API: default missing-file retention can leave
+archived tracks in admin lists and inflate album totals. Only after proving the
+NAS is present and the approved files were intentionally archived, preserve the
+old catalog and consider a scoped one-time native missing-entry purge. Keep normal
+`Scanner.PurgeMissing=never` protection against NAS outages. Verify visible album
+counts, retained track/account IDs and decoded public audio; SQL active counts
+alone are insufficient.
 
 Stash is the canonical listening library; Blue's offline library is independent,
 not a destructive mirror. Newport processes against the Stash mount; keep bulk
@@ -199,13 +223,117 @@ Completed `queuedUP`/`stalledUP` torrents can be waiting to upload, not unfinish
 downloads. Queue state, imported payload/hardlinks and the player's visible catalog
 are separate evidence; do not claim a submitted search has filled the library.
 
-Preserve the approved stop-only ratio/time policy. Check global defaults, existing
-torrent overrides, indexer seed settings and synced manager values separately;
-changing one default does not establish effective limits. Stopping seeding is not
+Preserve the approved six-hour/1:1 seeding cap, whichever is reached first,
+with stop-only behavior and any stricter existing limits. Recheck current native
+settings before changes; old bootstrap scripts may restore superseded limits.
+Check global defaults, existing torrent overrides, indexer seed settings and synced
+manager values separately; changing one default does not establish effective
+limits. Stopping seeding is not
 removal. For separately authorized completed-entry cleanup, require imported-file
 and native-history evidence, set `deleteFiles=false` explicitly, and verify retained
 payload/library identities plus unfinished jobs. This is not permission to configure
 future cleanup or remove anything from the listening/viewing library.
+
+## Bounded acquisition recovery
+
+A status request stays read-only. Join native manager history and queue status to
+actual downloader progress; a warning can coexist with tracked status `ok`, and
+`MissingFromDisk` events can reflect a reviewed mapping change rather than an
+upgrade deleting content. Verify series, season and episode monitoring separately.
+
+For an authorized source/recovery change:
+
+- Test a small indexer addition through the installed Prowlarr schema/native test
+  before saving it. Read back categories, the actual synced minimum seeders and
+  allowed quality. A catalog entry, a reachable endpoint and useful releases are
+  separate evidence. Do not lower policy or add a bypass service to rescue a bad
+  source. Announce trackers discover peers for one hash; indexers find alternatives.
+  Keep private/passkey torrents out of public tracker trials.
+- Inspect returned link schemes. A field named `magnetUrl` may contain a private
+  HTTP proxy URL with an API key. Resolve only through the verified private origin
+  with redirects disabled, validate the returned magnet against the selected
+  well-formed infohash, and never print the proxy URL or repair malformed hashes.
+- For a selective season pack, first stop at metadata with no preallocation;
+  verify stopped state and zero payload bytes. Disable all file priorities, enable
+  only approved missing episodes, read back the selection, then resume under normal
+  caps without forced mode. Inspect `content_path` plus the actual file list:
+  selectively completed files can remain under the incomplete directory.
+- Verify selected-file completion, identity and size before a native import. For
+  ambiguous multi-season packs, inspect the installed manual-import API: a GET may
+  return existing library files rather than respect a supplied folder. Reprocess
+  exact paths with explicit series/episode IDs, inspect native quality/rejections,
+  then submit the separate copy-mode import. Recheck `hasFile` first to avoid
+  racing completed-download handling. Verify hardlinks and Jellyfin visibility.
+- Keep active useful transfers ahead of probes. A finite waiting-queue rebalance
+  can interleave series via native bottom-priority moves, preserving within-series
+  order. Allow cached snapshots to settle before replaying writes. Tie any bounded
+  helper to the actual new search commands and a deadline, not an older cohort or
+  a permanent scheduler. Retain partials; retire superseded alternatives only
+  after their approved replacement is imported.
+
+Read the installed qBittorrent schema before changing share limits. Some releases
+require explicit `shareLimitAction=Stop` and `shareLimitsMode=MatchAny` as well as
+ratio/time fields. Stop and limit operations settle asynchronously; verify exact
+hashes and preserved payloads before retrying. A missing row can also be native
+manager cleanup, not proof of payload deletion.
+
+## Library filesystem maintenance
+
+This is separate from service deployment and queue cleanup. Classification is
+read-only until the exact change is approved; one coordinator owns NAS writes.
+
+1. Inventory every scoped regular file with relative path, device/inode, size,
+   nanosecond mtime and link count. Exclude generated `@eaDir` metadata from media
+   counts without silently deleting it. Inspect downloader destinations and
+   hardlinks; never rewrite a seeded/hardlinked payload in place.
+2. Build a complete original-to-final map, including review/quarantine and matching
+   sidecars. Verify source coverage and case-folded destination uniqueness. Keep
+   language/forced/SDH suffixes, alternate cuts, extras, E00 specials and overlapping
+   episode ranges. Resolve series/year/provider identity and numbering before
+   comparing completeness; ambiguous names or fan edits do not justify guessed
+   metadata, replacement downloads or deletion.
+3. Use same-filesystem non-overwriting moves, not check-then-rename. Probe
+   `renameat2(RENAME_NOREPLACE)` with disposable collision/move tests first. If the
+   NFS client rejects it, use the existing trusted NAS execution context, not an
+   overwriting fallback. Reject escapes/symlinks, recheck identity/size/mtime, hold
+   a single-writer lock and persist/fsync intent and completion records. Scoped
+   staging uses existing shared-group access, not blanket ACL/ownership changes.
+4. Before SRT normalization, retain original bytes, hashes and original-inode
+   backups. Decode strictly; plausible codec output alone does not resolve an
+   ambiguous encoding. Normalize only text SRT encoding/line endings, preserving
+   cue timing/dialogue. Do not flatten ASS/image subtitles. Review promotional
+   lines within whole cues so real dialogue and translation credits survive.
+   Atomically publish guarded replacements and retain authorized group/mode/time;
+   never blindly replay an interrupted plan or accept an unrelated backup.
+5. Independently verify every final path. Unchanged files retain identity/size/time;
+   changed subtitles match planned hashes and retained originals. Archive old
+   parents only after proving they contain no meaningful or expected final files.
+   Keep tools, journals and recoverable clutter outside expiring scratch and the
+   indexed library. Do not rehash/transcode an unchanged video collection merely
+   to verify metadata-preserving moves.
+
+For an explicitly requested large-library review, use a temporary Tailnet-only
+poster/note UI with stable folder IDs, a frozen read-only metadata/file snapshot,
+durable autosave/revisions and recoverable drafts. Keep API credentials server-side.
+The UI records intent only: no deletion endpoint, automatic acquisition or replay
+of old drafts. Interpret all notes and clarified exceptions, then approve the exact
+fingerprinted file plan before changes. Display titles, feature/bonus matches and
+logical bytes can mislead; verify actual content and distinguish selected logical
+size from physical space reclaimed. Do not recreate a retired review tool for an
+ordinary status request.
+
+Separate DSM shares can be different Btrfs subvolumes even on one volume. Before
+an approved unified-share move, probe a real cross-share `FICLONE`; do not promise
+hardlinks or a no-network copy without it. Stage and journal all copies, preserve
+source identity/size/time, verify destinations and ordinary-client access, then
+recheck the exact source set before approved removal. A timed-out controller does
+not prove the remote worker stopped: inspect its process/progress before retrying.
+Audit active and stopped consumer mounts, Download Station destinations, indexing,
+NFS grants and boot automounts; preserve unrelated photo/family/backup shares.
+Point consumers at the canonical layout, not compatibility symlinks or bind shims.
+Read indexing/task API state back; an accepted destination edit is not relocation
+proof. Keep historical journals with a current path translation because cross-
+subvolume moves change inode identities.
 
 ## Maintenance and recovery
 

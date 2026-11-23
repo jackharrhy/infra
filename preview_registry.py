@@ -208,6 +208,8 @@ class Registry:
         for name, entry in sorted(leases.items()):
             rendered['http']['routers'][f'temp-preview-{name}'] = route(name, entry)
             rendered['http']['services'][f'temp-preview-{name}'] = service(entry)
+        if not leases:
+            rendered = {}
         projection = yaml.safe_dump(rendered, sort_keys=False).encode()
         registry = (json.dumps({'version': 1, 'leases': leases}, indent=2) + '\n').encode()
         path = self.state / 'registry.json'

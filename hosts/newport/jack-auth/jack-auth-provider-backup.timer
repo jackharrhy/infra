@@ -1,0 +1,9 @@
+[Unit]
+Description=Write encrypted ZITADEL backup to Stash
+
+[Timer]
+OnCalendar=*-*-* 04:40:00 UTC
+Persistent=true
+
+[Install]
+WantedBy=timers.target

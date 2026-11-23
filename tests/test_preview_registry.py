@@ -105,7 +105,7 @@ class PreviewRegistryTests(unittest.TestCase):
         self.now += 61
         leases, expired = self.registry.apply('reconcile')
         self.assertEqual((leases, expired), ({}, ['demo']))
-        self.assertEqual(yaml.safe_load(self.projection()), {'http': {'routers': {}, 'services': {}}})
+        self.assertEqual(yaml.safe_load(self.projection()), {})
         self.register()
         self.registry.apply('remove', name='demo', owner='source-owner')
         self.assertEqual(self.registry.read(), {})
@@ -115,13 +115,13 @@ class PreviewRegistryTests(unittest.TestCase):
         production = self.dynamic / 'routes.yml'
         original = canonical.read_bytes()
         production.write_bytes(original)
-        self.register(ttl=60)
+        self.register('expiry-probe', ttl=60)
         self.now += 61
         self.registry.apply('reconcile')
         self.assertEqual(production.read_bytes(), original)
-        self.assertEqual(yaml.safe_load(self.projection())['http']['routers'], {})
+        self.assertEqual(yaml.safe_load(self.projection()), {})
         routers, _, _ = self.registry.static()
-        self.assertIn('atlas', routers)
+        self.assertIn('private-hosting-atlas', routers)
         self.assertIn('sluggers-old', routers)
 
     def test_failed_projection_write_rolls_back_registry(self):

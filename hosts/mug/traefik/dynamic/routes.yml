@@ -49,6 +49,11 @@ http:
       service: newport-origin
       tls:
         certResolver: mugresolver
+    artbin-browser-alternate:
+      rule: Host(`artbin.harrhy.xyz`)
+      entryPoints: [websecure]
+      service: newport-origin
+      tls: {}
     bar:
       rule: Host(`jackharrhy.dev`) && PathPrefix(`/bar`)
       entryPoints: [websecure]
@@ -113,6 +118,11 @@ http:
       service: lore
       tls:
         certResolver: mugresolver
+    world-public:
+      rule: Host(`world.harrhy.xyz`) && (Method(`GET`) || Method(`HEAD`)) && (Path(`/`) || Path(`/healthz`) || Path(`/maps/hall.bsp`) || Path(`/world.css`) || Path(`/room`) || PathRegexp(`^/(assets|textures|billboard|audio)/[A-Za-z0-9_.-]+$`))
+      entryPoints: [websecure]
+      service: newport-origin
+      tls: {}
     maps:
       rule: Host(`worldview.harrhy.xyz`)
       entryPoints: [websecure]
@@ -158,6 +168,19 @@ http:
       service: newport-origin
       tls:
         certResolver: mugresolver
+    ref-browser-alternate:
+      rule: Host(`ref.harrhy.xyz`)
+      entryPoints: [websecure]
+      middlewares: [ref-strip-cloudflare-ip]
+      service: newport-origin
+      tls: {}
+    ref-browser-alternate-login:
+      rule: Host(`ref.harrhy.xyz`) && Path(`/login`) && Method(`POST`)
+      entryPoints: [websecure]
+      priority: 100
+      middlewares: [ref-login-rate, ref-login-body, ref-strip-cloudflare-ip]
+      service: newport-origin
+      tls: {}
     rolie-polie-olie:
       rule: Host(`rolie-polie-olie.fogo.sh`)
       entryPoints: [websecure]

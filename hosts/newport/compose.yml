@@ -1,5 +1,5 @@
 x-media-auth: &media-auth
-  image: quay.io/oauth2-proxy/oauth2-proxy:v7.15.2
+  image: quay.io/oauth2-proxy/oauth2-proxy:v7.15.6
   restart: unless-stopped
   networks: [web]
   read_only: true
@@ -772,7 +772,7 @@ services:
       - "com.centurylinklabs.watchtower.lifecycle.pre-update=/bin/sh -c 'bun /app/dist/server/pre-update.js || exit 75'"
 
   executor:
-    image: local/executor:2.0.0-beta.41-auth-only.1
+    image: local/executor:20736e40-sso
     pull_policy: never
     restart: unless-stopped
     init: true
@@ -851,7 +851,7 @@ services:
       - ./volumes/traefik_letsencrypt_data:/letsencrypt
 
   watchtower:
-    image: ghcr.io/nicholas-fedor/watchtower:1.23.2
+    image: ghcr.io/nicholas-fedor/watchtower:1.24.1
     restart: unless-stopped
     environment:
       DOCKER_CONFIG: /config
@@ -963,6 +963,7 @@ services:
       - ./.runtime-secrets/artbin-support.env
     environment:
       - ARTBIN_URL=https://artbin.jackharrhy.dev
+      - HARRHY_ARTBIN_BROWSER_ORIGIN=https://artbin.harrhy.xyz
     volumes:
       - /mnt/terrabud/docker-data/newport/artbin_tea_data/data:/app/apps/artbin/data
       - /mnt/terrabud/docker-data/newport/artbin_tea_data/uploads:/app/apps/artbin/public/uploads
@@ -972,8 +973,21 @@ services:
       - "traefik.docker.network=newport_web"
       - "traefik.enable=true"
       - "traefik.http.services.artbin.loadbalancer.server.port=3000"
-      - "traefik.http.routers.artbin.rule=Host(`artbin.jackharrhy.dev`)"
+      - "traefik.http.routers.artbin.rule=Host(`artbin.jackharrhy.dev`) || Host(`artbin.harrhy.xyz`)"
       - "traefik.http.routers.artbin.entrypoints=web"
+
+  world:
+    image: ghcr.io/jackharrhy/world:latest
+    restart: unless-stopped
+    environment:
+      CELLD_VAR_HARRHY_WORLD_ORIGIN: https://world.harrhy.xyz
+    volumes:
+      - /mnt/terrabud/docker-data/newport/world_celld:/app/.celld
+    ports:
+      - "127.0.0.1:22141:44100"
+    stop_grace_period: 90s
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
 
   maps-ui:
     image: ghcr.io/jackharrhy/worldview:latest
@@ -1112,6 +1126,7 @@ services:
       - "127.0.0.1:8794:8080"
     environment:
       - CELLD_VARS_FILE=/run/secrets/ref.env
+      - CELLD_VAR_HARRHY_REF_ALTERNATE_BROWSER_ORIGIN=https://ref.harrhy.xyz
       - CELLD_TRUST_FORWARDED_HEADERS=1
     volumes:
       - /mnt/terrabud/docker-data/newport/ref_celld_tea:/app/.celld
@@ -1127,10 +1142,17 @@ services:
       - "traefik.http.services.ref-celld.loadbalancer.server.port=8080"
       - "traefik.http.routers.ref-celld.rule=Host(`ref.jackharrhy.dev`)"
       - "traefik.http.routers.ref-celld.entrypoints=web"
+      - "traefik.http.routers.ref-celld.service=ref-celld"
       # Mug terminates TLS; Celld needs the browser origin for WebSocket checks.
       - "traefik.http.routers.ref-celld.middlewares=ref-public-origin"
       - "traefik.http.middlewares.ref-public-origin.headers.customrequestheaders.X-Forwarded-Host=ref.jackharrhy.dev"
       - "traefik.http.middlewares.ref-public-origin.headers.customrequestheaders.X-Forwarded-Proto=https"
+      - "traefik.http.routers.ref-alternate.rule=Host(`ref.harrhy.xyz`)"
+      - "traefik.http.routers.ref-alternate.entrypoints=web"
+      - "traefik.http.routers.ref-alternate.service=ref-celld"
+      - "traefik.http.routers.ref-alternate.middlewares=ref-alternate-origin"
+      - "traefik.http.middlewares.ref-alternate-origin.headers.customrequestheaders.X-Forwarded-Host=ref.harrhy.xyz"
+      - "traefik.http.middlewares.ref-alternate-origin.headers.customrequestheaders.X-Forwarded-Proto=https"
 
   marky:
     image: ghcr.io/jackharrhy/marky:latest
@@ -1208,11 +1230,11 @@ services:
       - "traefik.http.routers.miniflux.entrypoints=web"
 
   miniflux_db:
-    image: postgres:15
+    image: postgres:19.0@sha256:d2c8a7d3d224a9c0335bf9f69ae6ad0b9aa7d88c4b64bab89f0f261332f6d4de
     restart: unless-stopped
     networks: [miniflux]
     volumes:
-      - ./volumes/miniflux_db:/var/lib/postgresql/data
+      - ./volumes/miniflux_db19:/var/lib/postgresql
     env_file:
       - ./.runtime-secrets/miniflux_db.env
     labels:
@@ -1374,6 +1396,9 @@ services:
       FOURM_ENROLLMENT_KEY_FILE: /run/secrets/fourm-enrollment-key.json
       RADIO_ENROLLMENT_DB_FILE: /data/radio-enrollment.sqlite
       AUTH_SUPPORT_CONFIG_FILE: /run/secrets/artbin-support.json
+      AUTH_MEDIA_INSTANCES_FILE: /run/media-inventory/instances.json
+      HARRHY_AUTH_MEDIA_PROVISIONING_FILE: /run/secrets/media-provisioning/provisioning.json
+      AUTH_PROVISIONING_TOKEN_FILE: /run/secrets/identity-provisioning.json
       # Unset the image-only build-tool default to preserve the live environment.
       npm_config_nodedir: null
     volumes:
@@ -1382,6 +1407,9 @@ services:
       - ./jack-auth/.runtime-secrets/management-key.json:/run/secrets/management-token.json:ro
       - ./jack-auth/.runtime-secrets/fourm-enrollment-key.json:/run/secrets/fourm-enrollment-key.json:ro
       - /mnt/terrabud/docker-data/newport/jack-auth/ui:/data
+      - /home/jack/.local/state/infra/media-inventory:/run/media-inventory:ro
+      - /home/jack/.local/state/infra/auth-media-writes:/run/secrets/media-provisioning:ro
+      - /home/jack/.local/state/infra/auth-onboarding/provisioning-key.json:/run/secrets/identity-provisioning.json:ro
     labels:
       - "traefik.enable=false"
       - "com.centurylinklabs.watchtower.enable=false"

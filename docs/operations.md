@@ -43,6 +43,15 @@ Keep deliberate vendor versions/security holds. Leave Watchtower operational;
 any remaining hold needs an affected service, owner, release condition and next
 step, not a blanket indefinite freeze.
 
+All active Harrhy applications using Celld, including native previews and tool
+binaries, must converge on one qualified canonical Celld artifact/version. Track
+current verified upstream with a linear patch-series fork; do not introduce merge
+commits or indefinite per-application versions. Coordinate the fork source owner,
+application pin writer and sole runtime operator before adoption. Use normal
+publishers and Watchtower for fleet rollout; a bounded mixed-version transition
+is expected, not an atomic fleet switch. Check actual storage-migration risks and
+protect the affected durable state without treating unrelated uploads as a gate.
+
 Newport Watchtower is opt-in (`WATCHTOWER_LABEL_ENABLE=true`); preserve explicit
 false and unlabeled development exclusions. Mug does not use the same opt-in
 selector: inspect its actual labels/policy. Both configurations enable lifecycle
@@ -136,12 +145,18 @@ services and middleware belong in the host's canonical file:
 
 Do not introduce per-application route fragments. The sole temporary-route
 exception is Newport's CLI-generated, Git-ignored `previews.runtime.yml` described
-below; never hand-write arbitrary preview YAML. Every permanent application,
+below; never hand-write arbitrary preview YAML. Preview cleanup includes stopping
+its separately owned backend after removing the lease; route expiry alone does
+not reclaim resources. Every permanent application,
 redirect, middleware and TLS route must have tracked Compose/YAML source of truth,
 independent of preview expiry or cleanup. Generated production routes require a
 checked-in manifest and generator with a documented apply path; private runtime
 state alone is not a deployment definition. Docker labels and tracked file-provider
 routes are both durable declarations; Traefik calls both dynamic configuration.
+Open and push the Infra PR before applying a permanent production change. For an
+emergency live repair, capture the equivalent source and push its review PR before
+closing the incident. At handoff, fetch and check `git status -sb` and
+`git log @{upstream}..HEAD`; explicitly account for any local-only production changes.
 Listener, provider and ACME settings belong in each host's Compose configuration. Mug normally terminates
 public HTTPS and relays Newport hosts through `newport-origin`, preserving Host;
 Newport selects the backend. Auth and Lore use dedicated HTTP/h2c backends.
@@ -194,7 +209,10 @@ Named previews are opt-in, not a catchall proxy or process launcher:
 
 Permanent registrations have an owner, fixed loopback port and access policy in
 the canonical file. Short-lived previews use the local registry below instead of
-Infra commits per preview. Reserve the apex for p2; never derive an upstream from
+Infra commits per preview. A dependency on real Pi does not turn a temporary UI
+into permanent ingress. The preview registry does not extend Pi's allowed hosts;
+coordinate any additive allowlist change with the runtime owner, and preserve
+Host, Origin and native device authorization rather than rewriting them. Reserve the apex for p2; never derive an upstream from
 arbitrary Host input. Unknown
 names return 404. p2's marker/auth is not shared preview authentication. Traefik
 does not inject Tailscale user identities; do not fabricate those headers or

@@ -34,6 +34,32 @@ API tokens. JSON credential wrappers use the renderer's top-level `json` format.
 Provisioned keys have finite lifetimes; arrange explicit rotation, not assumed
 automatic rotation. Preserve the runtime user's read access to private key files.
 
+### Read-only native authorization audit
+
+The dedicated `jack-auth-audit-reader` machine has only the instance-level
+`IAM_OWNER_VIEWER` binding. In installed ZITADEL 4.20 this is the smallest built-in
+role containing `events.read`; it also reads instance, organization, user, project
+and session metadata, but grants no writes or deletes. Organization viewer roles
+cannot call the Admin event API. Do not promote the UI management/provisioning
+reader or use a bootstrap credential for routine audits.
+
+Its finite 90-day RSA key is stored as private
+`hosts/newport/jack-auth/.runtime-secrets/audit-key.json`, with encrypted recovery
+in `hosts/newport/jack-auth/secrets/audit-key.json.enc.yaml`. Infra owns rotation
+before expiry; no automatic rotation is configured. The key is operator-only,
+not mounted into Auth UI. Provisioning used the existing encrypted operator
+service identity through supported machine-user, instance-member and key APIs;
+private receipts retain exact native IDs. Reprovision only this named machine,
+verify its sole binding, and preserve the separate login/management identities.
+
+Run `uv run python hosts/newport/jack-auth/audit-auth-requests.py --since
+<offset-timestamp> --until <offset-timestamp>` from the Infra root. It exchanges a
+short-lived token and reads only `auth_request.added`, at most 20 events within a
+ten-minute window. Output contains timestamps, Ref/other classification and
+recognized-scope booleans/counts, never raw event payloads, identifiers, state,
+nonce, authorization URLs or tokens. Do not dump audit responses: they contain
+sensitive request material. Permission failure is not permission to escalate.
+
 Provider sends only as `auth@jackharrhy.dev`, through SES STARTTLS on
 `email-smtp.us-east-1.amazonaws.com:587`, with `secrets/smtp.enc.yaml` and the
 identity in `aws/mail/index.ts`. Lists/subscriber data is independent of Auth mail.
@@ -53,10 +79,41 @@ Do not activate held clients or privilege-bearing support login by implication.
 ### Provider and UI authorization-state recovery
 
 Provider data is `/mnt/terrabud/docker-data/newport/jack-auth/postgres`.
-Preserve its matching encrypted master key with consistent PostgreSQL backups and
-an off-host copy. A UI ledger backup is not a full issuer backup. Provider restore
-startup and automated provider retention need explicit validation/configuration;
-this documentation does not assert them complete.
+Newport's `jack-auth-provider-backup.timer` runs daily at 04:40 UTC. The
+[backup helper](../hosts/newport/jack-auth/provider-backup.py) streams compressed
+PostgreSQL custom dumps through age to `/mnt/stash/newport/jack-auth-postgres-v1`.
+It verifies the Stash NFS source before writing, publishes dump and checksum
+receipt together, and keeps the newest verified generation on each of seven
+observed UTC backup days and four observed ISO weeks. It never adopts legacy
+or migration backups. Partial and unverified directories are not pruned.
+
+The independent `jack-auth-provider-check.timer` checks hourly for a verified
+copy at most 30 hours old. Inspect both timers with `systemctl --user list-timers
+'jack-auth-provider-*'`; failures and stale copies emit local error alerts in
+`journalctl --user -t jack-auth-provider-backup`. This is not an off-host
+heartbeat; a host outage cannot notify through its own journal. Service timeouts
+bound normal failures but cannot interrupt a kernel-blocked hard NFS operation.
+
+For recovery, verify the receipt's SHA-256 before decryption. Use the existing
+Infra age recovery identity on a trusted recovery host only; neither the identity
+nor plaintext master key belongs on Stash. Match the receipt's encrypted config
+hashes to `jack-auth/secrets/{postgres,zitadel,smtp}.enc.yaml` in Infra history;
+retain those encrypted revisions, the matching Compose config and image pins,
+and the recovery identity independently of Newport. Check live key/config against
+those inputs when changing them; a dump does not contain the ZITADEL master key.
+
+First restore to an empty isolated PostgreSQL 17 cluster, using the receipt's
+image and bootstrapping `zitadel` as the login superuser and database owner with
+the matching PostgreSQL secret for actual recovery. That is the sole non-system
+role on the dedicated source; the archive contains database objects and grants,
+not global roles or password verifiers. Stream `age -d -i <private-identity>
+zitadel.dump.age` into `pg_restore --exit-on-error -U zitadel -d zitadel` against
+the isolated server (use shell pipefail). Check `eventstore.events2` and expected
+schemas. The first-run helper uses an ephemeral socket-only container without
+production mounts, ports or network. A SQL restore is not an issuer startup test:
+before any cutover, separately validate provider startup with the matching
+`ZITADEL_MASTERKEY`, isolated DSN and version/config, without production routes,
+SMTP delivery or consumer traffic. Keep the UI ledger's recovery separate.
 
 The UI's durable writable mount is
 `/mnt/terrabud/docker-data/newport/jack-auth/ui:/data`. Keep the directory private

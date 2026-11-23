@@ -1,14 +1,15 @@
 ---
 name: infra-services
-description: "Use when operating application and media services."
+description: "Use when operating application services."
 ---
 
-# Application and media operations
+# Application operations
 
 Load [fleet operations](../infra-host-maintenance/SKILL.md), then the target's
-[application](../../../docs/applications.md) or [media](../../../docs/media.md)
-procedure and current manifest. Source owners implement applications; the shared
-runtime operator owns an explicitly selected deployment boundary.
+[application procedure](../../../docs/applications.md) and current manifest.
+For Jellyfin, Rotund and the media pipeline, use
+[media operations](../infra-media/SKILL.md). Source owners implement applications;
+the shared runtime operator owns an explicitly selected deployment boundary.
 
 ## Inspect the actual contract
 
@@ -34,21 +35,12 @@ runtime operator owns an explicitly selected deployment boundary.
    setting is not successful sign-in/playback/import. Avoid reopening unrelated
    migration acceptance for a routine compatible patch.
 
-## Content and media boundaries
+## Application state boundaries
 
-- Private vault synchronization is not public writing/asset publication. Keep one
-  sync writer, matching private configuration recovery and reviewed public exports.
-- Stash's listening library, Blue's offline library, device catalogs and DJ working
-  data have separate owners. Replication implementation belongs in musictl, not
-  another fleet scheduler. Preserve local-only variants and performance metadata.
-- Verify real NAS mount/group access before declaring files absent; use stat/error
-  evidence rather than predicates that can hide permission failures.
-- Requests, queued transfers, completed payloads, native imports and player-visible
-  catalogs are different evidence. Paginate totals, deduplicate hashes and honor
-  requested season scope. Completed upload states are not unfinished downloads.
-- Acquisition/search, stop-only seeding and entry/payload deletion are distinct
-  permissions. Preserve quality, bandwidth, privacy and native cleanup policies;
-  do not create perpetual agent pollers where native queues already own the work.
+Private vault synchronization is not public writing/asset publication. Keep one
+sync writer, matching private configuration recovery and reviewed public exports.
+Media storage, native account/client boundaries and acquisition/cleanup workflows
+are owned by the [media skill](../infra-media/SKILL.md) and its guide.
 
 Keep product-specific implementation details in their repositories. Public Infra
 guides must not contain credentials, private content, sensitive identity bindings

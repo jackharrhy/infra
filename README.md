@@ -19,7 +19,8 @@ Repository-owned agent skills live in [`.agents/skills`](.agents/skills):
 
 - [Fleet operations](.agents/skills/infra-host-maintenance/SKILL.md).
 - [Host/system maintenance](.agents/skills/host-system-maintenance/SKILL.md).
-- [Applications and media](.agents/skills/infra-services/SKILL.md).
+- [Applications](.agents/skills/infra-services/SKILL.md).
+- [Media playback, requests and library operations](.agents/skills/infra-media/SKILL.md).
 - [Games](.agents/skills/infra-games/SKILL.md).
 
 They use the same CLI and guides as a human operator; private chat history is not

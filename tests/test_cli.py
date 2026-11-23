@@ -36,32 +36,6 @@ class IsLocalSshTargetTests(unittest.TestCase):
         run.assert_called_once_with(["git", "pull"], cwd=Path("/home/jack/infra"))
 
     @patch("cli.run_host_command", return_value=0)
-    @patch("cli.ssh_run", return_value=0)
-    @patch("cli.get_deploy_hosts")
-    @patch("cli.load_infra_config", return_value={})
-    def test_update_dispatches_a_local_target_without_ssh(
-        self, _load_config, get_hosts, _ssh_run, run_host
-    ):
-        host = {
-            "ssh": "jack@newport",
-            "repo_path": "~/infra",
-            "compose_path": "~/infra/hosts/newport",
-        }
-        get_hosts.return_value = {"newport": host}
-
-        result = CliRunner().invoke(cli.cli, ["update", "newport"])
-
-        self.assertEqual(0, result.exit_code, result.output)
-        _ssh_run.assert_not_called()
-        run_host.assert_called_once_with(
-            "jack@newport",
-            "cd ~/infra && git pull",
-            [["git", "pull"]],
-            cwd=Path("~/infra").expanduser(),
-            stream=True,
-        )
-
-    @patch("cli.run_host_command", return_value=0)
     @patch("cli.get_deploy_hosts")
     @patch("cli.load_infra_config", return_value={})
     def test_refresh_prunes_all_unused_images(

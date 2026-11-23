@@ -40,23 +40,30 @@ http:
       entryPoints: [pitailnet]
       service: sluggers-old
       tls: {}
-    atlas:
+    private-hosting-atlas:
       rule: Host(`atlas.pi.jackharrhy.dev`)
       entryPoints: [pitailnet]
-      service: atlas
+      service: private-hosting-auth
       tls: {}
-    atlas-preview-redirect:
-      rule: Host(`atlas-preview.pi.jackharrhy.dev`)
+    private-hosting-go-demo:
+      rule: Host(`go-demo.pi.jackharrhy.dev`)
       entryPoints: [pitailnet]
-      priority: 100
-      service: noop@internal
-      middlewares: [atlas-canonical]
+      service: private-hosting-auth
+      tls: {}
+    private-hosting-slides:
+      rule: Host(`slides.pi.jackharrhy.dev`) && (Path(`/`) || Path(`/allo.woff2`) || Path(`/demo-night.jpg`) || Path(`/position`) || Path(`/auth/login`) || Path(`/auth/callback`) || Path(`/auth/logout`))
+      entryPoints: [pitailnet]
+      service: private-hosting-slides
       tls: {}
     browse-mcp:
       rule: Host(`browse.pi.jackharrhy.dev`) && Path(`/mcp`)
       entryPoints: [pitailnet]
       service: browse-mcp
       tls: {}
+    world-public-origin:
+      rule: Host(`world.harrhy.xyz`) && ClientIP(`100.124.6.111/32`) && (Method(`GET`) || Method(`HEAD`)) && (Path(`/`) || Path(`/healthz`) || Path(`/maps/hall.bsp`) || Path(`/world.css`) || Path(`/room`) || PathRegexp(`^/(assets|textures|billboard|audio)/[A-Za-z0-9_.-]+$`))
+      entryPoints: [web]
+      service: world-public
     direct-wan-guard:
       rule: '!Host(`cheesetown.rocks`) && !Host(`jellyfin.rotund.org`) && !(ClientIP(`127.0.0.0/8`) || ClientIP(`10.0.0.0/8`) || ClientIP(`172.16.0.0/12`)
         || ClientIP(`192.168.0.0/16`) || ClientIP(`100.64.0.0/10`) || ClientIP(`::1/128`) || ClientIP(`fc00::/7`))'
@@ -64,16 +71,26 @@ http:
       priority: 1000000
       service: noop@internal
   services:
+    world-public:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: http://127.0.0.1:22141
+    private-hosting-slides:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: http://127.0.0.1:21984
+    private-hosting-auth:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: http://127.0.0.1:21980
     sluggers-old:
       loadBalancer:
         passHostHeader: true
         servers:
           - url: http://127.0.0.1:18951
-    atlas:
-      loadBalancer:
-        passHostHeader: true
-        servers:
-          - url: http://127.0.0.1:4337
     slskd:
       loadBalancer:
         passHostHeader: true
@@ -110,11 +127,6 @@ http:
         servers:
           - url: http://127.0.0.1:8788
   middlewares:
-    atlas-canonical:
-      redirectRegex:
-        regex: ^https?://atlas-preview\.pi\.jackharrhy\.dev(.*)$
-        replacement: https://atlas.pi.jackharrhy.dev${1}
-        permanent: true
     pi-proxy-marker:
       headers:
         customRequestHeaders:
