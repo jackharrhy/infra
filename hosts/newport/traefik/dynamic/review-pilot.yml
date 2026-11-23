@@ -1,0 +1,13 @@
+http:
+  routers:
+    review-pilot:
+      rule: Host(`review.pi.jackharrhy.dev`)
+      entryPoints: [pitailnet]
+      tls: {}
+      service: review-pilot
+  services:
+    review-pilot:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: http://127.0.0.1:21971

@@ -151,6 +151,10 @@ independent of preview expiry or cleanup. Generated production routes require a
 checked-in manifest and generator with a documented apply path; private runtime
 state alone is not a deployment definition. Docker labels and tracked file-provider
 routes are both durable declarations; Traefik calls both dynamic configuration.
+Open and push the Infra PR before applying a permanent production change. For an
+emergency live repair, capture the equivalent source and push its review PR before
+closing the incident. At handoff, fetch and check `git status -sb` and
+`git log @{upstream}..HEAD`; explicitly account for any local-only production changes.
 Listener, provider and ACME settings belong in each host's Compose configuration. Mug normally terminates
 public HTTPS and relays Newport hosts through `newport-origin`, preserving Host;
 Newport selects the backend. Auth and Lore use dedicated HTTP/h2c backends.

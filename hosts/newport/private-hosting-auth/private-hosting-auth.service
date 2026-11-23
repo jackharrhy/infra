@@ -1,0 +1,12 @@
+[Unit]
+Description=Private Hosting owner authentication edge
+
+[Service]
+ExecStart=%h/.local/state/infra/private-hosting-auth/gateway %h/.local/state/infra/private-hosting-auth/provider.json %t/private-hosting-ingress/http.sock
+Restart=on-failure
+RestartSec=2
+NoNewPrivileges=yes
+UMask=0077
+
+[Install]
+WantedBy=default.target

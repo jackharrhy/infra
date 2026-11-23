@@ -118,6 +118,11 @@ http:
       service: lore
       tls:
         certResolver: mugresolver
+    world-public:
+      rule: Host(`world.harrhy.xyz`) && (Method(`GET`) || Method(`HEAD`)) && (Path(`/`) || Path(`/healthz`) || Path(`/maps/hall.bsp`) || Path(`/world.css`) || Path(`/room`) || PathRegexp(`^/(assets|textures|billboard|audio)/[A-Za-z0-9_.-]+$`))
+      entryPoints: [websecure]
+      service: newport-origin
+      tls: {}
     maps:
       rule: Host(`worldview.harrhy.xyz`)
       entryPoints: [websecure]

@@ -1,0 +1,6 @@
+[Unit]
+Description=Journal alert for ZITADEL backup unit %i
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/logger -p user.err -t jack-auth-provider-backup -- "ZITADEL backup alert: %i failed; inspect the user unit journal"

@@ -1,0 +1,11 @@
+[Unit]
+Description=Write encrypted ZITADEL backup to Stash
+OnFailure=jack-auth-provider-alert@%n.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 %h/infra/hosts/newport/jack-auth/provider-backup.py backup
+TimeoutStartSec=5min
+TimeoutStopSec=15s
+UMask=0077
+Nice=10

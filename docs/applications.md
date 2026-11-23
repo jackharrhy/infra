@@ -79,10 +79,41 @@ Do not activate held clients or privilege-bearing support login by implication.
 ### Provider and UI authorization-state recovery
 
 Provider data is `/mnt/terrabud/docker-data/newport/jack-auth/postgres`.
-Preserve its matching encrypted master key with consistent PostgreSQL backups and
-an off-host copy. A UI ledger backup is not a full issuer backup. Provider restore
-startup and automated provider retention need explicit validation/configuration;
-this documentation does not assert them complete.
+Newport's `jack-auth-provider-backup.timer` runs daily at 04:40 UTC. The
+[backup helper](../hosts/newport/jack-auth/provider-backup.py) streams compressed
+PostgreSQL custom dumps through age to `/mnt/stash/newport/jack-auth-postgres-v1`.
+It verifies the Stash NFS source before writing, publishes dump and checksum
+receipt together, and keeps the newest verified generation on each of seven
+observed UTC backup days and four observed ISO weeks. It never adopts legacy
+or migration backups. Partial and unverified directories are not pruned.
+
+The independent `jack-auth-provider-check.timer` checks hourly for a verified
+copy at most 30 hours old. Inspect both timers with `systemctl --user list-timers
+'jack-auth-provider-*'`; failures and stale copies emit local error alerts in
+`journalctl --user -t jack-auth-provider-backup`. This is not an off-host
+heartbeat; a host outage cannot notify through its own journal. Service timeouts
+bound normal failures but cannot interrupt a kernel-blocked hard NFS operation.
+
+For recovery, verify the receipt's SHA-256 before decryption. Use the existing
+Infra age recovery identity on a trusted recovery host only; neither the identity
+nor plaintext master key belongs on Stash. Match the receipt's encrypted config
+hashes to `jack-auth/secrets/{postgres,zitadel,smtp}.enc.yaml` in Infra history;
+retain those encrypted revisions, the matching Compose config and image pins,
+and the recovery identity independently of Newport. Check live key/config against
+those inputs when changing them; a dump does not contain the ZITADEL master key.
+
+First restore to an empty isolated PostgreSQL 17 cluster, using the receipt's
+image and bootstrapping `zitadel` as the login superuser and database owner with
+the matching PostgreSQL secret for actual recovery. That is the sole non-system
+role on the dedicated source; the archive contains database objects and grants,
+not global roles or password verifiers. Stream `age -d -i <private-identity>
+zitadel.dump.age` into `pg_restore --exit-on-error -U zitadel -d zitadel` against
+the isolated server (use shell pipefail). Check `eventstore.events2` and expected
+schemas. The first-run helper uses an ephemeral socket-only container without
+production mounts, ports or network. A SQL restore is not an issuer startup test:
+before any cutover, separately validate provider startup with the matching
+`ZITADEL_MASTERKEY`, isolated DSN and version/config, without production routes,
+SMTP delivery or consumer traffic. Keep the UI ledger's recovery separate.
 
 The UI's durable writable mount is
 `/mnt/terrabud/docker-data/newport/jack-auth/ui:/data`. Keep the directory private
