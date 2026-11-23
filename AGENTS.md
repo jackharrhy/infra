@@ -32,6 +32,10 @@ introduce worktrees to avoid coordinating. Preserve unrelated work and live rout
 
 ## Task guidance
 
+Open the relevant skill and linked procedure before changing source or runtime.
+Before pushing an Infra PR, review the staged paths and diff against the PR scope;
+do not sweep a live checkout into a PR with `git add -A`.
+
 - Fleet operations and Watchtower: load [infra-host-maintenance](.agents/skills/infra-host-maintenance/SKILL.md).
 - Host storage, packages and remote access: load [host-system-maintenance](.agents/skills/host-system-maintenance/SKILL.md).
 - Application access, recovery and media: load [infra-services](.agents/skills/infra-services/SKILL.md).

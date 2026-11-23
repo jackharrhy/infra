@@ -145,7 +145,9 @@ services and middleware belong in the host's canonical file:
 
 Do not introduce per-application route fragments. The sole temporary-route
 exception is Newport's CLI-generated, Git-ignored `previews.runtime.yml` described
-below; never hand-write arbitrary preview YAML. Every permanent application,
+below; never hand-write arbitrary preview YAML. Preview cleanup includes stopping
+its separately owned backend after removing the lease; route expiry alone does
+not reclaim resources. Every permanent application,
 redirect, middleware and TLS route must have tracked Compose/YAML source of truth,
 independent of preview expiry or cleanup. Generated production routes require a
 checked-in manifest and generator with a documented apply path; private runtime
@@ -207,7 +209,10 @@ Named previews are opt-in, not a catchall proxy or process launcher:
 
 Permanent registrations have an owner, fixed loopback port and access policy in
 the canonical file. Short-lived previews use the local registry below instead of
-Infra commits per preview. Reserve the apex for p2; never derive an upstream from
+Infra commits per preview. A dependency on real Pi does not turn a temporary UI
+into permanent ingress. The preview registry does not extend Pi's allowed hosts;
+coordinate any additive allowlist change with the runtime owner, and preserve
+Host, Origin and native device authorization rather than rewriting them. Reserve the apex for p2; never derive an upstream from
 arbitrary Host input. Unknown
 names return 404. p2's marker/auth is not shared preview authentication. Traefik
 does not inject Tailscale user identities; do not fabricate those headers or
