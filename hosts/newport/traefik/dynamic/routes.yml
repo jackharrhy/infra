@@ -25,11 +25,6 @@ http:
       entryPoints: [pitailnet]
       service: alderpoint-preview-api
       tls: {}
-    4orm-preview:
-      rule: Host(`4orm.pi.jackharrhy.dev`)
-      entryPoints: [pitailnet]
-      service: 4orm-preview
-      tls: {}
     wonder-site:
       rule: Host(`wonder.pi.jackharrhy.dev`)
       entryPoints: [pitailnet]
@@ -116,11 +111,6 @@ http:
         passHostHeader: true
         servers:
           - url: http://127.0.0.1:54321
-    4orm-preview:
-      loadBalancer:
-        passHostHeader: true
-        servers:
-          - url: http://127.0.0.1:18954
     pi:
       loadBalancer:
         passHostHeader: true
