@@ -10,6 +10,10 @@
     - ns1.digitalocean.com.
     - ns2.digitalocean.com.
     - ns3.digitalocean.com.
+footbag:
+  ttl: 300
+  type: CNAME
+  value: home.jackharrhy.dev.
 '*':
 - type: A
   value: 142.93.144.29
