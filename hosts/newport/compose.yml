@@ -976,6 +976,39 @@ services:
       - "traefik.http.routers.artbin.rule=Host(`artbin.jackharrhy.dev`) || Host(`artbin.harrhy.xyz`)"
       - "traefik.http.routers.artbin.entrypoints=web"
 
+  footbag-web:
+    image: footbag-web:latest
+    pull_policy: never
+    restart: unless-stopped
+    networks: [web]
+    volumes:
+      - type: bind
+        source: /mnt/terrabud/docker-data/newport/footbag/releases
+        target: /usr/share/nginx/html/releases
+        read_only: true
+        bind:
+          create_host_path: false
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=newport_web"
+      - "traefik.http.routers.footbag.rule=Host(`footbag.harrhy.xyz`)"
+      - "traefik.http.routers.footbag.entrypoints=websecure"
+      - "traefik.http.routers.footbag.tls.certresolver=newporthttp"
+      - "traefik.http.routers.footbag.service=footbag"
+      - "traefik.http.services.footbag.loadbalancer.server.port=80"
+      - "com.centurylinklabs.watchtower.enable=false"
+
+  footbag-hub:
+    image: footbag-hub:latest
+    pull_policy: never
+    restart: unless-stopped
+    environment:
+      FOOTBAG_PORT: "7777"
+    ports:
+      - "192.168.2.30:7777:7777/udp"
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+
   world:
     image: ghcr.io/jackharrhy/world:latest
     restart: unless-stopped
